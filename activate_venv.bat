@@ -1,0 +1,1 @@
+.venv\Script\activate.bat
