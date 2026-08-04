@@ -1,0 +1,12 @@
+{
+  "editor.formatOnSave": true,
+  "python.linting.enabled": true,
+  "python.formatting.provider": "none",
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll.pylance": "explicit",
+      "source.organizeImports": "explicit"
+    },
+    "editor.defaultFormatter": null
+  }
+}

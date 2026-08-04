@@ -1,0 +1,159 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-04 20:26+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: .\kintai\admin.py:86
+msgid "Full Name"
+msgstr "名前"
+
+#: .\kintai\apps.py:8
+msgid "Kintai"
+msgstr "勤怠管理"
+
+#: .\kintai\models.py:9
+msgid "Valid"
+msgstr "有効"
+
+#: .\kintai\models.py:10
+msgid "Created at"
+msgstr "作成日時"
+
+#: .\kintai\models.py:11
+msgid "Created by"
+msgstr "作成者"
+
+#: .\kintai\models.py:12
+msgid "Updated at"
+msgstr "更新日時"
+
+#: .\kintai\models.py:13
+msgid "Updated by"
+msgstr "更新者"
+
+#: .\kintai\models.py:32
+msgid "Organization Code"
+msgstr "組織コード"
+
+#: .\kintai\models.py:33
+msgid "Organization Name"
+msgstr "組織名"
+
+#: .\kintai\models.py:40
+msgid "Parent Organization"
+msgstr "親組織"
+
+#: .\kintai\models.py:45
+msgid "Organization"
+msgstr "組織"
+
+#: .\kintai\models.py:46
+msgid "Organizations"
+msgstr "組織"
+
+#: .\kintai\models.py:56
+msgid "Employee Number"
+msgstr "社員番号"
+
+#: .\kintai\models.py:58
+msgid "Email address"
+msgstr "Eメール"
+
+#: .\kintai\models.py:65
+msgid "Belongs to"
+msgstr "所属"
+
+#: .\kintai\models.py:70
+msgid "Member"
+msgstr "社員"
+
+#: .\kintai\models.py:71
+msgid "Members"
+msgstr "社員"
+
+#: .\kintai\templates\admin\kintai\delete_confirmation.html:7
+#: .\kintai\templates\admin\kintai\delete_confirmation.html:14
+#, python-format
+msgid ""
+"Deleting the %(object_name)s '%(object)s' would result in deleting related "
+"objects, but your account doesn't have permission to delete the following "
+"types of objects:"
+msgstr "%(object_name)s \"%(object)s\"を削除すると関連する項目も削除されるべきですが、下記の項目を削除する権限がありません："
+
+#: .\kintai\templates\admin\kintai\delete_confirmation.html:22
+#, python-format
+msgid ""
+"Are you sure you want to delete the %(object_name)s \"%(object)s\"? All of "
+"the following related items will be deleted:"
+msgstr "%(object_name)s \"%(object)s\"を削除しますか？下記の項目が削除されます："
+
+#: .\kintai\templates\admin\kintai\delete_confirmation.html:24
+#, python-format
+msgid "Are you sure you want to restore the %(object_name)s \"%(object)s\"?"
+msgstr "%(object_name)s \"%(object)s\"の削除を取消しますか？"
+
+#: .\kintai\templates\admin\kintai\delete_confirmation.html:36
+msgid "Yes, delete"
+msgstr "はい、削除"
+
+#: .\kintai\templates\admin\kintai\delete_confirmation.html:38
+msgid "Yes, restore"
+msgstr "はい、削除を取消"
+
+#: .\kintai\templates\admin\kintai\delete_confirmation.html:43
+msgid "No, take me back"
+msgstr "戻る"
+
+#: .\kintai\templates\admin\kintai\member\change_form.html:11
+#: .\kintai\templates\admin\kintai\organization\change_form.html:11
+msgid "Restore"
+msgstr "削除の取消"
+
+#: .\templates\registration\login.html:4
+msgid "error:"
+msgstr "エラー"
+
+#: .\templates\registration\login.html:24
+msgid "Please correct the error below."
+msgid_plural "Please correct the errors below."
+msgstr[0] "下記のエラーを修正してください。"
+
+#: .\templates\registration\login.html:40
+#, python-format
+msgid ""
+"You are authenticated as %(username)s, but are not authorized to access this "
+"page. Would you like to login to a different account?"
+msgstr ""
+"%(username)sとして認証されましたが、このページをアクセス権限がありません。別"
+"アカウントで再ログインしますか？"
+
+#: .\templates\registration\login.html:49
+msgid "Username:"
+msgstr "ユーザー名"
+
+#: .\templates\registration\login.html:53
+msgid "Password:"
+msgstr "パスワード"
+
+#: .\templates\registration\login.html:59
+msgid "Forgotten your password or username?"
+msgstr "ユーザー名またはパスワードを忘れましたか？"
+
+#: .\templates\registration\login.html:63
+msgid "Log in"
+msgstr "ログイン"

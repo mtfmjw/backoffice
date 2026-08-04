@@ -22,22 +22,19 @@ activate_venv.bat
 pip install -r requirements.txt
 ```
 
-## データベース環境の初期設定
-
-- デフォルトのpostgresユーザーとしてDBにログインし、postgres/create_user.sqlをPgadmin4で実行してDBユーザーを作成する
-- 新規作成したbackofficeユーザーとしてDBにログインし、postgres/create_database.sqlをPgadmin4で実行してbackoffice用データベースを作成する
-
 ## Django環境の初期設定
 
 - .env_sampleを.envにコピーする（.envはGitリポジトリに保持しない）
 
 ## Dajngo固有テーブルの初期化
 
+[データベースが作成](postgres/データベースの初期設定.md)した後実行すること
+
 ```batch
 python manage.py migrate
 ```
 
-## Django Suer Userの作成
+## Django Super Userの作成
 
 ```batch
 set DJANGO_SUPERUSER_USERNAME=admin

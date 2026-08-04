@@ -1,0 +1,14 @@
+{% extends "admin/change_list.html" %}
+{% load i18n static %}
+
+{% block search %}
+  <div id="toolbar">
+    <form id="changelist-search" method="get">
+      <div>
+        <label for="searchbar"><img src="{% static "admin/img/search.svg" %}" alt="Search"></label>
+        <input type="text" size="40" name="q" value="{{ cl.query }}" id="searchbar" autofocus placeholder="{% if search_help_text %}{{ search_help_text }}{% else %}{% trans 'Search' %}{% endif %}">
+        <input type="submit" value="{% trans 'Search' %}">
+      </div>
+    </form>
+  </div>
+{% endblock %}
