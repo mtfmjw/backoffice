@@ -11,17 +11,17 @@ Djangoでは、`models.py` の変更を直接DBに反映することはできま
 
 ### 1. モデルを編集する
 
-`kintai/models.py` を編集してフィールドの追加・変更・削除を行います。
+`common/models.py` を編集してフィールドの追加・変更・削除を行います。
 
 ---
 
 ### 2. マイグレーションファイルを生成する
 
 ```bash
-python.exe manage.py makemigrations kintai
+python.exe manage.py makemigrations common
 ```
 
-- `kintai/migrations/` 配下に連番付きのファイル（例: `0006_...py`）が生成されます。
+- `common/migrations/` 配下に連番付きのファイル（例: `0001_...py`）が生成されます。
 - 変更がない場合は `No changes detected` と表示されます。
 - 生成されたファイルはGitで管理します。
 
@@ -42,8 +42,8 @@ python.exe manage.py migrate
 
 | コマンド | 説明 |
 |---|---|
-| `manage.py showmigrations kintai` | 適用済み／未適用の一覧を表示 |
-| `manage.py sqlmigrate kintai 0006` | 実行されるSQLを事前確認 |
+| `manage.py showmigrations common` | 適用済み／未適用の一覧を表示 |
+| `manage.py sqlmigrate common 0006` | 実行されるSQLを事前確認 |
 
 ---
 
@@ -52,7 +52,7 @@ python.exe manage.py migrate
 マイグレーションファイルが増えてきた場合、複数のファイルを1つに統合できます。
 
 ```bash
-python.exe manage.py squashmigrations kintai 0001 0005
+python.exe manage.py squashmigrations common
 ```
 
 - `0001` から `0005` までのマイグレーションを1ファイルに圧縮します。
@@ -66,7 +66,7 @@ python.exe manage.py squashmigrations kintai 0001 0005
 3. 旧マイグレーションファイル（`0001`〜`0005`）を削除します。
 
 ```bash
-python.exe manage.py migrate kintai
+python.exe manage.py migrate common
 ```
 
 `No migrations to apply.` と表示されれば正常です。

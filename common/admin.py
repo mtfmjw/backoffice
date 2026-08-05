@@ -1,10 +1,11 @@
 from django.contrib import admin
+from django.contrib.admin import display
 from django.utils.translation import gettext_lazy as _
-
-from kintai.models import Member, Organization
 
 
 class BaseModelAdmin(admin.ModelAdmin):
+    """Base ModelAdmin for common models with soft delete and audit fields"""
+
     base_fields_columns = 2
     readonly_fields = ("valid_flag", "created_by", "created_at", "updated_by", "updated_at")
     list_display = ("valid_flag", "updated_by", "updated_at")
@@ -16,7 +17,7 @@ class BaseModelAdmin(admin.ModelAdmin):
     def get_search_help_text(self):
         """Generate help text for search_fields based on model verbose names, supporting __ lookups."""
         help_texts = []
-        for field_name in self.search_fields:
+        for field_name in getattr(self, "search_fields", []):
             try:
                 # Strip prefix characters (^, -)
                 clean_name = field_name.lstrip("^-")
@@ -86,7 +87,6 @@ class BaseModelAdmin(admin.ModelAdmin):
         return super().get_form(request, obj, **kwargs)
 
 
-@admin.register(Organization)
 class OrganizationAdmin(BaseModelAdmin):
     list_display = ("code", "name", "parent") + BaseModelAdmin.list_display
     search_fields = ("code", "name")
@@ -101,7 +101,6 @@ class OrganizationAdmin(BaseModelAdmin):
     )
 
 
-@admin.register(Member)
 class MemberAdmin(BaseModelAdmin):
     has_add_permission = lambda self, request: False
     readonly_fields = ("user",) + BaseModelAdmin.readonly_fields
@@ -113,11 +112,11 @@ class MemberAdmin(BaseModelAdmin):
         (
             None,
             {
-                "fields": ("user", "organization", "email"),
+                "fields": (("user", "email"), ("organization", "manager_flag")),
             },
         ),
     )
 
-    @admin.display(description=_("Full Name"))
+    @display(description=_("Full Name"))
     def full_name(self, obj):
         return f"{obj.user.last_name} {obj.user.first_name}"

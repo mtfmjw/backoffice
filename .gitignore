@@ -157,6 +157,10 @@ ENV/
 env.bak/
 venv.bak/
 
+# Docker / Podman
+compose/pgadmin-data/*
+!compose/pgadmin-data/.gitkeep
+
 # Spyder project settings
 .spyderproject
 .spyproject

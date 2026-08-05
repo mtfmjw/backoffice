@@ -1,6 +1,60 @@
-from django.contrib import admin
+from django.contrib.admin import AdminSite
+from django.contrib.auth.models import Group
+from django.contrib.auth.models import User as AuthUser
+from django.contrib.auth.views import LoginView
+from django.http import HttpResponseRedirect
+from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
 
 
-admin.site.site_title = 'Django 管理サイト'
-admin.site.site_header = 'Django 管理サイト'
-admin.site.index_title = 'サイト管理'
+class CustomAdminSite(AdminSite):
+    """Custom Admin Site that allows non-staff users to login"""
+
+    site_title = _("バックオフィス")
+    site_header = _("バックオフィス")
+    index_title = _("サイト管理")
+
+    def has_permission(self, request):
+        """
+        Check if the user has permission to access the admin site.
+        Allows any authenticated user, not just staff.
+        """
+        return request.user.is_authenticated
+
+    def login(self, request, extra_context=None):
+        """
+        Overrides the default admin login view to allow any active user.
+        """
+        # If the user is already authenticated, redirect them to the admin index.
+        if request.user.is_authenticated:
+            return HttpResponseRedirect(reverse_lazy("admin:index"))
+
+        extra_context = extra_context or {}
+        extra_context["title"] = "Login"
+
+        # If they are not authenticated, display the login form.
+        # We are essentially using the standard LoginView, but within our custom admin site.
+        return LoginView.as_view(
+            template_name=self.login_template,
+            extra_context={
+                **self.each_context(request),
+                **(extra_context or {}),
+            },
+        )(request)
+
+
+# Create an instance of the custom admin site to be used in urls.py
+admin_site = CustomAdminSite()
+
+from django.contrib.auth.admin import GroupAdmin
+from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
+
+admin_site.register(AuthUser, AuthUserAdmin)
+admin_site.register(Group, GroupAdmin)
+
+
+from common.admin import MemberAdmin, OrganizationAdmin
+from common.models import Member, Organization
+
+admin_site.register(Organization, OrganizationAdmin)
+admin_site.register(Member, MemberAdmin)

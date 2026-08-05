@@ -26,9 +26,21 @@ pip install -r requirements.txt
 
 - .env_sampleを.envにコピーする（.envはGitリポジトリに保持しない）
 
-## Dajngo固有テーブルの初期化
+## データベースの準備（postgresql）
 
-[データベースが作成](postgres/データベースの初期設定.md)した後実行すること
+- postgresqlのインストール
+  - [Containerを立ち上げる](compose/docker-compose.yml)
+
+    **- OR -**
+  - PCに直接インストールする
+  
+- 開発用データベースの作成
+  - [データベースの作成スクリプト](compose/init.sql)
+  
+    **- OR -**
+  - [バックアップファイル](postgres/)より復元
+
+## Dajngo固有テーブルの初期化
 
 ```batch
 python manage.py migrate

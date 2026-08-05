@@ -2,10 +2,10 @@ from django.apps import AppConfig
 from django.utils.translation import gettext_lazy as _
 
 
-class KintaiConfig(AppConfig):
+class CommonConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'kintai'
-    verbose_name = _('Kintai')
+    name = 'common'
+    verbose_name = _('Common')
 
     def ready(self):
-        import kintai.signals  # noqa: F401
+        import common.signals  # noqa: F401
