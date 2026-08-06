@@ -56,7 +56,7 @@ class Member(BaseModel):
         related_name="member",
         verbose_name=_("Employee Number"),
     )
-    email = models.EmailField(verbose_name=_("Email address"))
+    email = models.EmailField(verbose_name=_("Email address"), blank=True, null=True, unique=True)
     organization = models.ForeignKey(
         Organization,
         on_delete=models.SET_NULL,
@@ -74,3 +74,61 @@ class Member(BaseModel):
 
     def __str__(self):
         return f"{self.user.last_name} {self.user.first_name} ({self.user.username})"
+
+class Prefecture(models.Model):
+    """都道府県マスタ"""
+
+    code = models.CharField(_("Prefecture Code"), max_length=2)  # 都道府県コード
+    name = models.CharField(_("Prefecture Name"), max_length=100)  # 都道府県名
+
+    class Meta:  # type: ignore
+        db_table = "prefecture"
+        verbose_name = _("Prefecture")
+        verbose_name_plural = _("Prefectures")
+        ordering = ["code",]
+        constraints = [models.UniqueConstraint(fields=["code",], name="unique_prefecture_code")]
+
+    def __str__(self):
+        return f"{self.name}"
+
+
+class Municipality(models.Model):
+    """市区町村マスタ"""
+
+    code = models.CharField(_("Municipality Code"), max_length=5)  # 市区町村コード
+    name = models.CharField(_("Municipality Name"), max_length=100, blank=True, null=True)  # 市区町村名
+    name_kana = models.CharField(_("Municipality Name Kana"), max_length=100, blank=True, null=True)  # 市区町村名
+    prefecture = models.ForeignKey(Prefecture, verbose_name=_("Prefecture"), on_delete=models.DO_NOTHING, blank=True, null=True)  # 都道府県コード
+
+    class Meta:  # type: ignore
+        db_table = "municipality"
+        verbose_name = _("Municipality")
+        verbose_name_plural = _("Municipalities")
+        ordering = ["code",]
+        constraints = [models.UniqueConstraint(fields=["code",], name="unique_municipality_code")]
+
+    def __str__(self):
+        return f"{self.name}({self.code})"
+    
+class Postcode(BaseModel):
+    """郵便番号マスタ"""
+
+    postcode = models.CharField(_("Postcode"), max_length=7, null=False, blank=False)  # 郵便番号
+    municipality = models.ForeignKey(Municipality, verbose_name=_("Municipality"), on_delete=models.DO_NOTHING, blank=True, null=True)  # 市区町村
+    town_name = models.CharField(_("Town Name"), max_length=100, null=True, blank=True, default="")  # 町域名
+    town_name_kana = models.CharField(_("Town Name Kana"), max_length=100, null=True, blank=True, default="")  # 町域名カナ
+
+    class Meta:  # type: ignore
+        db_table = "postcode"
+        verbose_name = _("Postcode")
+        verbose_name_plural = _("Postcodes")
+        ordering = ["postcode"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["postcode", "municipality", "town_name", "town_name_kana"],
+                name="unique_postcode_postcode_town_name",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.postcode}"

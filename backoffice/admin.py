@@ -42,6 +42,22 @@ class CustomAdminSite(AdminSite):
             },
         )(request)
 
+    def get_app_list(self, request, app_label=None):
+        app_list = super().get_app_list(request, app_label)
+        
+        # 対象のアプリ（common）を探して並び替える
+        for app in app_list:
+            if app['app_label'] == 'common':
+                # 希望するモデルの順序（object_name：モデルのクラス名）をリストで指定
+                ordering = ['Prefecture', 'Municipality', 'Postcode', 'Organization', 'Member']
+                
+                # 指定した順序に従って models リストを並び替え
+                app['models'].sort(
+                    key=lambda x: ordering.index(x['object_name']) if x['object_name'] in ordering else 999
+                )
+                
+        return app_list
+
 
 # Create an instance of the custom admin site to be used in urls.py
 admin_site = CustomAdminSite()
@@ -51,10 +67,3 @@ from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 
 admin_site.register(AuthUser, AuthUserAdmin)
 admin_site.register(Group, GroupAdmin)
-
-
-from common.admin import MemberAdmin, OrganizationAdmin
-from common.models import Member, Organization
-
-admin_site.register(Organization, OrganizationAdmin)
-admin_site.register(Member, MemberAdmin)

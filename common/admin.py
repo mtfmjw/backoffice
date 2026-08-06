@@ -2,6 +2,9 @@ from django.contrib import admin
 from django.contrib.admin import display
 from django.utils.translation import gettext_lazy as _
 
+from common.models import Member, Municipality, Organization, Postcode, Prefecture
+from backoffice.admin import admin_site
+
 
 class BaseModelAdmin(admin.ModelAdmin):
     """Base ModelAdmin for common models with soft delete and audit fields"""
@@ -87,6 +90,53 @@ class BaseModelAdmin(admin.ModelAdmin):
         return super().get_form(request, obj, **kwargs)
 
 
+@admin.register(Prefecture, site=admin_site)
+class PrefectureAdmin(admin.ModelAdmin):
+    list_display = ("code", "name")
+    search_fields = ("code", "name")
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": ("code", "name"),
+            },
+        ),
+    )
+
+
+@admin.register(Municipality, site=admin_site)
+class MunicipalityAdmin(admin.ModelAdmin):
+    list_display = ("prefecture__name","code", "name")
+    search_fields = ("prefecture__name", "code", "name")
+    list_select_related = ()
+    list_filter = ("prefecture__name",)
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": ("prefecture", "code", "name"),
+            },
+        ),
+    )
+
+
+@admin.register(Postcode, site=admin_site)
+class PostcodeAdmin(admin.ModelAdmin):
+    list_display = ("postcode", "municipality")
+    search_fields = ("postcode", "municipality", "town_name")
+    list_select_related = ("municipality",)
+    list_filter = ("municipality__prefecture__name",)
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": ("postcode", "municipality", "town_name", "town_name_kana"),
+            },
+        ),
+    )
+
+
+@admin.register(Organization, site=admin_site)
 class OrganizationAdmin(BaseModelAdmin):
     list_display = ("code", "name", "parent") + BaseModelAdmin.list_display
     search_fields = ("code", "name")
@@ -101,6 +151,7 @@ class OrganizationAdmin(BaseModelAdmin):
     )
 
 
+@admin.register(Member, site=admin_site)
 class MemberAdmin(BaseModelAdmin):
     has_add_permission = lambda self, request: False
     readonly_fields = ("user",) + BaseModelAdmin.readonly_fields

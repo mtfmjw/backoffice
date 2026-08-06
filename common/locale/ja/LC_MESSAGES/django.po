@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-05 16:42+0900\n"
+"POT-Creation-Date: 2026-08-06 16:55+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: .\common\admin.py:121
+#: .\common\admin.py:125
 msgid "Full Name"
 msgstr "名前"
 
@@ -89,6 +89,58 @@ msgstr "社員"
 #: .\common\models.py:73
 msgid "Members"
 msgstr "社員"
+
+#: .\common\models.py:81
+msgid "Prefecture Code"
+msgstr "都道府県コード"
+
+#: .\common\models.py:82
+msgid "Prefecture Name"
+msgstr "都道府県名"
+
+#: .\common\models.py:86 .\common\models.py:101
+msgid "Prefecture"
+msgstr "都道府県"
+
+#: .\common\models.py:87
+msgid "Prefectures"
+msgstr "都道府県"
+
+#: .\common\models.py:98
+msgid "Municipality Code"
+msgstr "市区町村コード"
+
+#: .\common\models.py:99
+msgid "Municipality Name"
+msgstr "市区町村名"
+
+#: .\common\models.py:100
+msgid "Municipality Name Kana"
+msgstr "市区町村名カナ"
+
+#: .\common\models.py:105 .\common\models.py:117
+msgid "Municipality"
+msgstr "市区町村"
+
+#: .\common\models.py:106
+msgid "Municipalities"
+msgstr "市区町村"
+
+#: .\common\models.py:116 .\common\models.py:123
+msgid "Postcode"
+msgstr "郵便番号"
+
+#: .\common\models.py:118
+msgid "Town Name"
+msgstr "町域名"
+
+#: .\common\models.py:119
+msgid "Town Name Kana"
+msgstr "町域名カナ"
+
+#: .\common\models.py:124
+msgid "Postcodes"
+msgstr "郵便番号"
 
 #: .\common\templates\admin\common\change_list.html:9
 #: .\common\templates\admin\common\change_list.html:10

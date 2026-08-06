@@ -17,6 +17,6 @@ def create_member_for_new_user(sender, instance, created, **kwargs):
         member = Member.objects.filter(user=instance).first()
         if member is None:
             Member.objects.get_or_create(user=instance, defaults={"email": instance.email})
-        elif instance.email and member.email is None and instance.email != member.email:
+        elif instance.email and (member.email is None or instance.email != member.email):
             member.email = instance.email
             member.save()
