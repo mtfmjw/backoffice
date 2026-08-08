@@ -4,15 +4,15 @@ import logging
 import os
 from pathlib import Path
 
+from django.utils import timezone
+
 
 class MillisecondFormatter(logging.Formatter):
     """Custom formatter to include milliseconds in log timestamps."""
 
     def formatTime(self, record, datefmt=None):
         """Format time with milliseconds."""
-        import datetime
-
-        ct = datetime.datetime.fromtimestamp(record.created)
+        ct = timezone.datetime.fromtimestamp(record.created)
         if datefmt:
             # Replace %f with milliseconds
             if "%f" in datefmt:
