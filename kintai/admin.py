@@ -1,11 +1,13 @@
 from django.contrib import admin
 from django.utils.timezone import localdate
 from import_export import fields, resources
-from import_export.admin import ImportMixin
+from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import DateWidget
 
 from backoffice.admin import admin_site
 from kintai.models import Holiday
+
+CALENDAR_START_YEAR = 2020  # カレンダーの開始年を設定
 
 
 class HolidayResource(resources.ModelResource):
@@ -39,11 +41,13 @@ class YearlyHolidayFilter(admin.SimpleListFilter):
         今年を中心に [去年, 今年, 来年] の選択肢を動的に生成します。
         必要に応じて前後の年数を増やすことも可能です。
         """
-        start_year = localdate().year - 10  # 過去の年数を制限する場合はここで設定
+        start_year = CALENDAR_START_YEAR  # カレンダーの開始年
         end_year = localdate().year + 1  # 将来の年数を制限する場合はここで設定
         years = list(range(end_year, start_year, -1))
 
         choices = [(str(y), f"{y}年") for y in years]
+        choices.append(("all", "全期間"))
+
         return choices
 
     def queryset(self, request, queryset):
@@ -54,6 +58,10 @@ class YearlyHolidayFilter(admin.SimpleListFilter):
         if value is None:
             return queryset.filter(date__year=current_year)
 
+        # 「全期間」選択時 -> 全て表示
+        if value == "all":
+            return queryset.filter(date__year__gte=CALENDAR_START_YEAR)
+
         # 特定の「年」選択時 -> その1年分のみ表示
         if value.isdigit():
             return queryset.filter(date__year=int(value))
@@ -62,7 +70,7 @@ class YearlyHolidayFilter(admin.SimpleListFilter):
 
 
 @admin.register(Holiday, site=admin_site)
-class HolidayAdmin(ImportMixin, admin.ModelAdmin):
+class HolidayAdmin(ImportExportModelAdmin):
     resource_class = HolidayResource
     use_bulk = True
     list_display = ("date", "type", "name")
