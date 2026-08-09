@@ -133,6 +133,23 @@ USE_I18N = True
 
 USE_TZ = True
 
+# 日時・時刻の表示・入力フォーマット（秒を除外）
+TIME_FORMAT = "H:i"
+DATETIME_FORMAT = "Y/m/d H:i"
+
+# 管理画面等のフォーム入力で許可するフォーマット
+TIME_INPUT_FORMATS = [
+    "%H:%M",  # '09:30'
+    "%H:%M:%S",  # '09:30:00' (互換性のため残す)
+]
+
+DATETIME_INPUT_FORMATS = [
+    "%Y-%m-%d %H:%M",
+    "%Y/%m/%d %H:%M",
+]
+
+# USE_L10N が True だと settings の設定より言語別設定が優先されるため False にします
+USE_L10N = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
