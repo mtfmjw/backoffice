@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import timedelta
 
 from django.db import models
 from django.utils.timezone import datetime, localdate
@@ -8,6 +8,7 @@ from common.models import Member
 
 NIGHT_WORK_START_TIME = datetime.strptime("22:00", "%H:%M").time()
 NIGHT_WORK_END_TIME = datetime.strptime("05:00", "%H:%M").time()
+HALF_DAY_MINUTES = 240  # 半日休暇の時間（分）
 
 
 class Holiday(models.Model):
@@ -15,14 +16,14 @@ class Holiday(models.Model):
     祝日・休日マスタ（国民の祝日、会社制定休日、法定休日、法定外休日、振替出勤日など）
     """
 
-    class Category(models.TextChoices):
+    class Type(models.TextChoices):
         NATIONAL_HOLIDAY = "national", _("国民の祝日")
         COMPANY_HOLIDAY = "company", _("会社制定休日（夏季・年末年始等）")
         LEGAL_HOLIDAY = "legal", _("法定休日")
         NON_LEGAL_HOLIDAY = "non_legal", _("法定外休日（所定休日）")
 
     date = models.DateField(_("日付"), unique=True)
-    type = models.CharField(_("区分"), max_length=20, choices=Category.choices, default=Category.NATIONAL_HOLIDAY, null=False, blank=False)
+    type = models.CharField(_("区分"), max_length=20, choices=Type.choices, default=Type.NATIONAL_HOLIDAY, null=False, blank=False)
     name = models.CharField(_("休日名称"), max_length=100, help_text=_("例: 元日、夏季休暇、創立記念日"), null=False, blank=False)
 
     class Meta:
@@ -124,7 +125,7 @@ class WorkPattern(models.Model):
 class AttendanceRecord(models.Model):
     """日次勤怠テーブル（1人1日あたりの確定データ）"""
 
-    class DateStatus(models.IntegerChoices):
+    class DateType(models.IntegerChoices):
         PRESENT = 0, _("出勤")
         ABSENT = 1, _("欠勤")
         MORNING_PAID_LEAVE = 2, _("午前半休")
@@ -143,7 +144,7 @@ class AttendanceRecord(models.Model):
     member = models.ForeignKey(Member, on_delete=models.DO_NOTHING, related_name="attendance_records", verbose_name=_("社員"))
     work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name=_("勤務形態"))
     date = models.DateField(_("対象日"))
-    date_status = models.CharField(_("勤務状態"), max_length=20, choices=DateStatus.choices, default=DateStatus.PRESENT)
+    date_type = models.CharField(_("勤務状態"), max_length=20, choices=DateType.choices, default=DateType.PRESENT)
     approve_status = models.CharField(_("処理状態"), max_length=20, choices=ApproveStatus.choices, default=ApproveStatus.ENTRY)
     reject_reason = models.CharField(_("却下理由"), max_length=255, blank=True)
     note = models.CharField(_("備考"), max_length=255, blank=True)
@@ -231,6 +232,37 @@ class AttendanceRecord(models.Model):
             return minutes
         return 0
 
+    def standard_start_time(self):
+        """標準勤務開始時刻を返す"""
+        start_time = self.work_pattern.start_time
+        if self.date_type == self.DateType.AFTERNOON_PAID_LEAVE:
+            # 午後半休の場合は、標準勤務開始時刻を休憩終了時刻に設定
+            start_time = self.work_pattern.start_time + timedelta(minutes=HALF_DAY_MINUTES)
+            if (
+                start_time > self.work_pattern.lunch_break_end_time
+                and self.clock_in_time
+                and self.clock_in_time.time() <= self.work_pattern.lunch_break_end_time
+            ):
+                # 半日休暇の時間が勤務時間を超える場合は、標準勤務開始時刻を標準勤務終了時刻に設定
+                start_time = self.work_pattern.lunch_break_end_time
+        return start_time
+
+    def standard_end_time(self):
+        """標準勤務終了時刻を返す"""
+        end_time = self.work_pattern.end_time
+        if self.date_type == self.DateType.MORNING_PAID_LEAVE:
+            # 午前半休の場合は、標準勤務終了時刻を休憩開始時刻に設定
+            end_time = self.work_pattern.start_time + timedelta(minutes=HALF_DAY_MINUTES)
+        return end_time
+
+    def is_late(self):
+        """遅刻かどうかを判定する"""
+        return self.clock_in_time and self.clock_in_time.time() > self.standard_start_time()
+
+    def is_early_leave(self):
+        """早退かどうかを判定する"""
+        return self.clock_out_time and self.clock_out_time.time() < self.standard_end_time()
+
     # 管理画面や画面表示用に「○時間×分」で取得するヘルパーメソッド
     def actual_work_minutes(self):
         """実労働時間を分単位で返す"""
@@ -258,7 +290,7 @@ class AttendanceRecord(models.Model):
         """残業時間を分単位で返す"""
         if self.clock_in_time and self.clock_out_time:
             actual_work_minutes = self.actual_work_minutes()
-            standard_work_minutes = get_duration_in_minutes(self.work_pattern.start_time, self.work_pattern.end_time)
+            standard_work_minutes = get_duration_in_minutes(self.standard_start_time(), self.standard_end_time())
             return max(actual_work_minutes - standard_work_minutes, 0)
         return 0
 
