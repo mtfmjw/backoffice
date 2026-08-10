@@ -26,3 +26,13 @@ class Postcode(models.Model):
 
     def __str__(self):
         return f"{self.postcode}"
+
+
+class PostcodeImport(models.Model):
+    postcode = models.CharField(_("Postcode"), max_length=7, null=False, blank=False)  # 郵便番号
+    municipality_code = models.CharField(_("Municipality Code"), max_length=10, null=True, blank=True)  # 市区町村コード
+    town_name = models.CharField(_("Town Name"), max_length=1000, null=True, blank=True, default="")  # 町域名
+    town_name_kana = models.CharField(_("Town Name Kana"), max_length=1000, null=True, blank=True, default="")  # 町域名カナ
+
+    class Meta:  # type: ignore
+        db_table = "tmp_postcode_import"
