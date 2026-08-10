@@ -13,6 +13,7 @@ class CustomAdminSite(AdminSite):
     site_title = _("バックオフィス")
     site_header = _("バックオフィス")
     index_title = _("サイト管理")
+    login_template = "registration/login.html"
 
     def has_permission(self, request):
         """
@@ -55,7 +56,7 @@ class CustomAdminSite(AdminSite):
                 app["models"].sort(key=lambda x: ordering.index(x["object_name"]) if x["object_name"] in ordering else 999)
             elif app["app_label"] == "kintai":
                 # 希望するモデルの順序（object_name：モデルのクラス名）をリストで指定
-                ordering = ["Holiday", "WorkPattern"]
+                ordering = ["MonthlyAttendance", "DailyAttendance"]
 
                 # 指定した順序に従って models リストを並び替え
                 app["models"].sort(key=lambda x: ordering.index(x["object_name"]) if x["object_name"] in ordering else 999)

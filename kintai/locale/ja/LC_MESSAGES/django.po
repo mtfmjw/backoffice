@@ -1,0 +1,175 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-10 17:23+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: .\kintai\models\daily_attendance.py:16
+msgid "出勤"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:17
+msgid "欠勤"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:18
+msgid "午前半休"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:19
+msgid "午後半休"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:20
+msgid "有休"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:21
+msgid "特別休暇"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:22
+msgid "休日"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:24
+#: .\kintai\models\monthly_attendence.py:37
+msgid "月次勤怠"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:25
+#: .\kintai\models\monthly_attendence.py:25
+msgid "勤務形態"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:26
+msgid "対象日"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:27
+msgid "勤務状態"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:28
+#: .\kintai\models\monthly_attendence.py:33
+msgid "備考"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:30
+msgid "出勤日時"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:31
+msgid "退勤日時"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:32
+msgid "ランチ休憩有無"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:33
+msgid "休憩1有無"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:34
+msgid "休憩2有無"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:35
+msgid "休憩3有無"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:36
+msgid "休憩4有無"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:37
+msgid "休憩5有無"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:38
+msgid "その他休憩時間（分）"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:42
+msgid "日次勤怠"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:43
+msgid "日次勤怠一覧"
+msgstr ""
+
+#: .\kintai\models\monthly_attendence.py:18
+msgid "入力中"
+msgstr ""
+
+#: .\kintai\models\monthly_attendence.py:19
+msgid "申請済"
+msgstr ""
+
+#: .\kintai\models\monthly_attendence.py:20
+msgid "承認済"
+msgstr ""
+
+#: .\kintai\models\monthly_attendence.py:21
+msgid "却下"
+msgstr ""
+
+#: .\kintai\models\monthly_attendence.py:22
+msgid "確定済"
+msgstr ""
+
+#: .\kintai\models\monthly_attendence.py:24
+msgid "社員"
+msgstr ""
+
+#: .\kintai\models\monthly_attendence.py:26
+msgid "対象月"
+msgstr ""
+
+#: .\kintai\models\monthly_attendence.py:26
+msgid "対象月の1日を指定してください。例: 2023-01-01"
+msgstr ""
+
+#: .\kintai\models\monthly_attendence.py:27
+msgid "処理状態"
+msgstr ""
+
+#: .\kintai\models\monthly_attendence.py:28
+msgid "実労働時間（分）"
+msgstr ""
+
+#: .\kintai\models\monthly_attendence.py:29
+msgid "残業時間（分）"
+msgstr ""
+
+#: .\kintai\models\monthly_attendence.py:30
+msgid "深夜労働時間（分）"
+msgstr ""
+
+#: .\kintai\models\monthly_attendence.py:31
+msgid "出勤日数"
+msgstr ""
+
+#: .\kintai\models\monthly_attendence.py:32
+msgid "有給休暇日数"
+msgstr ""
+
+#: .\kintai\models\monthly_attendence.py:38
+msgid "月次勤怠一覧"
+msgstr ""
+
