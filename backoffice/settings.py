@@ -36,14 +36,14 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     "import_export",
+    "common",
+    "kintai",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "common",
-    "kintai",
 ]
 
 MIDDLEWARE = [
