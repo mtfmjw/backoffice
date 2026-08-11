@@ -1,5 +1,5 @@
 from .base import BaseModelAdmin
-from .filters import MonthlyFilter, PrefectureFilter, YearlyFilter
+from .filters import PrefectureFilter, YearlyFilter
 from .holiday import HolidayAdmin
 from .member import MemberAdmin
 from .municipality import MunicipalityAdmin
@@ -8,11 +8,10 @@ from .postcode import PostcodeAdmin
 from .prefecture import PrefectureAdmin
 from .work_pattern import WorkPatternAdmin
 
-__all__ = [
+__all__ = [  # noqa: RUF022
     "BaseModelAdmin",
     "PrefectureFilter",
     "YearlyFilter",
-    "MonthlyFilter",
     "HolidayAdmin",
     "MemberAdmin",
     "MunicipalityAdmin",
