@@ -8,7 +8,7 @@ from common.models.work_pattern import WorkPattern
 class Organization(BaseModel):
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Organization Code"))
     name = models.CharField(max_length=255, verbose_name=_("Organization Name"))
-    work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True)
+    work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name=_("Work Pattern"))
     parent = models.ForeignKey(
         "self", on_delete=models.SET_NULL, null=True, blank=True, related_name="children", verbose_name=_("Parent Organization")
     )

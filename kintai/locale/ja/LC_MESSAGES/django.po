@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 17:23+0900\n"
+"POT-Creation-Date: 2026-08-13 06:24+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
+#: .\kintai\apps.py:7
+msgid "勤怠管理"
+msgstr ""
 
 #: .\kintai\models\daily_attendance.py:16
 msgid "出勤"
@@ -52,7 +56,6 @@ msgid "月次勤怠"
 msgstr ""
 
 #: .\kintai\models\daily_attendance.py:25
-#: .\kintai\models\monthly_attendence.py:25
 msgid "勤務形態"
 msgstr ""
 
@@ -137,28 +140,28 @@ msgstr ""
 msgid "社員"
 msgstr ""
 
+#: .\kintai\models\monthly_attendence.py:25
+msgid "勤務パターン"
+msgstr ""
+
 #: .\kintai\models\monthly_attendence.py:26
 msgid "対象月"
 msgstr ""
 
-#: .\kintai\models\monthly_attendence.py:26
-msgid "対象月の1日を指定してください。例: 2023-01-01"
-msgstr ""
-
 #: .\kintai\models\monthly_attendence.py:27
-msgid "処理状態"
+msgid "状態"
 msgstr ""
 
 #: .\kintai\models\monthly_attendence.py:28
-msgid "実労働時間（分）"
+msgid "実労働時間"
 msgstr ""
 
 #: .\kintai\models\monthly_attendence.py:29
-msgid "残業時間（分）"
+msgid "残業時間"
 msgstr ""
 
 #: .\kintai\models\monthly_attendence.py:30
-msgid "深夜労働時間（分）"
+msgid "深夜労働時間"
 msgstr ""
 
 #: .\kintai\models\monthly_attendence.py:31
@@ -166,10 +169,47 @@ msgid "出勤日数"
 msgstr ""
 
 #: .\kintai\models\monthly_attendence.py:32
-msgid "有給休暇日数"
+msgid "有休日数"
 msgstr ""
 
 #: .\kintai\models\monthly_attendence.py:38
 msgid "月次勤怠一覧"
 msgstr ""
 
+#: .\kintai\templates\admin\app_list.html:8
+#, python-format
+msgid "Models in the %(name)s application"
+msgstr ""
+
+#: .\kintai\templates\admin\app_list.html:12
+msgid "Model name"
+msgstr ""
+
+#: .\kintai\templates\admin\app_list.html:13
+msgid "Add link"
+msgstr ""
+
+#: .\kintai\templates\admin\app_list.html:14
+msgid "Change or view list link"
+msgstr ""
+
+#: .\kintai\templates\admin\app_list.html:33
+msgid "Add"
+msgstr ""
+
+#: .\kintai\templates\admin\app_list.html:42
+msgid "View"
+msgstr ""
+
+#: .\kintai\templates\admin\app_list.html:44
+msgid "Change"
+msgstr ""
+
+#: .\kintai\templates\admin\app_list.html:56
+msgid "You don’t have permission to view or edit anything."
+msgstr ""
+
+#: .\kintai\templates\kintai\monthly_attendance_change_list.html:7
+#, python-format
+msgid "Add %(name)s"
+msgstr ""

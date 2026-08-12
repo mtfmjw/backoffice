@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 17:23+0900\n"
+"POT-Creation-Date: 2026-08-13 06:26+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
+#: .\common\admin\base.py:20
+msgid "更新日時"
+msgstr ""
 
 #: .\common\apps.py:8
 msgid "Common"
@@ -89,6 +93,10 @@ msgstr "Eメール"
 #: .\common\models\member.py:14
 msgid "Belongs to"
 msgstr "所属"
+
+#: .\common\models\member.py:16 .\common\models\organization.py:11
+msgid "Work Pattern"
+msgstr "勤務パターン"
 
 #: .\common\models\member.py:17
 msgid "Manager Flag"
@@ -176,7 +184,7 @@ msgid "Prefectures"
 msgstr "都道府県"
 
 #: .\common\models\work_pattern.py:10
-msgid "勤務形態名"
+msgid "勤務パターン名"
 msgstr ""
 
 #: .\common\models\work_pattern.py:11
@@ -236,7 +244,7 @@ msgid "休憩5終了時刻"
 msgstr ""
 
 #: .\common\models\work_pattern.py:29 .\common\models\work_pattern.py:30
-msgid "勤務形態"
+msgid "勤務パターン"
 msgstr ""
 
 #: .\common\templates\admin\common\change_list.html:9
@@ -284,6 +292,3 @@ msgstr "戻る"
 #: .\common\templates\admin\common\organization\change_form.html:11
 msgid "Restore"
 msgstr "削除の取消"
-
-#~ msgid "Full Name"
-#~ msgstr "名前"

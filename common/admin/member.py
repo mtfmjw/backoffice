@@ -1,17 +1,18 @@
 from django.contrib import admin
 from django.contrib.admin import display
+from import_export.admin import ImportExportModelAdmin
 
 from backoffice.admin import admin_site
 from common.models import Member
 
-from .base import BaseModelAdmin
+from .base import BaseModelAdminMixin
 
 
 @admin.register(Member, site=admin_site)
-class MemberAdmin(BaseModelAdmin):
+class MemberAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
     has_add_permission = lambda self, request: False
-    readonly_fields = ("user",) + BaseModelAdmin.readonly_fields
-    list_display = ("full_name", "user", "email", "organization") + BaseModelAdmin.list_display
+    readonly_fields = ("user",) + BaseModelAdminMixin.readonly_fields
+    list_display = ("full_name", "user", "email", "organization") + BaseModelAdminMixin.list_display
     search_fields = (
         "user__username",
         "user__first_name",
@@ -20,7 +21,7 @@ class MemberAdmin(BaseModelAdmin):
         "organization__name",
     )
     list_select_related = ("user", "organization")
-    list_filter = ("organization",) + BaseModelAdmin.list_filter
+    list_filter = ("organization",) + BaseModelAdminMixin.list_filter
     fieldsets = (
         (
             None,

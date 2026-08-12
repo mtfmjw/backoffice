@@ -1,4 +1,4 @@
-from .base import BaseModelAdmin
+from .base import BaseModelAdminMixin
 from .filters import PrefectureFilter, YearlyFilter
 from .holiday import HolidayAdmin
 from .member import MemberAdmin
@@ -9,7 +9,7 @@ from .prefecture import PrefectureAdmin
 from .work_pattern import WorkPatternAdmin
 
 __all__ = [  # noqa: RUF022
-    "BaseModelAdmin",
+    "BaseModelAdminMixin",
     "PrefectureFilter",
     "YearlyFilter",
     "HolidayAdmin",

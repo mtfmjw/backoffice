@@ -13,7 +13,7 @@ class Member(BaseModel):
     organization = models.ForeignKey(
         Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name="members", verbose_name=_("Belongs to")
     )
-    work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True)
+    work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name=_("Work Pattern"))
     manager_flag = models.BooleanField(default=False, verbose_name=_("Manager Flag"))
 
     class Meta:

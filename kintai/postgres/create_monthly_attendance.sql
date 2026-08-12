@@ -10,10 +10,12 @@ DECLARE
     v_work_pattern_id INT;
 BEGIN
     -- 1. Resolve work_pattern_id (member level -> organization fallback)
-    SELECT COALESCE(mb.work_pattern_id, org.work_pattern_id)
+    SELECT COALESCE(mb.work_pattern_id, org.work_pattern_id, wp.id)
     INTO v_work_pattern_id
     FROM member mb
     LEFT JOIN organization org ON org.id = mb.organization_id
+    LEFT JOIN work_pattern wp
+    on wp.name = '所定'
     WHERE mb.id = p_member_id
     LIMIT 1;
 
