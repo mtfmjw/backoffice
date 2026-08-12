@@ -25,12 +25,12 @@ class MonthlyAttendance(BaseModel):
     work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name=_("勤務形態"))
     date = models.DateField(_("対象月"))  # 月次勤怠の対象月（1日固定）
     approve_status = models.CharField(_("処理状態"), max_length=20, choices=ApproveStatus.choices, default=ApproveStatus.ENTRY)
-    actual_work_minutes = models.PositiveIntegerField(_("実労働時間（分）"), default=0)
-    overtime_minutes = models.PositiveIntegerField(_("残業時間（分）"), default=0)
-    night_work_minutes = models.PositiveIntegerField(_("深夜労働時間（分）"), default=0)
-    worked_days = models.PositiveIntegerField(_("出勤日数"), default=0)
-    paid_leave_days = models.PositiveIntegerField(_("有給休暇日数"), default=0)  # 半休含めて
-    note = models.CharField(_("備考"), max_length=255, blank=True)
+    actual_work_minutes = models.PositiveIntegerField(_("実労働時間（分）"), null=True, blank=True)
+    overtime_minutes = models.PositiveIntegerField(_("残業時間（分）"), null=True, blank=True)
+    night_work_minutes = models.PositiveIntegerField(_("深夜労働時間（分）"), null=True, blank=True)
+    worked_days = models.PositiveIntegerField(_("出勤日数"), null=True, blank=True)
+    paid_leave_days = models.PositiveIntegerField(_("有給休暇日数"), null=True, blank=True)  # 半休含めて
+    note = models.CharField(_("備考"), max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = "attendance_monthly"

@@ -6,7 +6,7 @@ from django.utils.timezone import datetime
 from django.utils.translation import gettext_lazy as _
 
 from common.models import WorkPattern, get_duration_in_minutes
-from kintai.models.monthly_attendence import HALF_DAY_MINUTES, MonthlyAttendance
+from kintai.models.monthly_attendence import HALF_DAY_MINUTES, NIGHT_END_TIME, NIGHT_START_TIME, MonthlyAttendance
 
 
 class DailyAttendance(models.Model):
@@ -25,17 +25,17 @@ class DailyAttendance(models.Model):
     work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name=_("勤務形態"))
     date = models.DateField(_("対象日"))
     date_type = models.CharField(_("勤務状態"), max_length=20, choices=DateType.choices, default=DateType.PRESENT)
-    note = models.CharField(_("備考"), max_length=255, blank=True)
+    note = models.CharField(_("備考"), max_length=255, null=True, blank=True)
 
     clock_in_time = models.DateTimeField(_("出勤日時"), null=True, blank=True)
     clock_out_time = models.DateTimeField(_("退勤日時"), null=True, blank=True)
-    has_lunch_break = models.BooleanField(_("ランチ休憩有無"), default=True)
-    has_break1 = models.BooleanField(_("休憩1有無"), default=True)
-    has_break2 = models.BooleanField(_("休憩2有無"), default=True)
-    has_break3 = models.BooleanField(_("休憩3有無"), default=True)
-    has_break4 = models.BooleanField(_("休憩4有無"), default=True)
-    has_break5 = models.BooleanField(_("休憩5有無"), default=True)
-    other_break_minutes = models.PositiveIntegerField(_("その他休憩時間（分）"), default=0)
+    has_lunch_break = models.BooleanField(_("ランチ休憩有無"), null=True, blank=True)
+    has_break1 = models.BooleanField(_("休憩1有無"), null=True, blank=True)
+    has_break2 = models.BooleanField(_("休憩2有無"), null=True, blank=True)
+    has_break3 = models.BooleanField(_("休憩3有無"), null=True, blank=True)
+    has_break4 = models.BooleanField(_("休憩4有無"), null=True, blank=True)
+    has_break5 = models.BooleanField(_("休憩5有無"), null=True, blank=True)
+    other_break_minutes = models.PositiveIntegerField(_("その他休憩時間（分）"), default=0, null=True, blank=True)
 
     class Meta:
         db_table = "attendance_daily"
@@ -206,8 +206,8 @@ class DailyAttendance(models.Model):
         """深夜労働時間を分単位で返す"""
         if self.clock_in_time and self.clock_out_time:
             # 深夜労働時間の計算
-            night_work_start = datetime.combine(self.date, NIGHT_standard_start_time)
-            night_work_end = datetime.combine(self.date + timedelta(days=1), NIGHT_standard_end_time)
+            night_work_start = datetime.combine(self.date, NIGHT_START_TIME)
+            night_work_end = datetime.combine(self.date + timedelta(days=1), NIGHT_END_TIME)
 
             # 出勤・退勤時間をdatetimeに変換
             clock_in_datetime = self.clock_in_time

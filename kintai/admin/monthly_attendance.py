@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.core.exceptions import PermissionDenied
+from django.db import connection, transaction
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils import timezone
@@ -83,18 +84,15 @@ class MonthlyAttendanceAdmin(BaseModelAdmin):
     search_fields = ("member__code", "member__name")
     list_select_related = ("member", "work_pattern")
     list_filter = (MonthlyFilter, "approve_status") + BaseModelAdmin.list_filter
-    readonly_fields = ("member", "approve_status") + BaseModelAdmin.readonly_fields
-    fieldsets = (
-        (
-            None,
-            {
-                "fields": (
-                    ("date", "approve_status"),
-                    ("member", "work_pattern"),
-                    ("actual_work_minutes", "overtime_minutes", "night_work_minutes", "worked_days", "paid_leave_days"),
-                ),
-            },
-        ),
+    readonly_fields = (
+        "member",
+        "date",
+        "approve_status",
+        "actual_work_minutes",
+        "overtime_minutes",
+        "night_work_minutes",
+        "worked_days",
+        "paid_leave_days",
     )
 
     def has_add_permission(self, request):
@@ -128,6 +126,20 @@ class MonthlyAttendanceAdmin(BaseModelAdmin):
 
         return initial
 
+    def get_fieldsets(self, request, obj=None):
+        return (
+            (
+                None,
+                {
+                    "fields": (
+                        ("member", "date", "approve_status"),
+                        "work_pattern",
+                        ("actual_work_minutes", "overtime_minutes", "night_work_minutes", "worked_days", "paid_leave_days"),
+                    ),
+                },
+            ),
+        )
+
     def add_view(self, request, form_url="", extra_context=None):
         if not request.user.is_authenticated or not hasattr(request.user, "member"):
             raise PermissionDenied
@@ -135,15 +147,22 @@ class MonthlyAttendanceAdmin(BaseModelAdmin):
         member = request.user.member
         month_str = request.GET.get("month")
         first_day = datetime.strptime(month_str, "%Y-%m").date()  # noqa: DTZ007
-        attendance, created = MonthlyAttendance.objects.get_or_create(  # noqa: RUF059
-            member=member,
-            date=first_day,
-            defaults={"member": member, "date": first_day},
-        )
+        attendance = MonthlyAttendance.objects.filter(member=member, date=first_day).first()
+        if attendance:
+            attendance_id = attendance.id
+        else:
+            with transaction.atomic(), connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    CALL create_monthly_attendance(%s, %s, %s, %s);
+                    """,
+                    [member.id, first_day, request.user.username, 0],
+                )
+                attendance_id = cursor.fetchone()[0]
 
         return redirect(
             reverse(
                 "admin:kintai_monthlyattendance_change",
-                args=(attendance.pk,),
+                args=(attendance_id,),
             )
         )
