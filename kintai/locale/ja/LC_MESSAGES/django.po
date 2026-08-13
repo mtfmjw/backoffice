@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-13 06:24+0900\n"
+"POT-Creation-Date: 2026-08-14 09:22+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,97 +22,142 @@ msgstr ""
 msgid "勤怠管理"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:16
-msgid "出勤"
-msgstr ""
-
-#: .\kintai\models\daily_attendance.py:17
-msgid "欠勤"
-msgstr ""
-
 #: .\kintai\models\daily_attendance.py:18
-msgid "午前半休"
+msgid "出勤日"
 msgstr ""
 
 #: .\kintai\models\daily_attendance.py:19
-msgid "午後半休"
+msgid "所定休"
 msgstr ""
 
 #: .\kintai\models\daily_attendance.py:20
-msgid "有休"
+msgid "法定休"
 msgstr ""
 
 #: .\kintai\models\daily_attendance.py:21
-msgid "特別休暇"
+msgid "祝日"
 msgstr ""
 
 #: .\kintai\models\daily_attendance.py:22
-msgid "休日"
+msgid "振替休日"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:24
+#: .\kintai\models\daily_attendance.py:25
+#: .\kintai\models\daily_attendance.py:49
+msgid "出勤"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:26
+msgid "休み"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:27
+msgid "遅刻"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:28
+msgid "早退"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:29
+msgid "欠勤"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:30
+msgid "遅刻・早退"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:31
+msgid "午前休"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:32
+msgid "午後休"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:33
+msgid "有休"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:35
+msgid "特別休"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:37
+msgid "振休"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:39
+msgid "代休"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:40
+msgid "SP5"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:42
 #: .\kintai\models\monthly_attendence.py:37
 msgid "月次勤怠"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:25
+#: .\kintai\models\daily_attendance.py:43
 msgid "勤務形態"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:26
+#: .\kintai\models\daily_attendance.py:44
 msgid "対象日"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:27
-msgid "勤務状態"
+#: .\kintai\models\daily_attendance.py:45
+msgid "勤務区分"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:28
+#: .\kintai\models\daily_attendance.py:46
+msgid "勤怠状況"
+msgstr ""
+
+#: .\kintai\models\daily_attendance.py:47
 #: .\kintai\models\monthly_attendence.py:33
 msgid "備考"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:30
-msgid "出勤日時"
+#: .\kintai\models\daily_attendance.py:50
+msgid "退勤"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:31
-msgid "退勤日時"
+#: .\kintai\models\daily_attendance.py:51
+msgid "昼休憩"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:32
-msgid "ランチ休憩有無"
+#: .\kintai\models\daily_attendance.py:52
+msgid "休憩1"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:33
-msgid "休憩1有無"
+#: .\kintai\models\daily_attendance.py:53
+msgid "休憩2"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:34
-msgid "休憩2有無"
+#: .\kintai\models\daily_attendance.py:54
+msgid "休憩3"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:35
-msgid "休憩3有無"
+#: .\kintai\models\daily_attendance.py:55
+msgid "休憩4"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:36
-msgid "休憩4有無"
+#: .\kintai\models\daily_attendance.py:56
+msgid "休憩5"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:37
-msgid "休憩5有無"
+#: .\kintai\models\daily_attendance.py:57
+msgid "一時不在(分)"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:38
-msgid "その他休憩時間（分）"
-msgstr ""
-
-#: .\kintai\models\daily_attendance.py:42
+#: .\kintai\models\daily_attendance.py:61
 msgid "日次勤怠"
 msgstr ""
 
-#: .\kintai\models\daily_attendance.py:43
+#: .\kintai\models\daily_attendance.py:62
 msgid "日次勤怠一覧"
 msgstr ""
 
@@ -174,39 +219,6 @@ msgstr ""
 
 #: .\kintai\models\monthly_attendence.py:38
 msgid "月次勤怠一覧"
-msgstr ""
-
-#: .\kintai\templates\admin\app_list.html:8
-#, python-format
-msgid "Models in the %(name)s application"
-msgstr ""
-
-#: .\kintai\templates\admin\app_list.html:12
-msgid "Model name"
-msgstr ""
-
-#: .\kintai\templates\admin\app_list.html:13
-msgid "Add link"
-msgstr ""
-
-#: .\kintai\templates\admin\app_list.html:14
-msgid "Change or view list link"
-msgstr ""
-
-#: .\kintai\templates\admin\app_list.html:33
-msgid "Add"
-msgstr ""
-
-#: .\kintai\templates\admin\app_list.html:42
-msgid "View"
-msgstr ""
-
-#: .\kintai\templates\admin\app_list.html:44
-msgid "Change"
-msgstr ""
-
-#: .\kintai\templates\admin\app_list.html:56
-msgid "You don’t have permission to view or edit anything."
 msgstr ""
 
 #: .\kintai\templates\kintai\monthly_attendance_change_list.html:7

@@ -48,13 +48,13 @@ class DailyAttendance(models.Model):
 
     clock_in_time = models.DateTimeField(_("出勤"), null=True, blank=True)
     clock_out_time = models.DateTimeField(_("退勤"), null=True, blank=True)
-    has_lunch_break = models.BooleanField(_("昼休憩"), null=True, blank=True)
-    has_break1 = models.BooleanField(_("休憩1"), null=True, blank=True)
-    has_break2 = models.BooleanField(_("休憩2"), null=True, blank=True)
-    has_break3 = models.BooleanField(_("休憩3"), null=True, blank=True)
-    has_break4 = models.BooleanField(_("休憩4"), null=True, blank=True)
-    has_break5 = models.BooleanField(_("休憩5"), null=True, blank=True)
-    other_break_minutes = models.PositiveIntegerField(_("不在"), default=0, null=True, blank=True)
+    has_lunch_break = models.BooleanField(_("昼休憩"), default=True)
+    has_break1 = models.BooleanField(_("休憩1"), default=True)
+    has_break2 = models.BooleanField(_("休憩2"), default=True)
+    has_break3 = models.BooleanField(_("休憩3"), default=True)
+    has_break4 = models.BooleanField(_("休憩4"), default=True)
+    has_break5 = models.BooleanField(_("休憩5"), default=True)
+    other_break_minutes = models.PositiveIntegerField(_("一時不在(分)"), default=0, null=True, blank=True)
 
     class Meta:
         db_table = "attendance_daily"

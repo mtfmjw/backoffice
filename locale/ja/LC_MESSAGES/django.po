@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-13 16:41+0900\n"
+"POT-Creation-Date: 2026-08-14 09:30+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,6 +25,43 @@ msgstr ""
 #: .\backoffice\admin.py:15
 msgid "サイト管理"
 msgstr ""
+
+#: .\backoffice\admin.py:77
+msgid "Delete?"
+msgstr "削除?"
+
+#: .\templates\admin\app_list.html:8
+#, python-format
+msgid "Models in the %(name)s application"
+msgstr "%(name)s Appのモデル"
+
+#: .\templates\admin\app_list.html:12
+msgid "Model name"
+msgstr "モデル名"
+
+#: .\templates\admin\app_list.html:13
+msgid "Add link"
+msgstr "追加"
+
+#: .\templates\admin\app_list.html:14
+msgid "Change or view list link"
+msgstr "変更"
+
+#: .\templates\admin\app_list.html:33
+msgid "Add"
+msgstr "追加"
+
+#: .\templates\admin\app_list.html:42
+msgid "View"
+msgstr "照会"
+
+#: .\templates\admin\app_list.html:44
+msgid "Change"
+msgstr "変更"
+
+#: .\templates\admin\app_list.html:56
+msgid "You don’t have permission to view or edit anything."
+msgstr "照会または編集する権限がありません。"
 
 #: .\templates\admin\change_form.html:11
 msgid "Restore"

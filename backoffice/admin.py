@@ -72,3 +72,6 @@ from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 
 admin_site.register(AuthUser, AuthUserAdmin)
 admin_site.register(Group, GroupAdmin)
+
+# 手動で保持したいメッセージをここに列挙する
+_("Delete?")

@@ -69,7 +69,13 @@ BEGIN
         date_type,
         date_status,
         clock_in_time, 
-        clock_out_time
+        clock_out_time,
+        has_lunch_break,
+        has_break1,
+        has_break2,
+        has_break3,
+        has_break4,
+        has_break5
     )
     SELECT 
         d.day_date, 
@@ -86,7 +92,13 @@ BEGIN
              WHEN d.day_of_week = 6 THEN 1 -- 所定休日
              ELSE 0 END AS date_status,
         CASE WHEN NOT d.is_holiday THEN d.day_date + wp.start_time END AS clock_in_time,
-        CASE WHEN NOT d.is_holiday THEN d.day_date + wp.end_time END AS clock_out_time
+        CASE WHEN NOT d.is_holiday THEN d.day_date + wp.end_time END AS clock_out_time,
+        true AS has_lunch_break,
+        true AS has_break1,
+        true AS has_break2,
+        true AS has_break3,
+        true AS has_break4,
+        true AS has_break5
     FROM day_info d
     LEFT JOIN work_pattern wp ON wp.id = v_work_pattern_id;
 

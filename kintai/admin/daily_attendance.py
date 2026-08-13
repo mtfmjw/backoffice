@@ -1,5 +1,7 @@
 # admin.py
 from django.contrib import admin
+from django.contrib.admin.widgets import AdminTimeWidget
+from django.db import models
 
 from kintai.models.daily_attendance import DailyAttendance
 
@@ -23,3 +25,8 @@ class DailyAttendanceInline(admin.TabularInline):
         "other_break_minutes",
         "note",
     )
+
+    formfield_overrides = {models.DateTimeField: {"widget": AdminTimeWidget}}  # noqa: RUF012
+
+    class Media:
+        css = {"all": ("kintai/monthly_attendance_change_list.css",)}  # noqa: RUF012
