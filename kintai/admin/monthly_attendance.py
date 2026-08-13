@@ -16,6 +16,8 @@ from backoffice.admin import admin_site
 from common.admin.base import BaseModelAdminMixin
 from kintai.models import MonthlyAttendance
 
+from .daily_attendance import DailyAttendanceInline
+
 
 class MonthFilter(SimpleListFilter):
     title = "対象月"
@@ -66,6 +68,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
         "worked_days",
         "paid_leave_days",
     )
+    inlines = (DailyAttendanceInline,)
 
     @display(description="勤務月")
     def month(self, obj):

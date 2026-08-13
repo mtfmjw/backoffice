@@ -8,41 +8,63 @@ from django.utils.translation import gettext_lazy as _
 from common.models import WorkPattern, get_duration_in_minutes
 from kintai.models.monthly_attendence import HALF_DAY_MINUTES, NIGHT_END_TIME, NIGHT_START_TIME, MonthlyAttendance
 
+WEEKDAYS = ["月", "火", "水", "木", "金", "土", "日"]
+
 
 class DailyAttendance(models.Model):
     """日次勤怠テーブル（1人1日あたりの確定データ）"""
 
     class DateType(models.IntegerChoices):
-        PRESENT = 0, _("出勤")
-        ABSENT = 1, _("欠勤")
-        MORNING_PAID_LEAVE = 2, _("午前半休")
-        AFTERNOON_PAID_LEAVE = 3, _("午後半休")
-        PAID_LEAVE = 4, _("有休")
-        SPECIAL_LEAVE = 5, _("特別休暇")
-        HOLIDAY = 6, _("休日")
+        WORK_DAY = 0, _("出勤日")
+        REGULAR_DAY_OFF = 1, _("所定休")
+        LEGAL_DAY_OFF = 2, _("法定休")
+        HOLIDAY = 3, _("祝日")
+        SUBSTITUTE_HOLIDAY = 4, _("振替休日")  # 祝日が土日と重なった場合に、翌日を振替休日（法定休日）とする
+
+    class DateStatus(models.IntegerChoices):
+        NORMAL = 0, _("出勤")
+        DAY_OFF = 1, _("休み")
+        LATE = 2, _("遅刻")
+        EARLY_LEAVE = 4, _("早退")
+        ABSENCE = 5, _("欠勤")
+        LATE_AND_EARLY_LEAVE = 6, _("遅刻・早退")
+        MORNING_PAID_LEAVE = 7, _("午前休")
+        AFTERNOON_PAID_LEAVE = 8, _("午後休")
+        PAID_LEAVE = 9, _("有休")
+        # 特別休暇：結婚、忌引、出産、育児、介護などの理由で取得する休暇。会社の規定に基づき、特別な理由で取得する休暇であり、通常の有給休暇とは異なる。
+        SPECIAL_PAID_LEAVE = (10, _("特別休"))
+        # 振替休日：出勤する前に、あらかじめ別の日と休日の入れ替えを決める。休日と労働日を交換したため、出勤日は通常の労働日となる。
+        SUBSTITUTE_DAY_OFF = 11, _("振休")
+        # 代休：休日に出勤した場合、後日別の日を休日にする。休日に出勤したため、出勤日は休日出勤となる。
+        COMPENSATORY_HOLIDAY = 12, _("代休")
+        SP5 = 13, _("SP5")  # 4-5月：ゴールデンウイーク2日、7-9月：夏季休暇3日、12/29-1/3：年末年始休暇6日
 
     monthly_attendance = models.ForeignKey(MonthlyAttendance, on_delete=models.CASCADE, related_name="daily_attendances", verbose_name=_("月次勤怠"))
     work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name=_("勤務形態"))
     date = models.DateField(_("対象日"))
-    date_type = models.CharField(_("勤務状態"), max_length=20, choices=DateType.choices, default=DateType.PRESENT)
+    date_type = models.IntegerField(_("勤務区分"), choices=DateType.choices, default=DateType.WORK_DAY)
+    date_status = models.IntegerField(_("勤怠状況"), choices=DateStatus.choices, default=DateStatus.NORMAL)
     note = models.CharField(_("備考"), max_length=255, null=True, blank=True)
 
-    clock_in_time = models.DateTimeField(_("出勤日時"), null=True, blank=True)
-    clock_out_time = models.DateTimeField(_("退勤日時"), null=True, blank=True)
-    has_lunch_break = models.BooleanField(_("ランチ休憩有無"), null=True, blank=True)
-    has_break1 = models.BooleanField(_("休憩1有無"), null=True, blank=True)
-    has_break2 = models.BooleanField(_("休憩2有無"), null=True, blank=True)
-    has_break3 = models.BooleanField(_("休憩3有無"), null=True, blank=True)
-    has_break4 = models.BooleanField(_("休憩4有無"), null=True, blank=True)
-    has_break5 = models.BooleanField(_("休憩5有無"), null=True, blank=True)
-    other_break_minutes = models.PositiveIntegerField(_("その他休憩時間（分）"), default=0, null=True, blank=True)
+    clock_in_time = models.DateTimeField(_("出勤"), null=True, blank=True)
+    clock_out_time = models.DateTimeField(_("退勤"), null=True, blank=True)
+    has_lunch_break = models.BooleanField(_("昼休憩"), null=True, blank=True)
+    has_break1 = models.BooleanField(_("休憩1"), null=True, blank=True)
+    has_break2 = models.BooleanField(_("休憩2"), null=True, blank=True)
+    has_break3 = models.BooleanField(_("休憩3"), null=True, blank=True)
+    has_break4 = models.BooleanField(_("休憩4"), null=True, blank=True)
+    has_break5 = models.BooleanField(_("休憩5"), null=True, blank=True)
+    other_break_minutes = models.PositiveIntegerField(_("不在"), default=0, null=True, blank=True)
 
     class Meta:
         db_table = "attendance_daily"
         verbose_name = _("日次勤怠")
         verbose_name_plural = _("日次勤怠一覧")
         unique_together = ("monthly_attendance", "date")  # 1人1日1レコードに制限
-        ordering = ("-date", "monthly_attendance__member")
+        ordering = ("date",)
+
+    def __str__(self):
+        return f"日付：{self.date.strftime('%m/%d')}({WEEKDAYS[self.date.weekday()]}) {self.get_date_type_display()}"
 
     def get_work_pattern(self):
         """勤務形態を返す"""

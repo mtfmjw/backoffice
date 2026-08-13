@@ -56,11 +56,9 @@ BEGIN
     day_info AS (
         SELECT 
             d.day_date,
-            CASE 
-                WHEN EXTRACT(ISODOW FROM d.day_date) IN (6, 7) OR h.date IS NOT NULL 
-                THEN TRUE 
-                ELSE FALSE 
-            END AS is_holiday
+            EXTRACT(DOW FROM d.day_date) AS day_of_week,
+            case when h.date = d.day_date then true else false end AS is_holiday,
+            case when h.date - INTERVAL '1 day' = d.day_date then true else false end as is_substitute_holiday
         FROM days d
         LEFT JOIN holiday h ON h.date = d.day_date
     )
@@ -68,7 +66,8 @@ BEGIN
         date, 
         monthly_attendance_id, 
         work_pattern_id, 
-        date_type, 
+        date_type,
+        date_status,
         clock_in_time, 
         clock_out_time
     )
@@ -76,7 +75,16 @@ BEGIN
         d.day_date, 
         p_attendance_id, 
         v_work_pattern_id,
-        CASE WHEN d.is_holiday THEN 6 ELSE 0 END AS date_type,
+        CASE WHEN d.is_holiday THEN 3 -- 祝日
+             WHEN d.is_substitute_holiday THEN 4 -- 振替休日
+             WHEN d.day_of_week = 0 THEN 2 -- 法定休日
+             WHEN d.day_of_week = 6 THEN 1 -- 所定休日
+             ELSE 0 END AS date_type,
+        CASE WHEN d.is_holiday THEN 2 -- 祝日
+             WHEN d.is_substitute_holiday THEN 2 -- 振替休日
+             WHEN d.day_of_week = 0 THEN 2 -- 法定休日
+             WHEN d.day_of_week = 6 THEN 1 -- 所定休日
+             ELSE 0 END AS date_status,
         CASE WHEN NOT d.is_holiday THEN d.day_date + wp.start_time END AS clock_in_time,
         CASE WHEN NOT d.is_holiday THEN d.day_date + wp.end_time END AS clock_out_time
     FROM day_info d
