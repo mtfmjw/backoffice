@@ -6,6 +6,6 @@ drop table municipality cascade;
 drop table prefecture cascade;
 drop table holiday;
 
-drop table member;
+drop table member cascade;
 drop table organization cascade;
 drop table work_pattern cascade;

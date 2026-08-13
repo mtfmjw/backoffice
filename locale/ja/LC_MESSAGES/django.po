@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 17:23+0900\n"
+"POT-Creation-Date: 2026-08-13 16:41+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,6 +25,50 @@ msgstr ""
 #: .\backoffice\admin.py:15
 msgid "サイト管理"
 msgstr ""
+
+#: .\templates\admin\change_form.html:11
+msgid "Restore"
+msgstr "削除の取消"
+
+#: .\templates\admin\change_list.html:9 .\templates\admin\change_list.html:10
+msgid "Search"
+msgstr "検索"
+
+#: .\templates\admin\delete_confirmation.html:7
+#: .\templates\admin\delete_confirmation.html:14
+#, python-format
+msgid ""
+"Deleting the %(object_name)s '%(object)s' would result in deleting related "
+"objects, but your account doesn't have permission to delete the following "
+"types of objects:"
+msgstr ""
+"%(object_name)s \"%(object)s\"を削除すると関連する項目も削除されるべきです"
+"が、下記の項目を削除する権限がありません："
+
+#: .\templates\admin\delete_confirmation.html:22
+#, python-format
+msgid ""
+"Are you sure you want to delete the %(object_name)s \"%(object)s\"? All of "
+"the following related items will be deleted:"
+msgstr ""
+"%(object_name)s \"%(object)s\"を削除しますか？下記の項目が削除されます："
+
+#: .\templates\admin\delete_confirmation.html:24
+#, python-format
+msgid "Are you sure you want to restore the %(object_name)s \"%(object)s\"?"
+msgstr "%(object_name)s \"%(object)s\"の削除を取消しますか？"
+
+#: .\templates\admin\delete_confirmation.html:35
+msgid "Yes, delete"
+msgstr "はい、削除"
+
+#: .\templates\admin\delete_confirmation.html:37
+msgid "Yes, restore"
+msgstr "はい、削除を取消"
+
+#: .\templates\admin\delete_confirmation.html:39
+msgid "No, take me back"
+msgstr "いいえ、戻る"
 
 #: .\templates\registration\login.html:4
 msgid "error:"

@@ -31,16 +31,6 @@ class MonthFilter(SimpleListFilter):
             choices.append((val, label))
         return choices
 
-    # def value(self):
-    #     """
-    #     1. Returns the selected option from URL parameter (?status=...).
-    #     2. Fallback to 'active' as default when no parameter is present.
-    #     """
-    #     val = super().value()
-    #     if val is None:
-    #         return localdate().strftime("%Y-%m")  # default filter option
-    #     return val
-
     def queryset(self, request, queryset):
         value = self.value()
         if value is None:
@@ -51,17 +41,6 @@ class MonthFilter(SimpleListFilter):
         except (ValueError, AttributeError):
             return queryset
 
-    # def choices(self, changelist):
-    #     """
-    #     Override choices to strip out the default 'All' option.
-    #     """
-    #     # Call the parent generator to get all choices
-    #     all_choices = list(super().choices(changelist))
-
-    #     # The first item (index 0) in all_choices is always the 'All' link.
-    #     # Returning all_choices[1:] strips it out.
-    #     return all_choices[1:]
-
 
 @admin.register(MonthlyAttendance, site=admin_site)
 class MonthlyAttendanceAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
@@ -69,7 +48,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
     list_display = (
         "member",
         "month",
-        "work_pattern",
+        "belong",
         "approve_status",
         "actual_work_minutes",
         "overtime_minutes",
@@ -77,7 +56,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
         "worked_days",
         "paid_leave_days",
     ) + BaseModelAdminMixin.list_display
-    search_fields = ("member__code", "member__name")
+    search_fields = ("member__user__username", "member__user__last_name", "member__user__first_name", "member__organization__name")
     list_select_related = ("member", "work_pattern")
     list_filter = (MonthFilter, "approve_status") + BaseModelAdminMixin.list_filter
     readonly_fields = (
@@ -90,7 +69,11 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
 
     @display(description="勤務月")
     def month(self, obj):
-        return obj.date.strftime("%Y年%m月")
+        return obj.date.strftime("%Y/%m")
+
+    @display(description="所属")
+    def belong(self, obj):
+        return obj.member.organization.name
 
     def has_add_permission(self, request):
         return request.user.is_authenticated and hasattr(request.user, "member")

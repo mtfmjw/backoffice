@@ -1,6 +1,6 @@
-from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import display
+from django.contrib.auth import get_user_model
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.formats.base_formats import CSV
@@ -12,6 +12,8 @@ from common.models import Member, Organization, WorkPattern
 
 from .base import BaseModelAdminMixin
 
+User = get_user_model()
+
 
 class MemberResource(resources.ModelResource):
     class Meta:
@@ -21,10 +23,10 @@ class MemberResource(resources.ModelResource):
         model = Member
         import_id_fields = ("email",)
         fields = (
-            "user__username",
+            "user",
             "email",
-            "organization__code",
-            "work_pattern__name",
+            "organization",
+            "work_pattern",
             "manage_flag",
             "valid_flag",
             "created_at",
@@ -33,10 +35,10 @@ class MemberResource(resources.ModelResource):
             "updated_by",
         )
         export_order = (
-            "user__username",
+            "user",
             "email",
-            "organization__code",
-            "work_pattern__name",
+            "organization",
+            "work_pattern",
             "manage_flag",
             "valid_flag",
             "created_at",
@@ -45,19 +47,19 @@ class MemberResource(resources.ModelResource):
             "updated_by",
         )
 
-    User = fields.Field(
+    user = fields.Field(
         attribute="user",
         column_name="user_username",
-        widget=ForeignKeyWidget(settings.AUTH_USER_MODEL, field="username"),
+        widget=ForeignKeyWidget(User, field="username"),
     )
 
-    Organization = fields.Field(
+    organization = fields.Field(
         attribute="organization",
         column_name="organization_code",
         widget=ForeignKeyWidget(Organization, field="code"),
     )
 
-    WorkPattern = fields.Field(
+    work_pattern = fields.Field(
         attribute="work_pattern",
         column_name="work_pattern_name",
         widget=ForeignKeyWidget(WorkPattern, field="name"),
@@ -65,14 +67,14 @@ class MemberResource(resources.ModelResource):
 
 
 @admin.register(Member, site=admin_site)
-class MemberAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
+class MemberAdmin(ImportExportModelAdmin, BaseModelAdminMixin):
     resource_class = MemberResource
     formats = (CSV,)
     export_form_class = DirectExportForm
 
     has_add_permission = lambda self, request: False
     readonly_fields = ("user",) + BaseModelAdminMixin.readonly_fields
-    list_display = ("full_name", "user", "email", "organization") + BaseModelAdminMixin.list_display
+    list_display = ("full_name", "user", "email", "organization", "work_pattern") + BaseModelAdminMixin.list_display
     search_fields = (
         "user__username",
         "user__first_name",

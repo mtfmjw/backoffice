@@ -6,7 +6,7 @@ from import_export.widgets import ForeignKeyWidget
 
 from backoffice.admin import admin_site
 from common.form import DirectExportForm
-from common.models import Organization
+from common.models import Organization, WorkPattern
 
 from .base import BaseModelAdminMixin
 
@@ -18,13 +18,19 @@ class OrganizationResource(resources.ModelResource):
 
         model = Organization
         import_id_fields = ("code",)
-        fields = ("code", "name", "parent__code", "work_pattern", "valid_flag", "created_at", "created_by", "updated_at", "updated_by")
-        export_order = ("code", "name", "parent__code", "work_pattern", "valid_flag", "created_at", "created_by", "updated_at", "updated_by")
+        fields = ("code", "name", "parent", "work_pattern", "valid_flag", "created_at", "created_by", "updated_at", "updated_by")
+        export_order = ("code", "name", "parent", "work_pattern", "valid_flag", "created_at", "created_by", "updated_at", "updated_by")
 
-    ParentOrganization = fields.Field(
+    parent = fields.Field(
         attribute="parent",
         column_name="parent_code",
         widget=ForeignKeyWidget(Organization, field="code"),
+    )
+
+    work_pattern = fields.Field(
+        attribute="work_pattern",
+        column_name="work_pattern_name",
+        widget=ForeignKeyWidget(WorkPattern, field="name"),
     )
 
 
@@ -34,7 +40,7 @@ class OrganizationAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
     formats = (CSV,)
     export_form_class = DirectExportForm
 
-    list_display = ("code", "name", "parent") + BaseModelAdminMixin.list_display
+    list_display = ("code", "name", "parent", "work_pattern") + BaseModelAdminMixin.list_display
     search_fields = ("code", "name")
     list_select_related = ("parent",)
     fieldsets = (
