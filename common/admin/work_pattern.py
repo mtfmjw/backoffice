@@ -7,7 +7,7 @@ from import_export.instance_loaders import CachedInstanceLoader
 from backoffice.admin import admin_site
 from common.models import WorkPattern
 
-from .base import show_duration
+from .base import CommonAdminMixin, show_duration
 
 
 class WorkPatternResource(resources.ModelResource):
@@ -39,7 +39,7 @@ class WorkPatternResource(resources.ModelResource):
 
 
 @admin.register(WorkPattern, site=admin_site)
-class WorkPatternAdmin(ImportExportModelAdmin):
+class WorkPatternAdmin(CommonAdminMixin, ImportExportModelAdmin):
     resource_class = WorkPatternResource
     list_display = (
         "name",
@@ -51,6 +51,7 @@ class WorkPatternAdmin(ImportExportModelAdmin):
         "break4_duration",
         "break5_duration",
     )
+    search_fields = ("name",)
     fieldsets = (
         (
             None,

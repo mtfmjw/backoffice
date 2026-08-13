@@ -1,12 +1,15 @@
 from django.contrib import admin
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
+from import_export.formats.base_formats import CSV
 from import_export.widgets import DateWidget
 
 from backoffice.admin import admin_site
+from common.form import DirectExportForm
 from common.models import Holiday
 
-from .filters import YearlyFilter
+from .base import CommonAdminMixin
+from .filters import YearFilter
 
 
 class HolidayResource(resources.ModelResource):
@@ -20,6 +23,7 @@ class HolidayResource(resources.ModelResource):
 
         model = Holiday
         fields = ("date", "name")
+        export_order = ("date", "name")
         import_id_fields = ("date",)
 
     def before_import_row(self, row, **kwargs):
@@ -29,11 +33,14 @@ class HolidayResource(resources.ModelResource):
 
 
 @admin.register(Holiday, site=admin_site)
-class HolidayAdmin(ImportExportModelAdmin):
+class HolidayAdmin(CommonAdminMixin, ImportExportModelAdmin):
     resource_class = HolidayResource
+    formats = (CSV,)
+    export_form_class = DirectExportForm
+
     list_display = ("date", "type", "name")
-    list_filter = (YearlyFilter,)
-    search_fields = ("date", "name")
+    list_filter = (YearFilter,)
+    search_fields = ("type", "name")
     fieldsets = (
         (
             None,

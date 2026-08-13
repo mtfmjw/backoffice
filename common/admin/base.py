@@ -6,21 +6,7 @@ from django.utils.translation import gettext_lazy as _
 CALENDAR_START_YEAR = 2020
 
 
-class BaseModelAdminMixin:
-    """Base ModelAdmin for common models with soft delete and audit fields"""
-
-    base_fields_columns = 2
-    readonly_fields = ("valid_flag", "created_by", "created_at", "updated_by", "updated_at")
-    list_display = ("valid_flag", "updated_by", "display_updated_at")
-    list_filter = ("valid_flag",)
-
-    class Media:
-        css: ClassVar[dict[str, tuple[str, ...]]] = {"all": ("admin/admin_extra.css",)}
-
-    @display(description=_("更新日時"))
-    def display_updated_at(self, obj):
-        return obj.updated_at.strftime("%Y/%m/%d %H:%M:%S")
-
+class CommonAdminMixin:
     def get_search_help_text(self):
         """Generate help text for search_fields based on model verbose names, supporting __ lookups."""
         help_texts = []
@@ -49,6 +35,21 @@ class BaseModelAdminMixin:
         extra_context = extra_context or {}
         extra_context["search_help_text"] = self.get_search_help_text()
         return super().changelist_view(request, extra_context)
+
+
+class BaseModelAdminMixin(CommonAdminMixin):
+    """Base ModelAdmin for common models with soft delete and audit fields"""
+
+    readonly_fields = ("valid_flag", "created_by", "created_at", "updated_by", "updated_at")
+    list_display = ("valid_flag", "updated_by", "display_updated_at")
+    list_filter = ("valid_flag",)
+
+    class Media:
+        css: ClassVar[dict[str, tuple[str, ...]]] = {"all": ("admin/admin_extra.css",)}
+
+    @display(description=_("更新日時"))
+    def display_updated_at(self, obj):
+        return obj.updated_at.strftime("%Y/%m/%d %H:%M:%S")
 
     def delete_model(self, request, obj):
         if not obj.valid_flag:

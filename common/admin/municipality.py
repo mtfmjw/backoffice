@@ -7,6 +7,7 @@ from import_export.widgets import ForeignKeyWidget
 from backoffice.admin import admin_site
 from common.models import Municipality, Prefecture
 
+from .base import CommonAdminMixin
 from .filters import PrefectureFilter
 
 
@@ -30,20 +31,13 @@ class MunicipalityResource(resources.ModelResource):
 
 
 @admin.register(Municipality, site=admin_site)
-class MunicipalityAdmin(ImportMixin, admin.ModelAdmin):
+class MunicipalityAdmin(CommonAdminMixin, ImportMixin, admin.ModelAdmin):
     resource_class = MunicipalityResource
-    list_display = ("prefecture__name", "code", "name")
+    list_display = ("prefecture", "code", "name")
     search_fields = ("prefecture__name", "code", "name")
     list_select_related = ()
     list_filter = (("prefecture", PrefectureFilter),)
-    fieldsets = (
-        (
-            None,
-            {
-                "fields": ("prefecture", "code", "name"),
-            },
-        ),
-    )
+    list_display_links = None
 
     def has_add_permission(self, request):
         return False
@@ -53,5 +47,3 @@ class MunicipalityAdmin(ImportMixin, admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
-
-    list_display_links = None

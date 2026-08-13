@@ -7,7 +7,7 @@ from common.models.base import get_duration_in_minutes
 class WorkPattern(models.Model):
     """勤務パターンマスタ（通常・シフト・フレックスなど）"""
 
-    name = models.CharField(_("勤務パターン名"), max_length=100)
+    name = models.CharField(_("勤務パターン名"), max_length=100, unique=True)
     start_time = models.TimeField(_("標準始業時刻"), default="09:30")
     end_time = models.TimeField(_("標準終業時刻"), default="18:00")
 

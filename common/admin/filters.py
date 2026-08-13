@@ -16,7 +16,7 @@ class PrefectureFilter(RelatedOnlyFieldListFilter):
         self.lookup_choices = list(field.related_model.objects.order_by("code").values_list("pk", display_field))
 
 
-class YearlyFilter(SimpleListFilter):
+class YearFilter(SimpleListFilter):
     title = "対象年"
     parameter_name = "year"
 
@@ -39,3 +39,14 @@ class YearlyFilter(SimpleListFilter):
         if value.isdigit():
             return queryset.filter(date__year=int(value))
         return queryset
+
+    def choices(self, changelist):
+        """
+        Override choices to strip out the default 'All' option.
+        """
+        # Call the parent generator to get all choices
+        all_choices = list(super().choices(changelist))
+
+        # The first item (index 0) in all_choices is always the 'All' link.
+        # Returning all_choices[1:] strips it out.
+        return all_choices[1:]

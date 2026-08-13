@@ -6,6 +6,7 @@ from import_export.admin import ImportMixin
 from backoffice.admin import admin_site
 from common.models import Postcode, PostcodeImport
 
+from .base import CommonAdminMixin
 from .filters import PrefectureFilter
 
 
@@ -73,20 +74,13 @@ class PostcodeResource(resources.ModelResource):
 
 
 @admin.register(Postcode, site=admin_site)
-class PostcodeAdmin(ImportMixin, admin.ModelAdmin):
+class PostcodeAdmin(CommonAdminMixin, ImportMixin, admin.ModelAdmin):
     resource_class = PostcodeResource
     list_display = ("postcode", "municipality", "town_name", "town_name_kana")
-    search_fields = ("postcode", "municipality", "town_name")
+    search_fields = ("postcode", "municipality__name", "town_name")
     list_select_related = ("municipality",)
     list_filter = (("municipality__prefecture", PrefectureFilter),)
-    fieldsets = (
-        (
-            None,
-            {
-                "fields": ("postcode", "municipality", "town_name", "town_name_kana"),
-            },
-        ),
-    )
+    list_display_links = None
 
     def has_add_permission(self, request):
         return False
@@ -96,5 +90,3 @@ class PostcodeAdmin(ImportMixin, admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
-
-    list_display_links = None

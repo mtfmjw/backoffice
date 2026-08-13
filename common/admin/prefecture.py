@@ -5,6 +5,8 @@ from import_export.admin import ImportMixin
 from backoffice.admin import admin_site
 from common.models import Prefecture
 
+from .base import CommonAdminMixin
+
 
 class PrefectureResource(resources.ModelResource):
     class Meta:
@@ -17,19 +19,11 @@ class PrefectureResource(resources.ModelResource):
 
 
 @admin.register(Prefecture, site=admin_site)
-class PrefectureAdmin(ImportMixin, admin.ModelAdmin):
+class PrefectureAdmin(CommonAdminMixin, ImportMixin, admin.ModelAdmin):
     resource_class = PrefectureResource
-    use_bulk = True
     list_display = ("name", "code")
-    search_fields = ("code", "name")
-    fieldsets = (
-        (
-            None,
-            {
-                "fields": ("code", "name"),
-            },
-        ),
-    )
+    list_display_links = None
+    search_fields = ("name",)
 
     def has_add_permission(self, request):
         return False
@@ -39,5 +33,3 @@ class PrefectureAdmin(ImportMixin, admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
-
-    list_display_links = None

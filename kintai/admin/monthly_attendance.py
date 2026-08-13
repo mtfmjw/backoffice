@@ -17,7 +17,7 @@ from common.admin.base import BaseModelAdminMixin
 from kintai.models import MonthlyAttendance
 
 
-class MonthlyFilter(SimpleListFilter):
+class MonthFilter(SimpleListFilter):
     title = "対象月"
     parameter_name = "month"
 
@@ -79,7 +79,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
     ) + BaseModelAdminMixin.list_display
     search_fields = ("member__code", "member__name")
     list_select_related = ("member", "work_pattern")
-    list_filter = (MonthlyFilter, "approve_status") + BaseModelAdminMixin.list_filter
+    list_filter = (MonthFilter, "approve_status") + BaseModelAdminMixin.list_filter
     readonly_fields = (
         "actual_work_minutes",
         "overtime_minutes",

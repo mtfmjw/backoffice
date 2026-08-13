@@ -9,4 +9,16 @@
 {% endif %}
 {% endblock %}
 
+{% block extrastyle %}
+    {{ block.super }}
+    <style>
+        /* Hide all action icons (Add, Change, Delete, View) next to FK & M2M fields globally */
+        .related-widget-wrapper-link,
+        a.related-widget-wrapper-link,
+        .related-lookup {
+            display: none !important;
+        }
+    </style>
+{% endblock %}
+
 {% block nav-global %}{% endblock %}
