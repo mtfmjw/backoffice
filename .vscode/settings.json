@@ -8,5 +8,17 @@
       "source.organizeImports": "explicit"
     },
     "editor.defaultFormatter": null
-  }
+  },
+  "sqltools.connections": [
+    {
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "backoffice",
+      "database": "backoffice",
+      "username": "backoffice"
+    }
+  ]
 }

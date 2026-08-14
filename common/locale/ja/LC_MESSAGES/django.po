@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-06 16:55+0900\n"
+"POT-Creation-Date: 2026-08-14 15:28+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: .\common\admin.py:125
+#: .\common\admin\base.py:50
+msgid "Update Time"
+msgstr "更新日時"
+
+#: .\common\admin\member.py:97
 msgid "Full Name"
 msgstr "名前"
 
@@ -26,164 +30,228 @@ msgstr "名前"
 msgid "Common"
 msgstr "共通マスタ"
 
-#: .\common\models.py:9
+#: .\common\models\base.py:11
 msgid "Valid"
 msgstr "有効"
 
-#: .\common\models.py:10
+#: .\common\models\base.py:12
 msgid "Created at"
 msgstr "作成日時"
 
-#: .\common\models.py:11
+#: .\common\models\base.py:13
 msgid "Created by"
 msgstr "作成者"
 
-#: .\common\models.py:12
+#: .\common\models\base.py:14
 msgid "Updated at"
 msgstr "更新日時"
 
-#: .\common\models.py:13
+#: .\common\models\base.py:15
 msgid "Updated by"
 msgstr "更新者"
 
-#: .\common\models.py:32
-msgid "Organization Code"
-msgstr "組織コード"
+#: .\common\models\holiday.py:11
+msgid "National Holiday"
+msgstr "国民の祝日"
 
-#: .\common\models.py:33
-msgid "Organization Name"
-msgstr "組織名"
+#: .\common\models\holiday.py:12
+msgid "Company Holiday (Summer/New Year, etc.)"
+msgstr "会社制定休日（夏季・年末年始等）"
 
-#: .\common\models.py:40
-msgid "Parent Organization"
-msgstr "親組織"
+#: .\common\models\holiday.py:13
+msgid "Legal Holiday"
+msgstr "法定休日"
 
-#: .\common\models.py:45
-msgid "Organization"
-msgstr "組織"
+#: .\common\models\holiday.py:14
+msgid "Non-Legal Holiday"
+msgstr "所定休日"
 
-#: .\common\models.py:46
-msgid "Organizations"
-msgstr "組織"
+#: .\common\models\holiday.py:16
+msgid "Date"
+msgstr "日付"
 
-#: .\common\models.py:57
+#: .\common\models\holiday.py:17
+msgid "Holiday Type"
+msgstr "休日区分"
+
+#: .\common\models\holiday.py:19
+msgid "Holiday Name"
+msgstr "祝日・休日名称"
+
+#: .\common\models\holiday.py:19
+msgid "e.g., New Year's Day, Summer Vacation, Foundation Day"
+msgstr "例: 元日、夏季休暇、創立記念日"
+
+#: .\common\models\holiday.py:24
+msgid "Holiday"
+msgstr "祝日・休日"
+
+#: .\common\models\holiday.py:25
+msgid "Holidays"
+msgstr "祝日・休日一覧"
+
+#: .\common\models\member.py:11
 msgid "Employee Number"
 msgstr "社員番号"
 
-#: .\common\models.py:59
+#: .\common\models\member.py:12
 msgid "Email address"
 msgstr "Eメール"
 
-#: .\common\models.py:66
+#: .\common\models\member.py:14
 msgid "Belongs to"
 msgstr "所属"
 
-#: .\common\models.py:68
+#: .\common\models\member.py:16 .\common\models\organization.py:11
+#: .\common\models\work_pattern.py:29
+msgid "Work Pattern"
+msgstr "勤務パターン"
+
+#: .\common\models\member.py:17
 msgid "Manager Flag"
 msgstr "責任者"
 
-#: .\common\models.py:72
+#: .\common\models\member.py:21
 msgid "Member"
 msgstr "社員"
 
-#: .\common\models.py:73
+#: .\common\models\member.py:22
 msgid "Members"
-msgstr "社員"
+msgstr "社員一覧"
 
-#: .\common\models.py:81
-msgid "Prefecture Code"
-msgstr "都道府県コード"
-
-#: .\common\models.py:82
-msgid "Prefecture Name"
-msgstr "都道府県名"
-
-#: .\common\models.py:86 .\common\models.py:101
-msgid "Prefecture"
-msgstr "都道府県"
-
-#: .\common\models.py:87
-msgid "Prefectures"
-msgstr "都道府県"
-
-#: .\common\models.py:98
+#: .\common\models\municipality.py:10 .\common\models\postcode.py:33
 msgid "Municipality Code"
 msgstr "市区町村コード"
 
-#: .\common\models.py:99
+#: .\common\models\municipality.py:11
 msgid "Municipality Name"
 msgstr "市区町村名"
 
-#: .\common\models.py:100
+#: .\common\models\municipality.py:12
 msgid "Municipality Name Kana"
 msgstr "市区町村名カナ"
 
-#: .\common\models.py:105 .\common\models.py:117
+#: .\common\models\municipality.py:13 .\common\models\prefecture.py:13
+msgid "Prefecture"
+msgstr "都道府県"
+
+#: .\common\models\municipality.py:17 .\common\models\postcode.py:11
 msgid "Municipality"
 msgstr "市区町村"
 
-#: .\common\models.py:106
+#: .\common\models\municipality.py:18
 msgid "Municipalities"
-msgstr "市区町村"
+msgstr "市区町村一覧"
 
-#: .\common\models.py:116 .\common\models.py:123
+#: .\common\models\organization.py:9
+msgid "Organization Code"
+msgstr "組織コード"
+
+#: .\common\models\organization.py:10
+msgid "Organization Name"
+msgstr "組織名"
+
+#: .\common\models\organization.py:13
+msgid "Parent Organization"
+msgstr "親組織"
+
+#: .\common\models\organization.py:18
+msgid "Organization"
+msgstr "組織"
+
+#: .\common\models\organization.py:19
+msgid "Organizations"
+msgstr "組織一覧"
+
+#: .\common\models\postcode.py:10 .\common\models\postcode.py:17
+#: .\common\models\postcode.py:32
 msgid "Postcode"
 msgstr "郵便番号"
 
-#: .\common\models.py:118
+#: .\common\models\postcode.py:12 .\common\models\postcode.py:34
 msgid "Town Name"
 msgstr "町域名"
 
-#: .\common\models.py:119
+#: .\common\models\postcode.py:13 .\common\models\postcode.py:35
 msgid "Town Name Kana"
 msgstr "町域名カナ"
 
-#: .\common\models.py:124
+#: .\common\models\postcode.py:18
 msgid "Postcodes"
-msgstr "郵便番号"
+msgstr "郵便番号一覧"
 
-#: .\common\templates\admin\common\change_list.html:9
-#: .\common\templates\admin\common\change_list.html:10
-msgid "Search"
-msgstr "検索"
+#: .\common\models\prefecture.py:8
+msgid "Prefecture Code"
+msgstr "都道府県コード"
 
-#: .\common\templates\admin\common\delete_confirmation.html:7
-#: .\common\templates\admin\common\delete_confirmation.html:14
-#, python-format
-msgid ""
-"Deleting the %(object_name)s '%(object)s' would result in deleting related "
-"objects, but your account doesn't have permission to delete the following "
-"types of objects:"
-msgstr ""
-"%(object_name)s \"%(object)s\"を削除すると関連する項目も削除されるべきです"
-"が、下記の項目を削除する権限がありません："
+#: .\common\models\prefecture.py:9
+msgid "Prefecture Name"
+msgstr "都道府県名"
 
-#: .\common\templates\admin\common\delete_confirmation.html:22
-#, python-format
-msgid ""
-"Are you sure you want to delete the %(object_name)s \"%(object)s\"? All of "
-"the following related items will be deleted:"
-msgstr ""
-"%(object_name)s \"%(object)s\"を削除しますか？下記の項目が削除されます："
+#: .\common\models\prefecture.py:14
+msgid "Prefectures"
+msgstr "都道府県一覧"
 
-#: .\common\templates\admin\common\delete_confirmation.html:24
-#, python-format
-msgid "Are you sure you want to restore the %(object_name)s \"%(object)s\"?"
-msgstr "%(object_name)s \"%(object)s\"の削除を取消しますか？"
+#: .\common\models\work_pattern.py:10
+msgid "Work Pattern Name"
+msgstr "就業パターン"
 
-#: .\common\templates\admin\common\delete_confirmation.html:35
-msgid "Yes, delete"
-msgstr "はい、削除"
+#: .\common\models\work_pattern.py:11
+msgid "Standard Start Time"
+msgstr "開始時刻"
 
-#: .\common\templates\admin\common\delete_confirmation.html:37
-msgid "Yes, restore"
-msgstr "はい、削除を取消"
+#: .\common\models\work_pattern.py:12
+msgid "Standard End Time"
+msgstr "終了時刻"
 
-#: .\common\templates\admin\common\delete_confirmation.html:39
-msgid "No, take me back"
-msgstr "戻る"
+#: .\common\models\work_pattern.py:14
+msgid "Lunch Break Start Time"
+msgstr "昼休開始時刻"
 
-#: .\common\templates\admin\common\member\change_form.html:11
-#: .\common\templates\admin\common\organization\change_form.html:11
-msgid "Restore"
-msgstr "削除の取消"
+#: .\common\models\work_pattern.py:15
+msgid "Lunch Break End Time"
+msgstr "昼休終了時刻"
+
+#: .\common\models\work_pattern.py:16
+msgid "Break 1 Start Time"
+msgstr "休憩1開始時刻"
+
+#: .\common\models\work_pattern.py:17
+msgid "Break 1 End Time"
+msgstr "休憩1終了時刻"
+
+#: .\common\models\work_pattern.py:18
+msgid "Break 2 Start Time"
+msgstr "休憩2開始時刻"
+
+#: .\common\models\work_pattern.py:19
+msgid "Break 2 End Time"
+msgstr "休憩2終了時刻"
+
+#: .\common\models\work_pattern.py:20
+msgid "Break 3 Start Time"
+msgstr "休憩3開始時刻"
+
+#: .\common\models\work_pattern.py:21
+msgid "Break 3 End Time"
+msgstr "休憩3終了時刻"
+
+#: .\common\models\work_pattern.py:22
+msgid "Break 4 Start Time"
+msgstr "休憩4開始時刻"
+
+#: .\common\models\work_pattern.py:23
+msgid "Break 4 End Time"
+msgstr "休憩4終了時刻"
+
+#: .\common\models\work_pattern.py:24
+msgid "Break 5 Start Time"
+msgstr "休憩5開始時刻"
+
+#: .\common\models\work_pattern.py:25
+msgid "Break 5 End Time"
+msgstr "休憩5終了時刻"
+
+#: .\common\models\work_pattern.py:30
+msgid "Work Patterns"
+msgstr "就業パターン一覧"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-06 11:03+0900\n"
+"POT-Creation-Date: 2026-08-14 09:30+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,6 +26,87 @@ msgstr ""
 msgid "サイト管理"
 msgstr ""
 
+#: .\backoffice\admin.py:77
+msgid "Delete?"
+msgstr "削除?"
+
+#: .\templates\admin\app_list.html:8
+#, python-format
+msgid "Models in the %(name)s application"
+msgstr "%(name)s Appのモデル"
+
+#: .\templates\admin\app_list.html:12
+msgid "Model name"
+msgstr "モデル名"
+
+#: .\templates\admin\app_list.html:13
+msgid "Add link"
+msgstr "追加"
+
+#: .\templates\admin\app_list.html:14
+msgid "Change or view list link"
+msgstr "変更"
+
+#: .\templates\admin\app_list.html:33
+msgid "Add"
+msgstr "追加"
+
+#: .\templates\admin\app_list.html:42
+msgid "View"
+msgstr "照会"
+
+#: .\templates\admin\app_list.html:44
+msgid "Change"
+msgstr "変更"
+
+#: .\templates\admin\app_list.html:56
+msgid "You don’t have permission to view or edit anything."
+msgstr "照会または編集する権限がありません。"
+
+#: .\templates\admin\change_form.html:11
+msgid "Restore"
+msgstr "削除の取消"
+
+#: .\templates\admin\change_list.html:9 .\templates\admin\change_list.html:10
+msgid "Search"
+msgstr "検索"
+
+#: .\templates\admin\delete_confirmation.html:7
+#: .\templates\admin\delete_confirmation.html:14
+#, python-format
+msgid ""
+"Deleting the %(object_name)s '%(object)s' would result in deleting related "
+"objects, but your account doesn't have permission to delete the following "
+"types of objects:"
+msgstr ""
+"%(object_name)s \"%(object)s\"を削除すると関連する項目も削除されるべきです"
+"が、下記の項目を削除する権限がありません："
+
+#: .\templates\admin\delete_confirmation.html:22
+#, python-format
+msgid ""
+"Are you sure you want to delete the %(object_name)s \"%(object)s\"? All of "
+"the following related items will be deleted:"
+msgstr ""
+"%(object_name)s \"%(object)s\"を削除しますか？下記の項目が削除されます："
+
+#: .\templates\admin\delete_confirmation.html:24
+#, python-format
+msgid "Are you sure you want to restore the %(object_name)s \"%(object)s\"?"
+msgstr "%(object_name)s \"%(object)s\"の削除を取消しますか？"
+
+#: .\templates\admin\delete_confirmation.html:35
+msgid "Yes, delete"
+msgstr "はい、削除"
+
+#: .\templates\admin\delete_confirmation.html:37
+msgid "Yes, restore"
+msgstr "はい、削除を取消"
+
+#: .\templates\admin\delete_confirmation.html:39
+msgid "No, take me back"
+msgstr "いいえ、戻る"
+
 #: .\templates\registration\login.html:4
 msgid "error:"
 msgstr "エラー"
@@ -41,7 +122,9 @@ msgstr[1] "下記のエラーを修正してください。"
 msgid ""
 "You are authenticated as %(username)s, but are not authorized to access this "
 "page. Would you like to login to a different account?"
-msgstr "%(username)sとして認証されていますがこのページをアクセスできる権限がありません。別アカウントでログインしますか？"
+msgstr ""
+"%(username)sとして認証されていますがこのページをアクセスできる権限がありませ"
+"ん。別アカウントでログインしますか？"
 
 #: .\templates\registration\login.html:49
 msgid "Username:"
