@@ -1,6 +1,7 @@
 from django.contrib import admin
 from import_export import resources
 from import_export.admin import ImportMixin
+from import_export.formats.base_formats import CSV
 
 from backoffice.admin import admin_site
 from common.models import Prefecture
@@ -21,6 +22,7 @@ class PrefectureResource(resources.ModelResource):
 @admin.register(Prefecture, site=admin_site)
 class PrefectureAdmin(CommonAdminMixin, ImportMixin, admin.ModelAdmin):
     resource_class = PrefectureResource
+    formats = (CSV,)
     list_display = ("name", "code")
     list_display_links = None
     search_fields = ("name",)

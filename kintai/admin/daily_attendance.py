@@ -11,6 +11,7 @@ from kintai.models.daily_attendance import DailyAttendance
 class DailyAttendanceInline(admin.TabularInline):
     model = DailyAttendance
     extra = 0
+    can_delete = False
     fields = (
         "date_status",
         "work_pattern",
@@ -30,3 +31,6 @@ class DailyAttendanceInline(admin.TabularInline):
 
     class Media:
         css = {"all": ("kintai/monthly_attendance_change_list.css",)}  # noqa: RUF012
+
+    def has_add_permission(self, request, obj=None):
+        return False

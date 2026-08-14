@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.db import connection
 from import_export import resources
 from import_export.admin import ImportMixin
+from import_export.formats.base_formats import CSV
 
 from backoffice.admin import admin_site
 from common.models import Postcode, PostcodeImport
@@ -76,6 +77,7 @@ class PostcodeResource(resources.ModelResource):
 @admin.register(Postcode, site=admin_site)
 class PostcodeAdmin(CommonAdminMixin, ImportMixin, admin.ModelAdmin):
     resource_class = PostcodeResource
+    formats = (CSV,)
     list_display = ("postcode", "municipality", "town_name", "town_name_kana")
     search_fields = ("postcode", "municipality__name", "town_name")
     list_select_related = ("municipality",)

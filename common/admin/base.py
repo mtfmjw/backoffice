@@ -47,7 +47,7 @@ class BaseModelAdminMixin(CommonAdminMixin):
     class Media:
         css: ClassVar[dict[str, tuple[str, ...]]] = {"all": ("admin/admin_extra.css",)}
 
-    @display(description=_("更新日時"))
+    @display(description=_("Update Time"))
     def display_updated_at(self, obj):
         return obj.updated_at.strftime("%Y/%m/%d %H:%M:%S")
 

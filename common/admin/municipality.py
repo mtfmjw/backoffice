@@ -1,6 +1,7 @@
 from django.contrib import admin
 from import_export import fields, resources
 from import_export.admin import ImportMixin
+from import_export.formats.base_formats import CSV
 from import_export.instance_loaders import CachedInstanceLoader
 from import_export.widgets import ForeignKeyWidget
 
@@ -33,6 +34,7 @@ class MunicipalityResource(resources.ModelResource):
 @admin.register(Municipality, site=admin_site)
 class MunicipalityAdmin(CommonAdminMixin, ImportMixin, admin.ModelAdmin):
     resource_class = MunicipalityResource
+    formats = (CSV,)
     list_display = ("prefecture", "code", "name")
     search_fields = ("prefecture__name", "code", "name")
     list_select_related = ()

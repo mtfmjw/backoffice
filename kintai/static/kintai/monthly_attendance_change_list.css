@@ -1,3 +1,15 @@
+/* 時刻入力に付属する追加、変更と参照アイコンを非表示にする */
 .datetimeshortcuts {
     display: none !important;
+}
+
+/* 時刻入力用inputとほかのText inputの上辺を揃える */
+.inline-group .form-row p.time {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.inline-group .form-row input[type="checkbox"] {
+    vertical-align: middle !important;
+    text-align: center; /* Optional: aligns it horizontally too */
 }

@@ -7,27 +7,27 @@ from common.models.base import get_duration_in_minutes
 class WorkPattern(models.Model):
     """勤務パターンマスタ（通常・シフト・フレックスなど）"""
 
-    name = models.CharField(_("勤務パターン名"), max_length=100, unique=True)
-    start_time = models.TimeField(_("標準始業時刻"), default="09:30")
-    end_time = models.TimeField(_("標準終業時刻"), default="18:00")
+    name = models.CharField(_("Work Pattern Name"), max_length=100, unique=True)
+    start_time = models.TimeField(_("Standard Start Time"), default="09:30")
+    end_time = models.TimeField(_("Standard End Time"), default="18:00")
 
-    lunch_break_start_time = models.TimeField(_("昼休開始時刻"), default="12:00")
-    lunch_break_end_time = models.TimeField(_("昼休終了時刻"), default="13:00")
-    break1_start_time = models.TimeField(_("休憩1開始時刻"), default="18:00")
-    break1_end_time = models.TimeField(_("休憩1終了時刻"), default="18:30")
-    break2_start_time = models.TimeField(_("休憩2開始時刻"), default="20:00")
-    break2_end_time = models.TimeField(_("休憩2終了時刻"), default="20:30")
-    break3_start_time = models.TimeField(_("休憩3開始時刻"), default="22:30")
-    break3_end_time = models.TimeField(_("休憩3終了時刻"), default="22:45")
-    break4_start_time = models.TimeField(_("休憩4開始時刻"), default="03:00")
-    break4_end_time = models.TimeField(_("休憩4終了時刻"), default="03:30")
-    break5_start_time = models.TimeField(_("休憩5開始時刻"), default="09:00")
-    break5_end_time = models.TimeField(_("休憩5終了時刻"), default="09:30")
+    lunch_break_start_time = models.TimeField(_("Lunch Break Start Time"), default="12:00")
+    lunch_break_end_time = models.TimeField(_("Lunch Break End Time"), default="13:00")
+    break1_start_time = models.TimeField(_("Break 1 Start Time"), default="18:00")
+    break1_end_time = models.TimeField(_("Break 1 End Time"), default="18:30")
+    break2_start_time = models.TimeField(_("Break 2 Start Time"), default="20:00")
+    break2_end_time = models.TimeField(_("Break 2 End Time"), default="20:30")
+    break3_start_time = models.TimeField(_("Break 3 Start Time"), default="22:30")
+    break3_end_time = models.TimeField(_("Break 3 End Time"), default="22:45")
+    break4_start_time = models.TimeField(_("Break 4 Start Time"), default="03:00")
+    break4_end_time = models.TimeField(_("Break 4 End Time"), default="03:30")
+    break5_start_time = models.TimeField(_("Break 5 Start Time"), default="09:00")
+    break5_end_time = models.TimeField(_("Break 5 End Time"), default="09:30")
 
     class Meta:
         db_table = "work_pattern"
-        verbose_name = _("勤務パターン")
-        verbose_name_plural = _("勤務パターン")
+        verbose_name = _("Work Pattern")
+        verbose_name_plural = _("Work Patterns")
         ordering = ("start_time",)
 
     def __str__(self):

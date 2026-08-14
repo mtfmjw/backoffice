@@ -58,7 +58,8 @@ BEGIN
             d.day_date,
             EXTRACT(DOW FROM d.day_date) AS day_of_week,
             case when h.date = d.day_date then true else false end AS is_holiday,
-            case when h.date - INTERVAL '1 day' = d.day_date then true else false end as is_substitute_holiday
+            case when h.date - INTERVAL '1 day' = d.day_date then true else false end as is_substitute_holiday,
+            case when h.date = d.day_date or h.date - INTERVAL '1 day' = d.day_date or EXTRACT(DOW FROM d.day_date) in (0, 6) then true else false end as day_off
         FROM days d
         LEFT JOIN holiday h ON h.date = d.day_date
     )
@@ -83,22 +84,21 @@ BEGIN
         v_work_pattern_id,
         CASE WHEN d.is_holiday THEN 3 -- 祝日
              WHEN d.is_substitute_holiday THEN 4 -- 振替休日
-             WHEN d.day_of_week = 0 THEN 2 -- 法定休日
-             WHEN d.day_of_week = 6 THEN 1 -- 所定休日
-             ELSE 0 END AS date_type,
-        CASE WHEN d.is_holiday THEN 2 -- 祝日
-             WHEN d.is_substitute_holiday THEN 2 -- 振替休日
-             WHEN d.day_of_week = 0 THEN 2 -- 法定休日
-             WHEN d.day_of_week = 6 THEN 1 -- 所定休日
-             ELSE 0 END AS date_status,
-        CASE WHEN NOT d.is_holiday THEN d.day_date + wp.start_time END AS clock_in_time,
-        CASE WHEN NOT d.is_holiday THEN d.day_date + wp.end_time END AS clock_out_time,
-        true AS has_lunch_break,
-        true AS has_break1,
-        true AS has_break2,
-        true AS has_break3,
-        true AS has_break4,
-        true AS has_break5
+             WHEN d.day_of_week = 0 THEN 2 -- 日曜日、法定休日
+             WHEN d.day_of_week = 6 THEN 1 -- 土曜日、所定休日
+             ELSE 0 -- 平日
+        END AS date_type,
+        CASE WHEN day_off THEN 0 -- 休み
+             ELSE 1 -- 出勤
+        END AS date_status,
+        CASE WHEN not day_off THEN d.day_date + wp.start_time END AS clock_in_time,
+        CASE WHEN not day_off THEN d.day_date + wp.end_time END AS clock_out_time,
+        CASE WHEN not day_off THEN true ELSE false END AS has_lunch_break,
+        CASE WHEN not day_off THEN true ELSE false END AS has_break1,
+        CASE WHEN not day_off THEN true ELSE false END AS has_break2,
+        CASE WHEN not day_off THEN true ELSE false END AS has_break3,
+        CASE WHEN not day_off THEN true ELSE false END AS has_break4,
+        CASE WHEN not day_off THEN true ELSE false END AS has_break5
     FROM day_info d
     LEFT JOIN work_pattern wp ON wp.id = v_work_pattern_id;
 
