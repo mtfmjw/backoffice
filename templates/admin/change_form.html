@@ -5,7 +5,7 @@
   {{ block.super }}
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const validFlag = {{ original.valid_flag|lower }};
+      const validFlag = {% if original and original.valid_flag is not None %}{{ original.valid_flag|lower }}{% else %}true{% endif %};
       const deleteButton = document.querySelector('a[href$="/delete/"]');
       if (deleteButton && !validFlag) {
         deleteButton.textContent = '{% trans "Restore" %}';

@@ -20,5 +20,6 @@
       "database": "backoffice",
       "username": "backoffice"
     }
-  ]
+  ],
+  "workbench.editor.enablePreview": true
 }

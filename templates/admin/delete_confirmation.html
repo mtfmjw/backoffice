@@ -18,7 +18,7 @@
     {% endfor %}
     </ul>
   {% else %}
-    {% if object.valid_flag %}
+    {% if object.valid_flag is not False %}
       <p>{% blocktrans %}Are you sure you want to delete the {{ object_name }} "{{ object }}"? All of the following related items will be deleted:{% endblocktrans %}</p>
     {% else %}
       <p>{% blocktrans %}Are you sure you want to restore the {{ object_name }} "{{ object }}"?{% endblocktrans %}</p>
@@ -31,7 +31,7 @@
     {% if post_deleted_redirect_url %}
       <input type="hidden" name="post_url_continue" value="{{ post_deleted_redirect_url }}">
     {% endif %}
-    {% if object.valid_flag %}
+    {% if object.valid_flag is not False %}
       <input type="submit" value="{% trans 'Yes, delete' %}" class="button danger" style="margin-right: 10px;">
     {% else %}
       <input type="submit" value="{% trans 'Yes, restore' %}" class="button" style="margin-right: 10px;">

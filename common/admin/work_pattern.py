@@ -8,7 +8,7 @@ from import_export.instance_loaders import CachedInstanceLoader
 from backoffice.admin import admin_site
 from common.models import WorkPattern
 
-from .base import CommonAdminMixin, show_duration
+from .base import CommonAdminMixin, MasterImportExportPermissionMixin, show_duration
 
 
 class WorkPatternResource(resources.ModelResource):
@@ -40,7 +40,7 @@ class WorkPatternResource(resources.ModelResource):
 
 
 @admin.register(WorkPattern, site=admin_site)
-class WorkPatternAdmin(CommonAdminMixin, ImportExportModelAdmin):
+class WorkPatternAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, ImportExportModelAdmin):
     resource_class = WorkPatternResource
     formats = (CSV,)
     list_display = (

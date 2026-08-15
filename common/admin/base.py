@@ -3,7 +3,7 @@ from typing import ClassVar
 from django.contrib.admin import display
 from django.utils.translation import gettext_lazy as _
 
-CALENDAR_START_YEAR = 2020
+from common.const import MASTER_MANAGER_GROUP_NAME, SYSTEM_MANAGER_GROUP_NAME
 
 
 class CommonAdminMixin:
@@ -89,6 +89,14 @@ class BaseModelAdminMixin(CommonAdminMixin):
                     all_fields.append(f)
         kwargs["fields"] = all_fields
         return super().get_form(request, obj, **kwargs)
+
+
+class MasterImportExportPermissionMixin:
+    def has_import_permission(self, request):
+        return request.user.is_superuser or request.user.groups.filter(name__in=(MASTER_MANAGER_GROUP_NAME, SYSTEM_MANAGER_GROUP_NAME)).exists()
+
+    def has_export_permission(self, request):
+        return request.user.is_superuser or request.user.groups.filter(name__in=(MASTER_MANAGER_GROUP_NAME, SYSTEM_MANAGER_GROUP_NAME)).exists()
 
 
 def show_duration(start_time, end_time):

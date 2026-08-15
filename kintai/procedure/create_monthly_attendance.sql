@@ -26,7 +26,7 @@ BEGIN
         created_by,
         updated_at,
         updated_by,
-        date,
+        month,
         approve_status,
         member_id,
         work_pattern_id
@@ -64,7 +64,7 @@ BEGIN
         LEFT JOIN holiday h ON h.date = d.day_date
     )
     INSERT INTO attendance_daily (
-        date, 
+        day, 
         monthly_attendance_id, 
         work_pattern_id, 
         date_type,

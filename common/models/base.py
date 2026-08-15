@@ -1,7 +1,5 @@
-from datetime import timedelta
-
 from django.db import models
-from django.utils.timezone import datetime, localdate
+from django.utils.timezone import datetime
 from django.utils.translation import gettext_lazy as _
 
 from common.middleware import get_current_user
@@ -30,13 +28,9 @@ class BaseModel(models.Model):
         self.save()
 
 
-def get_duration_in_minutes(start_time, end_time):
+def get_duration_in_minutes(start_time: datetime, end_time: datetime) -> int:
     """2つの時刻の差を分単位で返す"""
-    base_start_date = localdate()
     if end_time < start_time:
-        # 日を跨ぐ場合は、end_timeを翌日に設定
-        base_end_date = base_start_date + timedelta(days=1)
+        return None
     else:
-        base_end_date = base_start_date
-
-    return (datetime.combine(base_end_date, end_time) - datetime.combine(base_start_date, start_time)).seconds // 60
+        return (end_time - start_time).seconds // 60

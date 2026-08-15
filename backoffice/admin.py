@@ -1,4 +1,5 @@
 from django.contrib.admin import AdminSite
+from django.contrib.auth.admin import GroupAdmin
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User as AuthUser
 from django.contrib.auth.views import LoginView
@@ -64,11 +65,70 @@ class CustomAdminSite(AdminSite):
         return app_list
 
 
+# admin.py
+from django.contrib import admin
+from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+
+User = get_user_model()
+
+SUPER_USER_NAME = "admin"
+
+# 既存の UserAdmin の登録を解除（すでに登録されている場合）
+admin.site.unregister(User)
+
+
+class AuthUserAdmin(BaseUserAdmin):
+    def get_form(self, request, obj=None, **kwargs):
+        """
+        フォームを生成する際、ログインユーザーが superuser でない場合は
+        is_superuser フィールドを無効化（非表示・編集不可）にする
+        """
+        form = super().get_form(request, obj, **kwargs)
+
+        # フィールドを無効化（HTML上で操作不可にする）
+        if "is_superuser" in form.base_fields:
+            form.base_fields["is_superuser"].disabled = True
+            form.base_fields["is_superuser"].help_text = "スーパーユーザー権限の変更はできません。"
+
+        return form
+
+    def get_fieldsets(self, request, obj=None):
+        """
+        管理画面のフォーム表示領域から is_staff を除外する
+        """
+        fieldsets = super().get_fieldsets(request, obj)
+
+        # fieldsets をディープコピーして非スーパーユーザー用に書き換え
+        new_fieldsets = []
+        for name, field_options in fieldsets:
+            fields = list(field_options.get("fields", []))
+            # is_staff をリストから削除
+            if "is_staff" in fields:
+                fields.remove("is_staff")
+            new_fieldsets.append((name, {**field_options, "fields": tuple(fields)}))
+        return tuple(new_fieldsets)
+
+    def save_model(self, request, obj, form, change):
+        """
+        不正なリクエスト（POSTデータの改ざん等）を防止するため、
+        保存時にも非スーパーユーザーによる is_superuser の昇格を弾く
+        """
+        if change:
+            if obj.username == SUPER_USER_NAME:
+                obj.is_superuser = True
+            else:
+                obj.is_superuser = False
+        else:
+            # 新規作成時は強制的に False に設定
+            obj.is_superuser = False
+
+        super().save_model(request, obj, form, change)
+
+
 # Create an instance of the custom admin site to be used in urls.py
 admin_site = CustomAdminSite()
 
-from django.contrib.auth.admin import GroupAdmin
-from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 
 admin_site.register(AuthUser, AuthUserAdmin)
 admin_site.register(Group, GroupAdmin)
