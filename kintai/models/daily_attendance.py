@@ -70,6 +70,9 @@ class DailyAttendance(models.Model):
 
     def standard_start_time(self):
         """標準勤務開始時刻を返す（半休などを考慮して計算）"""
+        if not self.work_pattern:
+            return None
+
         start_time = self.work_pattern.start_time
         if self.date_status == self.DateStatus.MORNING_PAID_LEAVE:
             # 午前半休の勤務開始時刻を設定
@@ -78,13 +81,16 @@ class DailyAttendance(models.Model):
 
     def standard_end_time(self):
         """標準勤務終了時刻を返す（半休などを考慮して計算）"""
+        if not self.work_pattern:
+            return None
+
         end_time = self.work_pattern.end_time
         if self.date_status == self.DateStatus.AFTERNOON_PAID_LEAVE:
             # 午後半休の標準勤務終了時刻を設定
             end_time = self.work_pattern.start_time + timedelta(minutes=HALF_DAY_MINUTES)
         return end_time
 
-    def is_at_work(self):
+    def is_present(self):
         """出勤状態かどうかを返す"""
         return (
             self.date_status == self.DateStatus.PRESENT
@@ -94,19 +100,28 @@ class DailyAttendance(models.Model):
 
     def get_late_minutes(self):
         """遅刻時間を分単位で返す"""
-        if self.is_at_work() and self.clock_in_time.time() > self.standard_start_time():
+        if not self.is_present() or not self.clock_in_time or not self.standard_start_time():
+            return 0
+
+        if self.clock_in_time.time() > self.standard_start_time():
             return get_duration_in_minutes(self.standard_start_time(), self.clock_in_time.time())
         return 0
 
     def get_early_leave_minutes(self):
         """早退時間を分単位で返す"""
-        if self.is_at_work() and self.clock_out_time and self.clock_out_time.time() < self.standard_end_time():
+        if not self.is_present() or not self.clock_out_time or not self.standard_end_time():
+            return 0
+
+        if self.clock_out_time.time() < self.standard_end_time():
             return get_duration_in_minutes(self.clock_out_time.time(), self.standard_end_time())
         return 0
 
     def lunch_break_minutes(self):
         """ランチ休憩時間を分単位で返す"""
-        if self.has_lunch_break and self.clock_in_time and self.clock_out_time and self.clock_in_time <= self.work_pattern.lunch_break_start_time:
+        if not self.is_present() or not self.work_pattern or not self.has_lunch_break or not self.clock_in_time or not self.clock_out_time:
+            return 0
+
+        if self.clock_in_time <= self.work_pattern.lunch_break_start_time:
             if self.clock_out_time >= self.work_pattern.lunch_break_end_time:
                 minutes = self.work_pattern.lunch_break_duration()
             else:
@@ -116,7 +131,10 @@ class DailyAttendance(models.Model):
 
     def break1_minutes(self):
         """休憩1時間を分単位で返す"""
-        if self.has_break1 and self.clock_in_time and self.clock_out_time and self.clock_in_time <= self.work_pattern.break1_start_time:
+        if not self.is_present() or not self.work_pattern or not self.has_break1 or not self.clock_in_time or not self.clock_out_time:
+            return 0
+
+        if self.clock_in_time <= self.work_pattern.break1_start_time:
             if self.clock_out_time >= self.work_pattern.break1_end_time:
                 minutes = self.work_pattern.break1_duration()
             else:
@@ -126,7 +144,10 @@ class DailyAttendance(models.Model):
 
     def break2_minutes(self):
         """休憩2時間を分単位で返す"""
-        if self.has_break2 and self.clock_in_time and self.clock_out_time and self.clock_in_time <= self.work_pattern.break2_start_time:
+        if not self.is_present() or not self.work_pattern or not self.has_break2 or not self.clock_in_time or not self.clock_out_time:
+            return 0
+
+        if self.clock_in_time <= self.work_pattern.break2_start_time:
             if self.clock_out_time >= self.work_pattern.break2_end_time:
                 minutes = self.work_pattern.break2_duration()
             else:
@@ -136,7 +157,10 @@ class DailyAttendance(models.Model):
 
     def break3_minutes(self):
         """休憩3時間を分単位で返す"""
-        if self.has_break3 and self.clock_in_time and self.clock_out_time and self.clock_in_time <= self.work_pattern.break3_start_time:
+        if not self.is_present() or not self.work_pattern or not self.has_break3 or not self.clock_in_time or not self.clock_out_time:
+            return 0
+
+        if self.clock_in_time <= self.work_pattern.break3_start_time:
             if self.clock_out_time >= self.work_pattern.break3_end_time:
                 minutes = self.work_pattern.break3_duration()
             else:
@@ -146,7 +170,10 @@ class DailyAttendance(models.Model):
 
     def break4_minutes(self):
         """休憩4時間を分単位で返す"""
-        if self.has_break4 and self.clock_in_time and self.clock_out_time and self.clock_in_time <= self.work_pattern.break4_start_time:
+        if not self.is_present() or not self.work_pattern or not self.has_break4 or not self.clock_in_time or not self.clock_out_time:
+            return 0
+
+        if self.clock_in_time <= self.work_pattern.break4_start_time:
             if self.clock_out_time >= self.work_pattern.break4_end_time:
                 minutes = self.work_pattern.break4_duration()
             else:
@@ -156,7 +183,10 @@ class DailyAttendance(models.Model):
 
     def break5_minutes(self):
         """休憩5時間を分単位で返す"""
-        if self.has_break5 and self.clock_in_time and self.clock_out_time and self.clock_in_time <= self.work_pattern.break5_start_time:
+        if not self.is_present() or not self.work_pattern or not self.has_break5 or not self.clock_in_time or not self.clock_out_time:
+            return 0
+
+        if self.clock_in_time <= self.work_pattern.break5_start_time:
             if self.clock_out_time >= self.work_pattern.break5_end_time:
                 minutes = self.work_pattern.break5_duration()
             else:
@@ -176,7 +206,7 @@ class DailyAttendance(models.Model):
                 + self.break3_minutes()
                 + self.break4_minutes()
                 + self.break5_minutes()
-                + self.other_break_minutes
+                + (self.other_break_minutes or 0)
             )
             return max(total_work_minutes - total_break_minutes, 0)
         return 0

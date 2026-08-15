@@ -186,10 +186,8 @@ msgid "Month"
 msgstr "月"
 
 #: .\kintai\models\monthly_attendence.py:27
-#, fuzzy
-#| msgid "Date Status"
 msgid "Approve Status"
-msgstr "勤務区分"
+msgstr "承認状態"
 
 #: .\kintai\models\monthly_attendence.py:28
 msgid "Actual Working Time (min)"

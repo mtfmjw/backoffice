@@ -8,7 +8,7 @@ from backoffice.admin import admin_site
 from common.form import DirectExportForm
 from common.models import Organization, WorkPattern
 
-from .base import BaseModelAdminMixin
+from .base import BaseModelAdminMixin, MasterImportExportPermissionMixin
 
 
 class OrganizationResource(resources.ModelResource):
@@ -35,7 +35,7 @@ class OrganizationResource(resources.ModelResource):
 
 
 @admin.register(Organization, site=admin_site)
-class OrganizationAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
+class OrganizationAdmin(BaseModelAdminMixin, MasterImportExportPermissionMixin, ImportExportModelAdmin):
     resource_class = OrganizationResource
     formats = (CSV,)
     export_form_class = DirectExportForm

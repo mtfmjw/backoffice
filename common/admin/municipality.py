@@ -8,7 +8,7 @@ from import_export.widgets import ForeignKeyWidget
 from backoffice.admin import admin_site
 from common.models import Municipality, Prefecture
 
-from .base import CommonAdminMixin
+from .base import CommonAdminMixin, MasterImportExportPermissionMixin
 from .filters import PrefectureFilter
 
 
@@ -32,7 +32,7 @@ class MunicipalityResource(resources.ModelResource):
 
 
 @admin.register(Municipality, site=admin_site)
-class MunicipalityAdmin(CommonAdminMixin, ImportMixin, admin.ModelAdmin):
+class MunicipalityAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, ImportMixin, admin.ModelAdmin):
     resource_class = MunicipalityResource
     formats = (CSV,)
     list_display = ("prefecture", "code", "name")

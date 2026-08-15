@@ -7,7 +7,7 @@ from import_export.formats.base_formats import CSV
 from backoffice.admin import admin_site
 from common.models import Postcode, PostcodeImport
 
-from .base import CommonAdminMixin
+from .base import CommonAdminMixin, MasterImportExportPermissionMixin
 from .filters import PrefectureFilter
 
 
@@ -75,7 +75,7 @@ class PostcodeResource(resources.ModelResource):
 
 
 @admin.register(Postcode, site=admin_site)
-class PostcodeAdmin(CommonAdminMixin, ImportMixin, admin.ModelAdmin):
+class PostcodeAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, ImportMixin, admin.ModelAdmin):
     resource_class = PostcodeResource
     formats = (CSV,)
     list_display = ("postcode", "municipality", "town_name", "town_name_kana")

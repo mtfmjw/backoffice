@@ -14,6 +14,7 @@ from import_export.admin import ImportExportModelAdmin
 
 from backoffice.admin import admin_site
 from common.admin.base import BaseModelAdminMixin
+from common.admin.filters import OrganizationFilter
 from kintai.models import MonthlyAttendance
 
 from .daily_attendance import DailyAttendanceInline
@@ -39,7 +40,7 @@ class MonthFilter(SimpleListFilter):
             return queryset
         try:
             year, month = map(int, value.split("-"))
-            return queryset.filter(date__year=year, date__month=month)
+            return queryset.filter(month__year=year, month__month=month)
         except (ValueError, AttributeError):
             return queryset
 
@@ -49,7 +50,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
     change_list_template = "kintai/monthly_attendance_change_list.html"
     list_display = (
         "member",
-        "month",
+        "display_month",
         "belong",
         "approve_status",
         "actual_work_minutes",
@@ -60,7 +61,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
     ) + BaseModelAdminMixin.list_display
     search_fields = ("member__user__username", "member__user__last_name", "member__user__first_name", "member__organization__name")
     list_select_related = ("member", "work_pattern")
-    list_filter = (MonthFilter, "approve_status") + BaseModelAdminMixin.list_filter
+    list_filter = (MonthFilter, OrganizationFilter, "approve_status") + BaseModelAdminMixin.list_filter
     readonly_fields = (
         "actual_work_minutes",
         "overtime_minutes",
@@ -71,11 +72,13 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
     inlines = (DailyAttendanceInline,)
 
     @display(description="勤務月")
-    def month(self, obj):
-        return obj.date.strftime("%Y/%m")
+    def display_month(self, obj):
+        return obj.month.strftime("%Y/%m")
 
     @display(description="所属")
     def belong(self, obj):
+        if not obj.member or not obj.member.organization:
+            return "-"
         return obj.member.organization.name
 
     def has_add_permission(self, request):
@@ -121,7 +124,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
         member = request.user.member
         month_str = request.GET.get("month", localdate().strftime("%Y-%m"))
         first_day = datetime.strptime(month_str, "%Y-%m").date()  # noqa: DTZ007
-        attendance = MonthlyAttendance.objects.filter(member=member, date=first_day).first()
+        attendance = MonthlyAttendance.objects.filter(member=member, month=first_day).first()
         if attendance:
             attendance_id = attendance.id
         else:

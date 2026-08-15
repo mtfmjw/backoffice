@@ -2,7 +2,8 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.filters import RelatedOnlyFieldListFilter
 from django.utils.timezone import localdate
 
-from common.admin.base import CALENDAR_START_YEAR
+from common.const import CALENDAR_START_YEAR
+from common.models.organization import Organization
 
 
 class PrefectureFilter(RelatedOnlyFieldListFilter):
@@ -50,3 +51,20 @@ class YearFilter(SimpleListFilter):
         # The first item (index 0) in all_choices is always the 'All' link.
         # Returning all_choices[1:] strips it out.
         return all_choices[1:]
+
+
+class OrganizationFilter(SimpleListFilter):
+    title = "対象組織"
+    parameter_name = "organization"
+
+    def lookups(self, request, model_admin):
+        choices = Organization.objects.filter(valid_flag=True, parent__isnull=True).order_by("code").values_list("id", "name")
+        return choices
+
+    def queryset(self, request, queryset):
+        value = self.value()
+
+        if value is not None:
+            return queryset.filter(organization__id=int(value))
+
+        return queryset
