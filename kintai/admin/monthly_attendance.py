@@ -13,8 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from import_export.admin import ImportExportModelAdmin
 
 from backoffice.admin import admin_site
-from common.admin.base import BaseModelAdminMixin
-from common.admin.filters import OrganizationFilter
+from common.admin.base import BaseModelAdminMixin, OrganizationFilterMixin
 from kintai.models import MonthlyAttendance
 
 from .daily_attendance import DailyAttendanceInline
@@ -46,7 +45,7 @@ class MonthFilter(SimpleListFilter):
 
 
 @admin.register(MonthlyAttendance, site=admin_site)
-class MonthlyAttendanceAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
+class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, ImportExportModelAdmin):
     change_list_template = "kintai/monthly_attendance_change_list.html"
     list_display = (
         "member",
@@ -61,7 +60,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
     ) + BaseModelAdminMixin.list_display
     search_fields = ("member__user__username", "member__user__last_name", "member__user__first_name", "member__organization__name")
     list_select_related = ("member", "work_pattern")
-    list_filter = (MonthFilter, OrganizationFilter, "approve_status") + BaseModelAdminMixin.list_filter
+    list_filter = (MonthFilter, "approve_status") + BaseModelAdminMixin.list_filter
     readonly_fields = (
         "actual_work_minutes",
         "overtime_minutes",

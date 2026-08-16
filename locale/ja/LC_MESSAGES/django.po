@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-14 09:30+0900\n"
+"POT-Creation-Date: 2026-08-16 15:08+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,15 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: .\backoffice\admin.py:13 .\backoffice\admin.py:14
+#: .\backoffice\admin.py:14 .\backoffice\admin.py:15
 msgid "バックオフィス"
 msgstr ""
 
-#: .\backoffice\admin.py:15
+#: .\backoffice\admin.py:16
 msgid "サイト管理"
 msgstr ""
 
-#: .\backoffice\admin.py:77
+#: .\backoffice\admin.py:138
 msgid "Delete?"
 msgstr "削除?"
 

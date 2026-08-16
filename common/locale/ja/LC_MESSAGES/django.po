@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-14 15:28+0900\n"
+"POT-Creation-Date: 2026-08-16 15:08+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,11 +18,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: .\common\admin\base.py:50
+#: .\common\admin\base.py:55
 msgid "Update Time"
 msgstr "更新日時"
 
-#: .\common\admin\member.py:97
+#: .\common\admin\filters.py:24
+msgid "Year"
+msgstr "年"
+
+#: .\common\admin\filters.py:60 .\common\models\organization.py:18
+msgid "Organization"
+msgstr "組織"
+
+#: .\common\admin\member.py:99
 msgid "Full Name"
 msgstr "名前"
 
@@ -30,92 +38,120 @@ msgstr "名前"
 msgid "Common"
 msgstr "共通マスタ"
 
-#: .\common\models\base.py:11
+#: .\common\models\base.py:9
 msgid "Valid"
 msgstr "有効"
 
-#: .\common\models\base.py:12
+#: .\common\models\base.py:10
 msgid "Created at"
 msgstr "作成日時"
 
-#: .\common\models\base.py:13
+#: .\common\models\base.py:11
 msgid "Created by"
 msgstr "作成者"
 
-#: .\common\models\base.py:14
+#: .\common\models\base.py:12
 msgid "Updated at"
 msgstr "更新日時"
 
-#: .\common\models\base.py:15
+#: .\common\models\base.py:13
 msgid "Updated by"
 msgstr "更新者"
 
-#: .\common\models\holiday.py:11
+#: .\common\models\holiday.py:14
 msgid "National Holiday"
 msgstr "国民の祝日"
 
-#: .\common\models\holiday.py:12
+#: .\common\models\holiday.py:15
 msgid "Company Holiday (Summer/New Year, etc.)"
 msgstr "会社制定休日（夏季・年末年始等）"
 
-#: .\common\models\holiday.py:13
+#: .\common\models\holiday.py:16
 msgid "Legal Holiday"
 msgstr "法定休日"
 
-#: .\common\models\holiday.py:14
+#: .\common\models\holiday.py:17
 msgid "Non-Legal Holiday"
 msgstr "所定休日"
 
-#: .\common\models\holiday.py:16
+#: .\common\models\holiday.py:19
 msgid "Date"
 msgstr "日付"
 
-#: .\common\models\holiday.py:17
+#: .\common\models\holiday.py:20
 msgid "Holiday Type"
 msgstr "休日区分"
 
-#: .\common\models\holiday.py:19
+#: .\common\models\holiday.py:22
 msgid "Holiday Name"
 msgstr "祝日・休日名称"
 
-#: .\common\models\holiday.py:19
+#: .\common\models\holiday.py:22
 msgid "e.g., New Year's Day, Summer Vacation, Foundation Day"
 msgstr "例: 元日、夏季休暇、創立記念日"
 
-#: .\common\models\holiday.py:24
+#: .\common\models\holiday.py:27
 msgid "Holiday"
 msgstr "祝日・休日"
 
-#: .\common\models\holiday.py:25
+#: .\common\models\holiday.py:28
 msgid "Holidays"
 msgstr "祝日・休日一覧"
 
-#: .\common\models\member.py:11
+#: .\common\models\member.py:18
+msgid "President"
+msgstr "社長"
+
+#: .\common\models\member.py:19
+msgid "Vice President"
+msgstr "副社長"
+
+#: .\common\models\member.py:20
+msgid "Chief Manager"
+msgstr "本部長"
+
+#: .\common\models\member.py:21
+msgid "Manager"
+msgstr "部長"
+
+#: .\common\models\member.py:22
+msgid "Acting Manager"
+msgstr "部長代理"
+
+#: .\common\models\member.py:23
+msgid "Employee"
+msgstr "社員"
+
+#: .\common\models\member.py:25
 msgid "Employee Number"
 msgstr "社員番号"
 
-#: .\common\models\member.py:12
+#: .\common\models\member.py:26
 msgid "Email address"
 msgstr "Eメール"
 
-#: .\common\models\member.py:14
+#: .\common\models\member.py:28
 msgid "Belongs to"
 msgstr "所属"
 
-#: .\common\models\member.py:16 .\common\models\organization.py:11
+#: .\common\models\member.py:30 .\common\models\organization.py:11
 #: .\common\models\work_pattern.py:29
 msgid "Work Pattern"
 msgstr "勤務パターン"
 
-#: .\common\models\member.py:17
-msgid "Manager Flag"
+#: .\common\models\member.py:31
+msgid "Position"
+msgstr "職務"
+
+#: .\common\models\member.py:32
+msgid "Is Head of Organization"
 msgstr "責任者"
 
-#: .\common\models\member.py:21
+#: .\common\models\member.py:36
 msgid "Member"
 msgstr "社員"
 
-#: .\common\models\member.py:22
+#: .\common\models\member.py:37
 msgid "Members"
 msgstr "社員一覧"
 
@@ -154,10 +190,6 @@ msgstr "組織名"
 #: .\common\models\organization.py:13
 msgid "Parent Organization"
 msgstr "親組織"
-
-#: .\common\models\organization.py:18
-msgid "Organization"
-msgstr "組織"
 
 #: .\common\models\organization.py:19
 msgid "Organizations"

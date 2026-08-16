@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-14 16:23+0900\n"
+"POT-Creation-Date: 2026-08-16 15:08+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
+#: .\kintai\admin\monthly_attendance.py:24
+#: .\kintai\models\monthly_attendence.py:26
+msgid "Month"
+msgstr "月"
 
 #: .\kintai\apps.py:7
 msgid "Attendance Management"
@@ -180,10 +185,6 @@ msgstr "確定済"
 #: .\kintai\models\monthly_attendence.py:24
 msgid "Member"
 msgstr "社員"
-
-#: .\kintai\models\monthly_attendence.py:26
-msgid "Month"
-msgstr "月"
 
 #: .\kintai\models\monthly_attendence.py:27
 msgid "Approve Status"

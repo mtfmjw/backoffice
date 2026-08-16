@@ -1,2 +1,9 @@
 user_username,email,organization_code,work_pattern_name,valid_flag,created_at,created_by,updated_at,updated_by
-1073,mt.tamaki@leadingsoft.co.jp,60,シフト１,1,2026-08-10 18:09,1073,2026-08-13 10:15,admin
+9010,9010@leadingsoft.co.jp,91,,1,2026-08-17 07:58,9400,2026-08-17 07:59,9400
+9400,9400@leadingsoft.co.jp,90,,1,2026-08-17 05:54,admin,2026-08-17 07:35,admin
+9300,9300@leadingsoft.co.jp,,,1,2026-08-17 05:54,admin,2026-08-17 05:54,admin
+9200,9200@leadingsoft.co.jp,60,,1,2026-08-17 05:53,admin,2026-08-17 07:34,admin
+9100,9100@leadingsoft.co.jp,,,1,2026-08-17 05:49,admin,2026-08-17 05:49,admin
+9001,9001@leadmingsoft.co.jp,61,シフト３,1,2026-08-17 05:49,admin,2026-08-17 07:34,admin
+9000,9000@leadmingsoft.co.jp,60,,1,2026-08-17 05:48,admin,2026-08-17 07:33,admin
+1073,mt.tamaki@leadingsoft.co.jp,61,シフト１,1,2026-08-17 05:45,admin,2026-08-17 07:33,admin

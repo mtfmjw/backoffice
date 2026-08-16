@@ -20,3 +20,20 @@ class Organization(BaseModel):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def get_sub_department_ids_sql(cls, root_organization_id: int) -> str:
+        """
+        SQL snippet using a recursive CTE to return IDs of root_organization_id
+        and all its descendants.
+        """
+        return f"""
+        WITH RECURSIVE organization_tree AS (
+            SELECT id FROM organization WHERE id = {root_organization_id}
+            UNION ALL
+            SELECT d.id 
+            FROM organization d
+            INNER JOIN organization_tree dt ON d.parent_id = dt.id
+        )
+        SELECT id FROM organization_tree
+    """

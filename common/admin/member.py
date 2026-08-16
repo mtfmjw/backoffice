@@ -28,7 +28,6 @@ class MemberResource(resources.ModelResource):
             "email",
             "organization",
             "work_pattern",
-            "manage_flag",
             "valid_flag",
             "created_at",
             "created_by",
@@ -40,7 +39,6 @@ class MemberResource(resources.ModelResource):
             "email",
             "organization",
             "work_pattern",
-            "manage_flag",
             "valid_flag",
             "created_at",
             "created_by",
@@ -74,8 +72,8 @@ class MemberAdmin(OrganizationFilterMixin, MasterImportExportPermissionMixin, Ba
     export_form_class = DirectExportForm
 
     has_add_permission = lambda self, request: False
-    readonly_fields = ("user",) + BaseModelAdminMixin.readonly_fields
-    list_display = ("full_name", "user", "email", "organization", "work_pattern") + BaseModelAdminMixin.list_display
+    readonly_fields = ("user", "is_organization_manager") + BaseModelAdminMixin.readonly_fields
+    list_display = ("full_name", "user", "email", "organization", "is_organization_manager", "work_pattern") + BaseModelAdminMixin.list_display
     search_fields = (
         "user__username",
         "user__first_name",
@@ -84,12 +82,11 @@ class MemberAdmin(OrganizationFilterMixin, MasterImportExportPermissionMixin, Ba
         "organization__name",
     )
     list_select_related = ("user", "organization")
-    list_filter = ("organization",) + BaseModelAdminMixin.list_filter
     fieldsets = (
         (
             None,
             {
-                "fields": (("user", "email"), ("organization", "manager_flag"), "work_pattern"),
+                "fields": (("user", "email"), ("organization", "is_organization_manager"), "work_pattern"),
             },
         ),
     )
@@ -97,3 +94,7 @@ class MemberAdmin(OrganizationFilterMixin, MasterImportExportPermissionMixin, Ba
     @display(description=_("Full Name"))
     def full_name(self, obj):
         return f"{obj.user.last_name} {obj.user.first_name}"
+
+    @display(description=_("Is Organization Manager"))
+    def is_organization_manager(self, obj) -> bool:
+        return obj.is_organization_manager()
