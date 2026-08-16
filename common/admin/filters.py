@@ -1,6 +1,7 @@
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.filters import RelatedOnlyFieldListFilter
 from django.utils.timezone import localdate
+from django.utils.translation import gettext_lazy as _
 
 from common.const import CALENDAR_START_YEAR
 from common.models.organization import Organization
@@ -18,7 +19,7 @@ class PrefectureFilter(RelatedOnlyFieldListFilter):
 
 
 class YearFilter(SimpleListFilter):
-    title = "対象年"
+    title = _("Year")
     parameter_name = "year"
 
     def lookups(self, request, model_admin):
@@ -54,7 +55,7 @@ class YearFilter(SimpleListFilter):
 
 
 class OrganizationFilter(SimpleListFilter):
-    title = "対象組織"
+    title = _("Organization")
     parameter_name = "organization"
 
     def lookups(self, request, model_admin):

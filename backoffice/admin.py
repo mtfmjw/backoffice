@@ -72,6 +72,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 User = get_user_model()
 
+# superuserを一つに限定し、ほかのsuperuserを登録できないように制限する
 SUPER_USER_NAME = "admin"
 
 # 既存の UserAdmin の登録を解除（すでに登録されている場合）

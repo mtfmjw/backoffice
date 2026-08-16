@@ -11,7 +11,7 @@ from backoffice.admin import admin_site
 from common.form import DirectExportForm
 from common.models import Member, Organization, WorkPattern
 
-from .base import BaseModelAdminMixin, MasterImportExportPermissionMixin
+from .base import BaseModelAdminMixin, MasterImportExportPermissionMixin, OrganizationFilterMixin
 
 User = get_user_model()
 
@@ -68,7 +68,7 @@ class MemberResource(resources.ModelResource):
 
 
 @admin.register(Member, site=admin_site)
-class MemberAdmin(ImportExportModelAdmin, MasterImportExportPermissionMixin, BaseModelAdminMixin):
+class MemberAdmin(OrganizationFilterMixin, MasterImportExportPermissionMixin, BaseModelAdminMixin, ImportExportModelAdmin):
     resource_class = MemberResource
     formats = (CSV,)
     export_form_class = DirectExportForm

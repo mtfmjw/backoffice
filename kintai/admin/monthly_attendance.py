@@ -21,7 +21,7 @@ from .daily_attendance import DailyAttendanceInline
 
 
 class MonthFilter(SimpleListFilter):
-    title = "対象月"
+    title = _("Month")
     parameter_name = "month"
 
     def lookups(self, request, model_admin):

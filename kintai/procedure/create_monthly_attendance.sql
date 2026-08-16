@@ -81,7 +81,7 @@ BEGIN
     SELECT 
         d.day_date, 
         p_attendance_id, 
-        v_work_pattern_id,
+        CASE WHEN not day_off THEN v_work_pattern_id ELSE NULL END AS work_pattern_id,
         CASE WHEN d.is_holiday THEN 3 -- 祝日
              WHEN d.is_substitute_holiday THEN 4 -- 振替休日
              WHEN d.day_of_week = 0 THEN 2 -- 日曜日、法定休日
