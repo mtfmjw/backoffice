@@ -51,28 +51,28 @@ class WorkPattern(models.Model):
         if dt_end <= dt_start:
             dt_end += timedelta(days=1)
 
-        return (dt_end - dt_start).total_seconds() / 60  # Returns the duration in minutes
+        return int((dt_end - dt_start).total_seconds() // 60)  # Returns the duration in minutes
 
-    def lunch_break_duration(self):
+    def lunch_break_duration(self) -> int:
         """ランチ休憩時間を分単位で返す"""
         return self.get_duration_in_minutes(self.lunch_break_start_time, self.lunch_break_end_time)
 
-    def break1_duration(self):
+    def break1_duration(self) -> int:
         """休憩1時間を分単位で返す"""
         return self.get_duration_in_minutes(self.break1_start_time, self.break1_end_time)
 
-    def break2_duration(self):
+    def break2_duration(self) -> int:
         """休憩2時間を分単位で返す"""
         return self.get_duration_in_minutes(self.break2_start_time, self.break2_end_time)
 
-    def break3_duration(self):
+    def break3_duration(self) -> int:
         """休憩3時間を分単位で返す"""
         return self.get_duration_in_minutes(self.break3_start_time, self.break3_end_time)
 
-    def break4_duration(self):
+    def break4_duration(self) -> int:
         """休憩4時間を分単位で返す"""
         return self.get_duration_in_minutes(self.break4_start_time, self.break4_end_time)
 
-    def break5_duration(self):
+    def break5_duration(self) -> int:
         """休憩5時間を分単位で返す"""
         return self.get_duration_in_minutes(self.break5_start_time, self.break5_end_time)

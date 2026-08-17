@@ -25,11 +25,11 @@ class MonthlyAttendance(BaseModel):
     work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name=_("Work Pattern"))
     month = models.DateField(_("Month"))
     approve_status = models.IntegerField(_("Approve Status"), choices=ApproveStatus.choices, default=ApproveStatus.DRAFT)
-    actual_work_minutes = models.PositiveIntegerField(_("Actual Working Time (min)"), null=True, blank=True)
-    overtime_minutes = models.PositiveIntegerField(_("Overtime (min)"), null=True, blank=True)
-    night_work_minutes = models.PositiveIntegerField(_("Night Shift Hours (min)"), null=True, blank=True)
+    actual_work_minutes = models.PositiveIntegerField(_("Actual Working Time"), null=True, blank=True)
+    overtime_minutes = models.PositiveIntegerField(_("Overtime"), null=True, blank=True)
+    night_work_minutes = models.PositiveIntegerField(_("Night Working Time"), null=True, blank=True)
     worked_days = models.PositiveIntegerField(_("Days Worked"), null=True, blank=True)
-    paid_leave_days = models.PositiveIntegerField(_("Paid Leave Days"), null=True, blank=True)  # Including half-days
+    paid_leave_days = models.FloatField(_("Paid Leave Days"), null=True, blank=True)  # Including half-days
     note = models.CharField(_("Note"), max_length=255, null=True, blank=True)
 
     class Meta:

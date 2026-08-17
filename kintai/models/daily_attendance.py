@@ -25,7 +25,7 @@ class DailyAttendance(models.Model):
     class DateStatus(models.IntegerChoices):
         """勤怠区分"""
 
-        DAY_OFF = 0, _("Day Off")  # 休み
+        # DAY_OFF = 0, _("Day Off")  # 休み
         PRESENT = 1, _("Present")  # 出勤
         ABSENCE = 2, _("Absent")  # 欠勤
         MORNING_PAID_LEAVE = 3, _("Morning Half-Day Leave")  # 午前半休
@@ -67,7 +67,26 @@ class DailyAttendance(models.Model):
         ordering = ("day",)
 
     def __str__(self):
-        return f"Date: {self.day.strftime('%m/%d')}({WEEKDAYS[self.day.weekday()]}) {self.get_date_type_display()}"
+        default_message = f"{self.day.strftime('%Y年%m月%d日')} - {self.get_date_type_display()}"
+        if self.is_present():
+            working_time = (
+                f"{_('Actual Working Time')}：{int(self.actual_work_minutes() // 60):02d}:{int(self.actual_work_minutes() % 60):02d}"
+                if self.is_present()
+                else ""
+            )
+            overtime = (
+                f"{_('Overtime')}：{int(self.overtime_minutes() // 60):02d}:{int(self.overtime_minutes() % 60):02d}"
+                if self.overtime_minutes() > 0
+                else ""
+            )
+            night_work_time = (
+                f"{_('Night Working Time')}：{int(self.night_work_minutes() // 60):02d}:{int(self.night_work_minutes() % 60):02d}"
+                if self.night_work_minutes() > 0
+                else ""
+            )
+            return f"{default_message}　{working_time}　{overtime}　{night_work_time}"
+        else:
+            return default_message
 
     def standard_start_time(self):
         """標準勤務開始時刻を返す（半休などを考慮して計算）"""
@@ -99,25 +118,25 @@ class DailyAttendance(models.Model):
             or self.date_status == self.DateStatus.AFTERNOON_PAID_LEAVE
         )
 
-    def get_late_minutes(self):
+    def get_late_minutes(self) -> int:
         """遅刻時間を分単位で返す"""
         if not self.is_present() or not self.clock_in_time or not self.standard_start_time():
             return 0
 
         if self.clock_in_time > self.standard_start_time():
-            return (self.clock_in_time - self.standard_start_time()).total_seconds() // 60
+            return int((self.clock_in_time - self.standard_start_time()).total_seconds() // 60)
         return 0
 
-    def get_early_leave_minutes(self):
+    def get_early_leave_minutes(self) -> int:
         """早退時間を分単位で返す"""
         if not self.is_present() or not self.clock_out_time or not self.standard_end_time():
             return 0
 
         if self.clock_out_time < self.standard_end_time():
-            return self.standard_end_time() - self.clock_out_time
-        return datetime.timedelta(0)
+            return int((self.standard_end_time() - self.clock_out_time).total_seconds() // 60)
+        return 0
 
-    def lunch_break_minutes(self):
+    def lunch_break_minutes(self) -> int:
         """ランチ休憩時間を分単位で返す"""
         if not self.is_present() or not self.work_pattern or not self.has_lunch_break or not self.clock_in_time or not self.clock_out_time:
             return 0
@@ -128,90 +147,91 @@ class DailyAttendance(models.Model):
             if self.clock_out_time >= lunch_break_end_time:
                 minutes = self.work_pattern.lunch_break_duration()
             else:
-                minutes = (self.clock_out_time - lunch_break_start_time).total_seconds() // 60
+                minutes = int((self.clock_out_time - lunch_break_start_time).total_seconds() // 60)
             return minutes
         return 0
 
-    def break1_minutes(self):
+    def break1_minutes(self) -> int:
         """休憩1時間を分単位で返す"""
+        minutes = 0
         if not self.is_present() or not self.work_pattern or not self.has_break1 or not self.clock_in_time or not self.clock_out_time:
-            return 0
+            return minutes
 
         break1_start_time = make_aware(datetime.combine(self.day, self.work_pattern.break1_start_time))
         break1_end_time = make_aware(datetime.combine(self.day, self.work_pattern.break1_end_time))
         if self.clock_in_time <= break1_start_time:
             if self.clock_out_time >= break1_end_time:
                 minutes = self.work_pattern.break1_duration()
-            else:
-                minutes = (self.clock_out_time - break1_start_time).total_seconds() // 60
-            return minutes
-        return 0
+            elif self.clock_out_time > break1_start_time:
+                minutes = int((self.clock_out_time - break1_start_time).total_seconds() // 60)
+        return minutes
 
-    def break2_minutes(self):
+    def break2_minutes(self) -> int:
         """休憩2時間を分単位で返す"""
+        minutes = 0
+
         if not self.is_present() or not self.work_pattern or not self.has_break2 or not self.clock_in_time or not self.clock_out_time:
-            return 0
+            return minutes
 
         break2_start_time = make_aware(datetime.combine(self.day, self.work_pattern.break2_start_time))
         break2_end_time = make_aware(datetime.combine(self.day, self.work_pattern.break2_end_time))
         if self.clock_in_time <= break2_start_time:
             if self.clock_out_time >= break2_end_time:
                 minutes = self.work_pattern.break2_duration()
-            else:
-                minutes = (self.clock_out_time - break2_start_time).total_seconds() // 60
-            return minutes
-        return 0
+            elif self.clock_out_time > break2_start_time:
+                minutes = int((self.clock_out_time - break2_start_time).total_seconds() // 60)
+        return minutes
 
-    def break3_minutes(self):
+    def break3_minutes(self) -> int:
         """休憩3時間を分単位で返す"""
+        minutes = 0
         if not self.is_present() or not self.work_pattern or not self.has_break3 or not self.clock_in_time or not self.clock_out_time:
-            return 0
+            return minutes
 
         break3_start_time = make_aware(datetime.combine(self.day, self.work_pattern.break3_start_time))
         break3_end_time = make_aware(datetime.combine(self.day, self.work_pattern.break3_end_time))
         if self.clock_in_time <= break3_start_time:
             if self.clock_out_time >= break3_end_time:
                 minutes = self.work_pattern.break3_duration()
-            else:
-                minutes = (self.clock_out_time - break3_start_time).total_seconds() // 60
-            return minutes
-        return 0
+            elif self.clock_out_time > break3_start_time:
+                minutes = int((self.clock_out_time - break3_start_time).total_seconds() // 60)
+        return minutes
 
-    def break4_minutes(self):
+    def break4_minutes(self) -> int:
         """休憩4時間を分単位で返す"""
+        minutes = 0
         if not self.is_present() or not self.work_pattern or not self.has_break4 or not self.clock_in_time or not self.clock_out_time:
-            return 0
+            return minutes
 
         break4_start_time = make_aware(datetime.combine(self.day, self.work_pattern.break4_start_time))
         break4_end_time = make_aware(datetime.combine(self.day, self.work_pattern.break4_end_time))
         if self.clock_in_time <= break4_start_time:
             if self.clock_out_time >= break4_end_time:
                 minutes = self.work_pattern.break4_duration()
-            else:
-                minutes = (self.clock_out_time - break4_start_time).total_seconds() // 60
-            return minutes
-        return 0
+            elif self.clock_out_time > break4_start_time:
+                minutes = int((self.clock_out_time - break4_start_time).total_seconds() // 60)
+        return minutes
 
-    def break5_minutes(self):
+    def break5_minutes(self) -> int:
         """休憩5時間を分単位で返す"""
+        minutes = 0
         if not self.is_present() or not self.work_pattern or not self.has_break5 or not self.clock_in_time or not self.clock_out_time:
-            return 0
+            return minutes
 
         break5_start_time = make_aware(datetime.combine(self.day, self.work_pattern.break5_start_time))
         break5_end_time = make_aware(datetime.combine(self.day, self.work_pattern.break5_end_time))
         if self.clock_in_time <= break5_start_time:
             if self.clock_out_time >= break5_end_time:
                 minutes = self.work_pattern.break5_duration()
-            else:
-                minutes = (self.clock_out_time - break5_start_time).total_seconds() // 60
-            return minutes
-        return 0
+            elif self.clock_out_time > break5_start_time:
+                minutes = int((self.clock_out_time - break5_start_time).total_seconds() // 60)
+        return minutes
 
     # 管理画面や画面表示用に「○時間×分」で取得するヘルパーメソッド
-    def actual_work_minutes(self):
+    def actual_work_minutes(self) -> int:
         """実労働時間を分単位で返す"""
         if self.clock_in_time and self.clock_out_time:
-            total_work_minutes = (self.clock_out_time - self.clock_in_time).total_seconds() // 60
+            total_work_minutes = int((self.clock_out_time - self.clock_in_time).total_seconds() // 60)
             total_break_minutes = (
                 self.lunch_break_minutes()
                 + self.break1_minutes()
@@ -230,11 +250,11 @@ class DailyAttendance(models.Model):
         minutes = self.actual_work_minutes() % 60
         return f"{hours}時間{minutes}分"
 
-    def overtime_minutes(self):
+    def overtime_minutes(self) -> int:
         """残業時間を分単位で返す"""
         if self.clock_in_time and self.clock_out_time:
             actual_work_minutes = self.actual_work_minutes()
-            standard_work_minutes = (self.standard_end_time() - self.standard_start_time()).total_seconds() // 60
+            standard_work_minutes = int((self.standard_end_time() - self.standard_start_time()).total_seconds() // 60)
             return max(actual_work_minutes - standard_work_minutes, 0)
         return 0
 
@@ -244,7 +264,7 @@ class DailyAttendance(models.Model):
         minutes = self.overtime_minutes() % 60
         return f"{hours}時間{minutes}分"
 
-    def night_work_minutes(self):
+    def night_work_minutes(self) -> int:
         """深夜労働時間を分単位で返す"""
         if self.clock_in_time and self.clock_out_time:
             # 深夜労働時間の計算
@@ -256,13 +276,13 @@ class DailyAttendance(models.Model):
             overlap_end = min(self.clock_out_time, night_work_end)
 
             if overlap_start < overlap_end:
-                return (overlap_end - overlap_start).seconds // 60
+                return int((overlap_end - overlap_start).total_seconds() // 60)
         return 0
 
     def display_night_work_time(self):
         """深夜労働時間を「○時間×分」の形式で返す"""
-        hours = self.night_work_minutes() // 60
-        minutes = self.night_work_minutes() % 60
+        hours = int(self.night_work_minutes() // 60)
+        minutes = int(self.night_work_minutes() % 60)
         return f"{hours}時間{minutes}分"
 
     def worked_days(self):

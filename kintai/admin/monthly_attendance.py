@@ -1,4 +1,5 @@
-from datetime import datetime
+import calendar
+from datetime import date, datetime
 from urllib.parse import urlencode
 
 from dateutil.relativedelta import relativedelta
@@ -14,6 +15,7 @@ from import_export.admin import ImportExportModelAdmin
 
 from backoffice.admin import admin_site
 from common.admin.base import BaseModelAdminMixin, OrganizationFilterMixin
+from common.models.holiday import Holiday
 from kintai.models import DailyAttendance, MonthlyAttendance
 
 from .daily_attendance import DailyAttendanceInline
@@ -52,40 +54,70 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
         "display_month",
         "belong",
         "approve_status",
-        "actual_work_minutes",
-        "overtime_minutes",
-        "night_work_minutes",
-        "worked_days",
-        "paid_leave_days",
+        "display_worked_days",
+        "display_working_time",
+        "display_overtime",
+        "display_night_working_time",
+        "display_paid_leave_days",
     ) + BaseModelAdminMixin.list_display
     search_fields = ("member__user__username", "member__user__last_name", "member__user__first_name", "member__organization__name")
     list_select_related = ("member", "work_pattern")
     list_filter = (MonthFilter, "approve_status") + BaseModelAdminMixin.list_filter
-    readonly_fields = (
-        "actual_work_minutes",
-        "overtime_minutes",
-        "night_work_minutes",
-        "worked_days",
-        "paid_leave_days",
-    )
+    readonly_fields = ("display_worked_days", "display_working_time", "display_overtime", "display_night_working_time", "display_paid_leave_days")
     inlines = (DailyAttendanceInline,)
-    fieldsets = (
-        (None, {"fields": (("work_pattern",),)}),
-        (
-            None,
-            {"fields": (("actual_work_minutes", "overtime_minutes", "night_work_minutes", "worked_days", "paid_leave_days"),)},
-        ),
-    )
 
-    @display(description="勤務月")
+    @display(description=_("Month"))
     def display_month(self, obj):
         return obj.month.strftime("%Y/%m")
 
-    @display(description="所属")
+    @display(description=_("Belong To"))
     def belong(self, obj):
         if not obj.member or not obj.member.organization:
             return "-"
         return obj.member.organization.name
+
+    @display(description=_("Days Worked"))
+    def display_worked_days(self, obj):
+        if not obj or not obj.month:
+            return "-/-"
+
+        year, month = obj.month.year, obj.month.month
+        cache_key = (year, month)
+
+        # 1. Check in-memory cache or calculate holiday count once
+        if not hasattr(self, "_weekday_holiday_cache"):
+            self._weekday_holiday_cache = {}
+
+        if cache_key not in self._weekday_holiday_cache:
+            self._weekday_holiday_cache[cache_key] = (
+                Holiday.objects.filter(date__year=year, date__month=month).exclude(date__week_day__in=[1, 7]).count()
+            )
+
+        holidays = self._weekday_holiday_cache[cache_key]
+
+        # 2. Compute weekdays
+        _, days_in_month = calendar.monthrange(year, month)
+        workdays = sum(1 for day in range(1, days_in_month + 1) if date(year, month, day).weekday() < 5)
+
+        standard_working_days = workdays - holidays
+        worked_days_val = obj.worked_days or 0
+        return f"{worked_days_val}/{standard_working_days}日"
+
+    @display(description=_("Actual Working Time"))
+    def display_working_time(self, obj):
+        return f"{int(obj.actual_work_minutes // 60):02d}:{int(obj.actual_work_minutes % 60):02d}"
+
+    @display(description=_("Overtime"))
+    def display_overtime(self, obj):
+        return f"{int(obj.overtime_minutes // 60):02d}:{int(obj.overtime_minutes % 60):02d}"
+
+    @display(description=_("Night Working Time"))
+    def display_night_working_time(self, obj):
+        return f"{int(obj.night_work_minutes // 60):02d}:{int(obj.night_work_minutes % 60):02d}"
+
+    @display(description=_("Paid Leave Days"))
+    def display_paid_leave_days(self, obj):
+        return f"{obj.paid_leave_days:.1f}日"
 
     def has_add_permission(self, request):
         return request.user.is_authenticated and hasattr(request.user, "member")
@@ -121,7 +153,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
                 {
                     "fields": (
                         ("work_pattern",),
-                        ("actual_work_minutes", "overtime_minutes", "night_work_minutes", "worked_days", "paid_leave_days"),
+                        ("display_worked_days", "display_working_time", "display_overtime", "display_night_working_time", "display_paid_leave_days"),
                     ),
                 },
             ),
@@ -133,7 +165,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
 
         member = request.user.member
         month_str = request.GET.get("month", localdate().strftime("%Y-%m"))
-        first_day = datetime.strptime(month_str, "%Y-%m").date()  # noqa: DTZ007
+        first_day = datetime.datetime.strptime(month_str, "%Y-%m").date()
         attendance = MonthlyAttendance.objects.filter(member=member, month=first_day).first()
         if attendance:
             attendance_id = attendance.id
