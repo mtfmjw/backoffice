@@ -23,21 +23,20 @@ class DailyAttendance(models.Model):
         TRANSFER_HOLIDAY = 4, _("Transfer Holiday")  # 振替休日、祝日が土日と重なった場合に、翌日を振替休日（法定休日）とする
 
     class DateStatus(models.IntegerChoices):
-        """勤怠区分"""
+        """就業区分"""
 
-        # DAY_OFF = 0, _("Day Off")  # 休み
-        PRESENT = 1, _("Present")  # 出勤
-        ABSENCE = 2, _("Absent")  # 欠勤
-        MORNING_PAID_LEAVE = 3, _("Morning Half-Day Leave")  # 午前半休
-        AFTERNOON_PAID_LEAVE = 4, _("Afternoon Half-Day Leave")  # 午後半休
-        PAID_LEAVE = 5, _("Paid Leave")  # 有給休暇
+        PRESENT = 0, _("Present")  # 出勤
+        ABSENCE = 1, _("Absent")  # 欠勤
+        MORNING_PAID_LEAVE = 2, _("Morning Half-Day Leave")  # 午前半休
+        AFTERNOON_PAID_LEAVE = 3, _("Afternoon Half-Day Leave")  # 午後半休
+        PAID_LEAVE = 4, _("Paid Leave")  # 有給休暇
         # 特別休暇：結婚、忌引、出産、育児、介護などの理由で取得する休暇。会社の規定に基づき、特別な理由で取得する休暇であり、通常の有給休暇とは異なる。
-        SPECIAL_PAID_LEAVE = 6, _("Special Paid Leave")  # 特別休暇
+        SPECIAL_PAID_LEAVE = 5, _("Special Paid Leave")  # 特別休暇
         # 振替休日：出勤する前に、あらかじめ休日と入れ替えた日。休日と労働日を交換したため、出勤日（元の休日）は通常の労働日となる。
-        SUBSTITUTE_HOLIDAY = 7, _("Substitute Holiday")  # 振替休日
+        SUBSTITUTE_HOLIDAY = 6, _("Substitute Holiday")  # 振替休日
         # 代休日：休日に出勤して、後日休んだ日。休日に出勤したため、出勤日（元の休日）は休日出勤となる。
-        COMPENSATORY_HOLIDAY = 8, _("Compensatory Holiday")  # 代休
-        SP5 = 9, _("SP5")  # 4-5月：ゴールデンウイーク2日、7-9月：夏季休暇3日、12/29-1/3：年末年始休暇6日
+        COMPENSATORY_HOLIDAY = 7, _("Compensatory Holiday")  # 代休
+        SP5 = 8, _("SP5")  # 4-5月：ゴールデンウイーク2日、7-9月：夏季休暇3日、12/29-1/3：年末年始休暇6日
 
     monthly_attendance = models.ForeignKey(
         MonthlyAttendance, on_delete=models.CASCADE, related_name="daily_attendances", verbose_name=_("Monthly Attendance")
@@ -45,7 +44,7 @@ class DailyAttendance(models.Model):
     work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, verbose_name=_("Work Pattern"), null=True, blank=True)  # 就業パターン
     day = models.DateField(_("Day"))  # 日付
     date_type = models.IntegerField(_("Date Type"), choices=DateType.choices, default=DateType.WORK_DAY)  # 勤務日分類
-    date_status = models.IntegerField(_("Date Status"), choices=DateStatus.choices, default=DateStatus.PRESENT)  # 勤怠区分
+    date_status = models.IntegerField(_("Date Status"), choices=DateStatus.choices, default=DateStatus.PRESENT, null=True, blank=True)  # 就業区分
     substitute_day = models.DateField(_("Substitute Day"), null=True, blank=True)  # 振替休日、代休日の元の休日
     note = models.CharField(_("Note"), max_length=255, null=True, blank=True)  # 備考
 
@@ -71,7 +70,7 @@ class DailyAttendance(models.Model):
         if self.is_present():
             working_time = (
                 f"{_('Actual Working Time')}：{int(self.actual_work_minutes() // 60):02d}:{int(self.actual_work_minutes() % 60):02d}"
-                if self.is_present()
+                if self.is_present() and self.actual_work_minutes() > 0
                 else ""
             )
             overtime = (
@@ -109,6 +108,10 @@ class DailyAttendance(models.Model):
             # 午後半休の標準勤務終了時刻を設定
             end_time = self.work_pattern.start_time + timedelta(minutes=HALF_DAY_MINUTES)
         return make_aware(datetime.combine(self.day, end_time))
+
+    def is_work_day(self):
+        """勤務日かどうかを返す"""
+        return self.date_type == self.DateType.WORK_DAY
 
     def is_present(self):
         """出勤状態かどうかを返す"""
@@ -284,12 +287,6 @@ class DailyAttendance(models.Model):
         hours = int(self.night_work_minutes() // 60)
         minutes = int(self.night_work_minutes() % 60)
         return f"{hours}時間{minutes}分"
-
-    def worked_days(self):
-        """出勤日数を返す"""
-        if self.date_status in [self.DateStatus.PRESENT, self.DateStatus.MORNING_PAID_LEAVE, self.DateStatus.AFTERNOON_PAID_LEAVE]:
-            return 1
-        return 0
 
     def paid_leave_days(self):
         """有給休暇日数を返す"""

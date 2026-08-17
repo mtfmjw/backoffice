@@ -1,5 +1,4 @@
-import calendar
-from datetime import date, datetime
+import datetime
 from urllib.parse import urlencode
 
 from dateutil.relativedelta import relativedelta
@@ -15,7 +14,6 @@ from import_export.admin import ImportExportModelAdmin
 
 from backoffice.admin import admin_site
 from common.admin.base import BaseModelAdminMixin, OrganizationFilterMixin
-from common.models.holiday import Holiday
 from kintai.models import DailyAttendance, MonthlyAttendance
 
 from .daily_attendance import DailyAttendanceInline
@@ -81,43 +79,24 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
         if not obj or not obj.month:
             return "-/-"
 
-        year, month = obj.month.year, obj.month.month
-        cache_key = (year, month)
-
-        # 1. Check in-memory cache or calculate holiday count once
-        if not hasattr(self, "_weekday_holiday_cache"):
-            self._weekday_holiday_cache = {}
-
-        if cache_key not in self._weekday_holiday_cache:
-            self._weekday_holiday_cache[cache_key] = (
-                Holiday.objects.filter(date__year=year, date__month=month).exclude(date__week_day__in=[1, 7]).count()
-            )
-
-        holidays = self._weekday_holiday_cache[cache_key]
-
-        # 2. Compute weekdays
-        _, days_in_month = calendar.monthrange(year, month)
-        workdays = sum(1 for day in range(1, days_in_month + 1) if date(year, month, day).weekday() < 5)
-
-        standard_working_days = workdays - holidays
         worked_days_val = obj.worked_days or 0
-        return f"{worked_days_val}/{standard_working_days}日"
+        return f"{worked_days_val}/{obj.standard_working_days}日" if obj.standard_working_days is not None else ""
 
     @display(description=_("Actual Working Time"))
     def display_working_time(self, obj):
-        return f"{int(obj.actual_work_minutes // 60):02d}:{int(obj.actual_work_minutes % 60):02d}"
+        return f"{int(obj.actual_work_minutes // 60):02d}:{int(obj.actual_work_minutes % 60):02d}" if obj.actual_work_minutes is not None else ""
 
     @display(description=_("Overtime"))
     def display_overtime(self, obj):
-        return f"{int(obj.overtime_minutes // 60):02d}:{int(obj.overtime_minutes % 60):02d}"
+        return f"{int(obj.overtime_minutes // 60):02d}:{int(obj.overtime_minutes % 60):02d}" if obj.overtime_minutes is not None else ""
 
     @display(description=_("Night Working Time"))
     def display_night_working_time(self, obj):
-        return f"{int(obj.night_work_minutes // 60):02d}:{int(obj.night_work_minutes % 60):02d}"
+        return f"{int(obj.night_work_minutes // 60):02d}:{int(obj.night_work_minutes % 60):02d}" if obj.night_work_minutes is not None else ""
 
     @display(description=_("Paid Leave Days"))
     def display_paid_leave_days(self, obj):
-        return f"{obj.paid_leave_days:.1f}日"
+        return f"{obj.paid_leave_days:.1f}日" if obj.paid_leave_days is not None else ""
 
     def has_add_permission(self, request):
         return request.user.is_authenticated and hasattr(request.user, "member")
@@ -203,8 +182,18 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
             parent_instance.actual_work_minutes = sum(record.actual_work_minutes() or 0 for record in daily_records)
             parent_instance.overtime_minutes = sum(record.overtime_minutes() or 0 for record in daily_records)
             parent_instance.night_work_minutes = sum(record.night_work_minutes() or 0 for record in daily_records)
-            parent_instance.worked_days = sum(record.worked_days() or 0 for record in daily_records)
+            parent_instance.worked_days = sum(1 if record.is_present() else 0 for record in daily_records)
             parent_instance.paid_leave_days = sum(record.paid_leave_days() or 0 for record in daily_records)
+            parent_instance.standard_working_days = sum(1 if record.is_work_day() else 0 for record in daily_records)
 
             # 3. Update the parent instance
-            parent_instance.save(update_fields=["actual_work_minutes", "overtime_minutes", "night_work_minutes", "worked_days", "paid_leave_days"])
+            parent_instance.save(
+                update_fields=[
+                    "actual_work_minutes",
+                    "overtime_minutes",
+                    "night_work_minutes",
+                    "worked_days",
+                    "paid_leave_days",
+                    "standard_working_days",
+                ]
+            )

@@ -67,7 +67,7 @@ class SimpleOrganizationFilter(SimpleListFilter):
         with connection.cursor() as cursor:
             cursor.execute(sql)
             rows = cursor.fetchall()
-        return [(str(org_id), f"{'├ ' * depth}{name}") for org_id, name, depth in rows]
+        return [(str(org_id), f"{'  ' * depth}{name}") for org_id, name, depth in rows]
 
     def queryset(self, request, queryset):
         value = self.value()
@@ -97,6 +97,6 @@ class OrganizationFilter(SimpleOrganizationFilter):
             with connection.cursor() as cursor:
                 cursor.execute(sql)
                 rows = cursor.fetchall()
-            choices = [(str(org_id), f"{'├ ' * depth}{name}") for org_id, name, depth in rows]
+            choices = [(str(org_id), f"{'  ' * depth}{name}") for org_id, name, depth in rows]
 
         return choices if "choices" in locals() else []

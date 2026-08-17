@@ -30,6 +30,7 @@ class MonthlyAttendance(BaseModel):
     night_work_minutes = models.PositiveIntegerField(_("Night Working Time"), null=True, blank=True)
     worked_days = models.PositiveIntegerField(_("Days Worked"), null=True, blank=True)
     paid_leave_days = models.FloatField(_("Paid Leave Days"), null=True, blank=True)  # Including half-days
+    standard_working_days = models.PositiveIntegerField(_("Standard Working Days"), null=True, blank=True)
     note = models.CharField(_("Note"), max_length=255, null=True, blank=True)
 
     class Meta:

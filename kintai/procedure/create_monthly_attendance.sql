@@ -88,8 +88,8 @@ BEGIN
              WHEN d.day_of_week = 6 THEN 1 -- 土曜日、所定休日
              ELSE 0 -- 平日
         END AS date_type,
-        CASE WHEN day_off THEN 0 -- 休み
-             ELSE 1 -- 出勤
+        CASE WHEN day_off THEN null -- 休み
+             ELSE 0 -- 出勤
         END AS date_status,
         CASE WHEN not day_off THEN ((d.day_date + wp.start_time) AT TIME ZONE 'Asia/Tokyo') AT TIME ZONE 'UTC' END AS clock_in_time,
         CASE WHEN not day_off THEN ((d.day_date + wp.end_time) AT TIME ZONE 'Asia/Tokyo') AT TIME ZONE 'UTC' END AS clock_out_time,
