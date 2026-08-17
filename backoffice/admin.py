@@ -188,6 +188,7 @@ class CustomGroupAdmin(ImportExportMixin, BaseGroupAdmin):
 
 # Create an instance of the custom admin site to be used in urls.py
 admin_site = CustomAdminSite()
+admin_site.site_url = None
 
 
 admin_site.register(User, CustomUserAdmin)

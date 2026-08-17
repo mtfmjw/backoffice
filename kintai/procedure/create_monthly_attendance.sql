@@ -91,8 +91,8 @@ BEGIN
         CASE WHEN day_off THEN 0 -- 休み
              ELSE 1 -- 出勤
         END AS date_status,
-        CASE WHEN not day_off THEN d.day_date + wp.start_time END AS clock_in_time,
-        CASE WHEN not day_off THEN d.day_date + wp.end_time END AS clock_out_time,
+        CASE WHEN not day_off THEN ((d.day_date + wp.start_time) AT TIME ZONE 'Asia/Tokyo') AT TIME ZONE 'UTC' END AS clock_in_time,
+        CASE WHEN not day_off THEN ((d.day_date + wp.end_time) AT TIME ZONE 'Asia/Tokyo') AT TIME ZONE 'UTC' END AS clock_out_time,
         CASE WHEN not day_off THEN true ELSE false END AS has_lunch_break,
         CASE WHEN not day_off THEN true ELSE false END AS has_break1,
         CASE WHEN not day_off THEN true ELSE false END AS has_break2,

@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils.timezone import datetime
 from django.utils.translation import gettext_lazy as _
 
 from common.middleware import get_current_user
@@ -26,11 +25,3 @@ class BaseModel(models.Model):
     def delete(self, *args, **kwargs):
         self.valid_flag = False
         self.save()
-
-
-def get_duration_in_minutes(start_time: datetime, end_time: datetime) -> int:
-    """2つの時刻の差を分単位で返す"""
-    if end_time < start_time:
-        return None
-    else:
-        return (end_time - start_time).seconds // 60

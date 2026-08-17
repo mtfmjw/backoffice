@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-16 15:08+0900\n"
+"POT-Creation-Date: 2026-08-17 14:14+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,17 +22,24 @@ msgstr ""
 msgid "Update Time"
 msgstr "更新日時"
 
-#: .\common\admin\filters.py:24
+#: .\common\admin\filters.py:26
 msgid "Year"
 msgstr "年"
 
-#: .\common\admin\filters.py:60 .\common\models\organization.py:18
+#: .\common\admin\filters.py:62 .\common\admin\filters.py:88
+#: .\common\models\organization.py:18
 msgid "Organization"
 msgstr "組織"
 
-#: .\common\admin\member.py:99
+#: .\common\admin\member.py:96
 msgid "Full Name"
 msgstr "名前"
+
+#: .\common\admin\member.py:100
+#, fuzzy
+#| msgid "Organization Name"
+msgid "Is Organization Manager"
+msgstr "組織名"
 
 #: .\common\apps.py:8
 msgid "Common"
@@ -98,60 +105,28 @@ msgstr "祝日・休日"
 msgid "Holidays"
 msgstr "祝日・休日一覧"
 
-#: .\common\models\member.py:18
-msgid "President"
-msgstr "社長"
-
-#: .\common\models\member.py:19
-msgid "Vice President"
-msgstr "副社長"
-
-#: .\common\models\member.py:20
-msgid "Chief Manager"
-msgstr "本部長"
-
-#: .\common\models\member.py:21
-msgid "Manager"
-msgstr "部長"
-
-#: .\common\models\member.py:22
-msgid "Acting Manager"
-msgstr "部長代理"
-
 #: .\common\models\member.py:23
-msgid "Employee"
-msgstr "社員"
-
-#: .\common\models\member.py:25
 msgid "Employee Number"
 msgstr "社員番号"
 
-#: .\common\models\member.py:26
+#: .\common\models\member.py:24
 msgid "Email address"
 msgstr "Eメール"
 
-#: .\common\models\member.py:28
+#: .\common\models\member.py:26
 msgid "Belongs to"
 msgstr "所属"
 
-#: .\common\models\member.py:30 .\common\models\organization.py:11
+#: .\common\models\member.py:28 .\common\models\organization.py:11
 #: .\common\models\work_pattern.py:29
 msgid "Work Pattern"
 msgstr "勤務パターン"
 
-#: .\common\models\member.py:31
-msgid "Position"
-msgstr "職務"
-
 #: .\common\models\member.py:32
-msgid "Is Head of Organization"
-msgstr "責任者"
-
-#: .\common\models\member.py:36
 msgid "Member"
 msgstr "社員"
 
-#: .\common\models\member.py:37
+#: .\common\models\member.py:33
 msgid "Members"
 msgstr "社員一覧"
 
@@ -287,3 +262,27 @@ msgstr "休憩5終了時刻"
 #: .\common\models\work_pattern.py:30
 msgid "Work Patterns"
 msgstr "就業パターン一覧"
+
+#~ msgid "President"
+#~ msgstr "社長"
+
+#~ msgid "Vice President"
+#~ msgstr "副社長"
+
+#~ msgid "Chief Manager"
+#~ msgstr "本部長"
+
+#~ msgid "Manager"
+#~ msgstr "部長"
+
+#~ msgid "Acting Manager"
+#~ msgstr "部長代理"
+
+#~ msgid "Employee"
+#~ msgstr "社員"
+
+#~ msgid "Position"
+#~ msgstr "職務"
+
+#~ msgid "Is Head of Organization"
+#~ msgstr "責任者"

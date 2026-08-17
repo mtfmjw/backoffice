@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-16 15:08+0900\n"
+"POT-Creation-Date: 2026-08-17 14:16+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: .\kintai\admin\monthly_attendance.py:24
+#: .\kintai\admin\monthly_attendance.py:23
 #: .\kintai\models\monthly_attendence.py:26
 msgid "Month"
 msgstr "月"
@@ -80,7 +80,7 @@ msgid "Special Paid Leave"
 msgstr "特別休"
 
 #: .\kintai\models\daily_attendance.py:37
-msgid "Substitute Paid Leave"
+msgid "Substitute Holiday"
 msgstr "振休"
 
 #: .\kintai\models\daily_attendance.py:39
@@ -192,15 +192,15 @@ msgstr "承認状態"
 
 #: .\kintai\models\monthly_attendence.py:28
 msgid "Actual Working Time (min)"
-msgstr "実就業時間(分)"
+msgstr "就業時間"
 
 #: .\kintai\models\monthly_attendence.py:29
 msgid "Overtime (min)"
-msgstr "残業時間(分)"
+msgstr "残業時間"
 
 #: .\kintai\models\monthly_attendence.py:30
 msgid "Night Shift Hours (min)"
-msgstr "深夜残業(分)"
+msgstr "深夜残業"
 
 #: .\kintai\models\monthly_attendence.py:31
 msgid "Days Worked"

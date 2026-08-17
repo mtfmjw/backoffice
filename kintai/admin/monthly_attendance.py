@@ -14,7 +14,7 @@ from import_export.admin import ImportExportModelAdmin
 
 from backoffice.admin import admin_site
 from common.admin.base import BaseModelAdminMixin, OrganizationFilterMixin
-from kintai.models import MonthlyAttendance
+from kintai.models import DailyAttendance, MonthlyAttendance
 
 from .daily_attendance import DailyAttendanceInline
 
@@ -69,6 +69,13 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
         "paid_leave_days",
     )
     inlines = (DailyAttendanceInline,)
+    fieldsets = (
+        (None, {"fields": (("work_pattern",),)}),
+        (
+            None,
+            {"fields": (("actual_work_minutes", "overtime_minutes", "night_work_minutes", "worked_days", "paid_leave_days"),)},
+        ),
+    )
 
     @display(description="勤務月")
     def display_month(self, obj):
@@ -113,7 +120,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
                 None,
                 {
                     "fields": (
-                        ("work_pattern", "approve_status"),
+                        ("work_pattern",),
                         ("actual_work_minutes", "overtime_minutes", "night_work_minutes", "worked_days", "paid_leave_days"),
                     ),
                 },
@@ -141,3 +148,31 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
         extra_context = extra_context or {}
         extra_context["show_save_and_add_another"] = False
         return super().changeform_view(request, object_id, form_url, extra_context=extra_context)
+
+    def save_formset(self, request, form, formset, change):
+        # 1. Save the inline formset instances first
+        instances = formset.save(commit=False)
+        for instance in instances:
+            instance.save()
+        formset.save_m2m()
+
+        # Handle deleted inline objects
+        for obj in formset.deleted_objects:
+            obj.delete()
+
+        # 2. Sum model instance methods for DailyAttendance
+        if formset.model == DailyAttendance:
+            parent_instance = form.instance  # MonthlyAttendance instance
+
+            # Fetch fresh inline records from DB (or evaluate in-memory saved instances)
+            daily_records = parent_instance.daily_attendances.all()
+
+            # Sum the return value of actual_work_minutes() for each record
+            parent_instance.actual_work_minutes = sum(record.actual_work_minutes() or 0 for record in daily_records)
+            parent_instance.overtime_minutes = sum(record.overtime_minutes() or 0 for record in daily_records)
+            parent_instance.night_work_minutes = sum(record.night_work_minutes() or 0 for record in daily_records)
+            parent_instance.worked_days = sum(record.worked_days() or 0 for record in daily_records)
+            parent_instance.paid_leave_days = sum(record.paid_leave_days() or 0 for record in daily_records)
+
+            # 3. Update the parent instance
+            parent_instance.save(update_fields=["actual_work_minutes", "overtime_minutes", "night_work_minutes", "worked_days", "paid_leave_days"])

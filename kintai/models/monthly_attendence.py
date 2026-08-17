@@ -24,7 +24,7 @@ class MonthlyAttendance(BaseModel):
     member = models.ForeignKey(Member, on_delete=models.DO_NOTHING, related_name="attendance_records", verbose_name=_("Member"))
     work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name=_("Work Pattern"))
     month = models.DateField(_("Month"))
-    approve_status = models.CharField(_("Approve Status"), max_length=2, choices=ApproveStatus.choices, default=ApproveStatus.DRAFT)
+    approve_status = models.IntegerField(_("Approve Status"), choices=ApproveStatus.choices, default=ApproveStatus.DRAFT)
     actual_work_minutes = models.PositiveIntegerField(_("Actual Working Time (min)"), null=True, blank=True)
     overtime_minutes = models.PositiveIntegerField(_("Overtime (min)"), null=True, blank=True)
     night_work_minutes = models.PositiveIntegerField(_("Night Shift Hours (min)"), null=True, blank=True)
@@ -40,4 +40,8 @@ class MonthlyAttendance(BaseModel):
         ordering = ("-month", "member")
 
     def __str__(self):
-        return f"{self.member.user.last_name} {self.member.user.first_name}({self.member.user.username}) " + self.month.strftime("%Y年%m月")
+        return (
+            f"{self.member.user.last_name} {self.member.user.first_name}({self.member.user.username}) "
+            + self.month.strftime("%Y年%m月")
+            + f" - {self.get_approve_status_display()}"
+        )

@@ -1,4 +1,5 @@
 {% extends "admin/base.html" %}
+{% load i18n %}
 
 {% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | バックオフィス{% endblock %}
 
@@ -22,3 +23,8 @@
 {% endblock %}
 
 {% block nav-global %}{% endblock %}
+
+{% block welcome-msg %}
+    {% translate 'Welcome,' %}
+    <strong>{% if user.last_name %}{{ user.last_name }} {{ user.first_name }}({{ user.get_username }}){% else %}{{ user.get_username }}{% endif %}さん </strong>
+{% endblock %}

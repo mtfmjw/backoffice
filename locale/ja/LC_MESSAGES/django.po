@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-16 15:08+0900\n"
+"POT-Creation-Date: 2026-08-17 14:14+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,15 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: .\backoffice\admin.py:14 .\backoffice\admin.py:15
+#: .\backoffice\admin.py:12 .\backoffice\admin.py:13
 msgid "バックオフィス"
 msgstr ""
 
-#: .\backoffice\admin.py:16
+#: .\backoffice\admin.py:14
 msgid "サイト管理"
 msgstr ""
 
-#: .\backoffice\admin.py:138
+#: .\backoffice\admin.py:198
 msgid "Delete?"
 msgstr "削除?"
 
@@ -62,6 +62,10 @@ msgstr "変更"
 #: .\templates\admin\app_list.html:56
 msgid "You don’t have permission to view or edit anything."
 msgstr "照会または編集する権限がありません。"
+
+#: .\templates\admin\base_site.html:28
+msgid "Welcome,"
+msgstr "ようこそ、"
 
 #: .\templates\admin\change_form.html:11
 msgid "Restore"
