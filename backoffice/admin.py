@@ -109,6 +109,7 @@ class GroupResource(resources.ModelResource):
 class CustomUserAdmin(ImportExportMixin, BaseUserAdmin):
     resource_class = UserResource
     formats = (CSV,)
+    list_display = ("username", "email", "last_name", "first_name", "is_active")
 
     def get_form(self, request, obj=None, **kwargs):
         """
@@ -155,6 +156,13 @@ class CustomUserAdmin(ImportExportMixin, BaseUserAdmin):
             obj.is_superuser = False
 
         super().save_model(request, obj, form, change)
+
+    def get_queryset(self, request):
+        """
+        superuser を閲覧できないようにする
+        """
+        qs = super().get_queryset(request)
+        return qs.exclude(is_superuser=True)
 
 
 class CustomGroupAdmin(ImportExportMixin, BaseGroupAdmin):
