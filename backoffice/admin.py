@@ -1,7 +1,5 @@
 from django.contrib.admin import AdminSite
-from django.contrib.auth.admin import GroupAdmin
 from django.contrib.auth.models import Group
-from django.contrib.auth.models import User as AuthUser
 from django.contrib.auth.views import LoginView
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
@@ -68,7 +66,12 @@ class CustomAdminSite(AdminSite):
 # admin.py
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from import_export import fields, resources
+from import_export.admin import ImportExportMixin
+from import_export.formats.base_formats import CSV
+from import_export.widgets import ManyToManyWidget
 
 User = get_user_model()
 
@@ -79,7 +82,34 @@ SUPER_USER_NAME = "admin"
 admin.site.unregister(User)
 
 
-class AuthUserAdmin(BaseUserAdmin):
+class UserResource(resources.ModelResource):
+    # Map M2M groups field cleanly if needed
+    groups = fields.Field(attribute="groups", widget=ManyToManyWidget(Group, field="name"))
+
+    class Meta:
+        skip_unchanged = True
+        report_skipped = True
+        model = User
+        # Exclude sensitive fields like password hash from export/import
+        exclude = ("password", "user_permissions")
+        # Specify explicit fields to control order
+        fields = ("username", "email", "first_name", "last_name", "is_staff", "is_active", "groups")
+        import_id_fields = ("username",)
+
+
+class GroupResource(resources.ModelResource):
+    class Meta:
+        model = Group
+        fields = ("name",)
+        import_id_fields = ("name",)
+        skip_unchanged = True
+        report_skipped = True
+
+
+class CustomUserAdmin(ImportExportMixin, BaseUserAdmin):
+    resource_class = UserResource
+    formats = (CSV,)
+
     def get_form(self, request, obj=None, **kwargs):
         """
         フォームを生成する際、ログインユーザーが superuser でない場合は
@@ -127,12 +157,17 @@ class AuthUserAdmin(BaseUserAdmin):
         super().save_model(request, obj, form, change)
 
 
+class CustomGroupAdmin(ImportExportMixin, BaseGroupAdmin):
+    resource_class = GroupResource
+    formats = (CSV,)
+
+
 # Create an instance of the custom admin site to be used in urls.py
 admin_site = CustomAdminSite()
 
 
-admin_site.register(AuthUser, AuthUserAdmin)
-admin_site.register(Group, GroupAdmin)
+admin_site.register(User, CustomUserAdmin)
+admin_site.register(Group, CustomGroupAdmin)
 
 # 手動で保持したいメッセージをここに列挙する
 _("Delete?")
