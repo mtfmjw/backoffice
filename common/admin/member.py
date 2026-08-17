@@ -8,10 +8,11 @@ from import_export.formats.base_formats import CSV
 from import_export.widgets import ForeignKeyWidget
 
 from backoffice.admin import admin_site
+from common.admin.filters import SimpleOrganizationFilter
 from common.form import DirectExportForm
 from common.models import Member, Organization, WorkPattern
 
-from .base import BaseModelAdminMixin, MasterImportExportPermissionMixin, OrganizationFilterMixin
+from .base import BaseModelAdminMixin, MasterImportExportPermissionMixin
 
 User = get_user_model()
 
@@ -66,7 +67,7 @@ class MemberResource(resources.ModelResource):
 
 
 @admin.register(Member, site=admin_site)
-class MemberAdmin(OrganizationFilterMixin, MasterImportExportPermissionMixin, BaseModelAdminMixin, ImportExportModelAdmin):
+class MemberAdmin(MasterImportExportPermissionMixin, BaseModelAdminMixin, ImportExportModelAdmin):
     resource_class = MemberResource
     formats = (CSV,)
     export_form_class = DirectExportForm
@@ -74,6 +75,7 @@ class MemberAdmin(OrganizationFilterMixin, MasterImportExportPermissionMixin, Ba
     has_add_permission = lambda self, request: False
     readonly_fields = ("user", "is_organization_manager") + BaseModelAdminMixin.readonly_fields
     list_display = ("full_name", "user", "email", "organization", "is_organization_manager", "work_pattern") + BaseModelAdminMixin.list_display
+    list_filter = (SimpleOrganizationFilter,) + BaseModelAdminMixin.list_filter
     search_fields = (
         "user__username",
         "user__first_name",

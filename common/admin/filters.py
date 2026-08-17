@@ -1,5 +1,6 @@
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.filters import RelatedOnlyFieldListFilter
+from django.db import connection
 from django.db.models.expressions import RawSQL
 from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
@@ -57,31 +58,45 @@ class YearFilter(SimpleListFilter):
         return all_choices[1:]
 
 
-class OrganizationFilter(SimpleListFilter):
+class SimpleOrganizationFilter(SimpleListFilter):
     title = _("Organization")
     parameter_name = "organization"
 
     def lookups(self, request, model_admin):
-        if request.user.is_superuser or request.user.member.is_company_executive() or request.user.member.is_system_info_staff():
-            choices = Organization.objects.filter(valid_flag=True).order_by("code").values_list("id", "name")
-        elif request.user.member.is_organization_manager():
-            root_organization_id = request.user.member.organization_id
-            below_organization_ids_sql = Organization.get_sub_department_ids_sql(root_organization_id)
-            choices = (
-                Organization.objects.filter(valid_flag=True, id__in=RawSQL(below_organization_ids_sql, []))
-                .order_by("code")
-                .values_list("id", "name")
-            )
-        return choices if "choices" in locals() else []
+        sql = Organization.get_whole_organization_tree_sql()
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+        return [(str(org_id), f"{'├ ' * depth}{name}") for org_id, name, depth in rows]
 
     def queryset(self, request, queryset):
         value = self.value()
 
         if value is not None:
             below_organization_ids_sql = Organization.get_sub_department_ids_sql(int(value))
-            if hasattr(queryset.model, "organization"):
+            if queryset.model._meta.model_name == "organization":
+                return queryset.filter(id__in=RawSQL(below_organization_ids_sql, []))
+            elif hasattr(queryset.model, "organization"):
                 return queryset.filter(organization__id__in=RawSQL(below_organization_ids_sql, []))
             elif hasattr(queryset.model, "member"):
                 return queryset.filter(member__organization_id__in=RawSQL(below_organization_ids_sql, []))
 
         return queryset
+
+
+class OrganizationFilter(SimpleOrganizationFilter):
+    title = _("Organization")
+    parameter_name = "organization"
+
+    def lookups(self, request, model_admin):
+        if model_admin.can_view_all_organizations(request):
+            choices = super().lookups(request, model_admin)
+        elif model_admin.can_view_organization(request):
+            root_organization_id = request.user.member.organization_id
+            sql = Organization.get_sub_organization_tree_sql(root_organization_id)
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
+                rows = cursor.fetchall()
+            choices = [(str(org_id), f"{'├ ' * depth}{name}") for org_id, name, depth in rows]
+
+        return choices if "choices" in locals() else []

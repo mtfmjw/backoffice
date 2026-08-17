@@ -5,6 +5,7 @@ from import_export.formats.base_formats import CSV
 from import_export.widgets import ForeignKeyWidget
 
 from backoffice.admin import admin_site
+from common.admin.filters import SimpleOrganizationFilter
 from common.form import DirectExportForm
 from common.models import Organization, WorkPattern
 
@@ -41,6 +42,7 @@ class OrganizationAdmin(BaseModelAdminMixin, MasterImportExportPermissionMixin, 
     export_form_class = DirectExportForm
 
     list_display = ("code", "name", "parent", "work_pattern") + BaseModelAdminMixin.list_display
+    list_filter = (SimpleOrganizationFilter,) + BaseModelAdminMixin.list_filter
     search_fields = ("code", "name")
     list_select_related = ("parent",)
     fieldsets = (

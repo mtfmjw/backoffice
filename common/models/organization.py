@@ -37,3 +37,67 @@ class Organization(BaseModel):
         )
         SELECT id FROM organization_tree
     """
+
+    @staticmethod
+    def get_sub_organization_tree_sql(root_dept_id):
+        """
+        Returns a recursive CTE SQL query that calculates hierarchy depth
+        and sort order path based on organization code.
+        """
+        return f"""
+                    WITH RECURSIVE dept_tree AS (
+                        SELECT 
+                            id, 
+                            name, 
+                            code, 
+                            parent_id, 
+                            0 AS depth,
+                            CAST(code AS VARCHAR(1000)) AS sort_path
+                        FROM organization
+                        WHERE id = {int(root_dept_id)} AND valid_flag = TRUE
+                        UNION ALL
+                        SELECT 
+                            o.id, 
+                            o.name, 
+                            o.code, 
+                            o.parent_id, 
+                            dt.depth + 1 AS depth,
+                            CAST(dt.sort_path || '/' || o.code AS VARCHAR(1000)) AS sort_path
+                        FROM organization o
+                        INNER JOIN dept_tree dt ON o.parent_id = dt.id
+                        WHERE o.valid_flag = TRUE
+                    )
+                    SELECT id, name, depth FROM dept_tree ORDER BY sort_path
+                """
+
+    @staticmethod
+    def get_whole_organization_tree_sql():
+        """
+        Returns a recursive CTE SQL query that calculates hierarchy depth
+        and sort order path based on organization code.
+        """
+        return """
+                    WITH RECURSIVE dept_tree AS (
+                        SELECT 
+                            id, 
+                            name, 
+                            code, 
+                            parent_id, 
+                            0 AS depth,
+                            CAST(code AS VARCHAR(1000)) AS sort_path
+                        FROM organization
+                        WHERE parent_id is null AND valid_flag = TRUE
+                        UNION ALL
+                        SELECT 
+                            o.id, 
+                            o.name, 
+                            o.code, 
+                            o.parent_id, 
+                            dt.depth + 1 AS depth,
+                            CAST(dt.sort_path || '/' || o.code AS VARCHAR(1000)) AS sort_path
+                        FROM organization o
+                        INNER JOIN dept_tree dt ON o.parent_id = dt.id
+                        WHERE o.valid_flag = TRUE
+                    )
+                    SELECT id, name, depth FROM dept_tree ORDER BY sort_path
+                """

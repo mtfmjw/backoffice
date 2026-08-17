@@ -96,6 +96,22 @@ class UserResource(resources.ModelResource):
         fields = ("username", "email", "first_name", "last_name", "is_staff", "is_active", "groups")
         import_id_fields = ("username",)
 
+    def before_save_instance(self, instance, using_transactions, dry_run):
+        """
+        Triggered right before saving each instance.
+        """
+        # Only set password if creating a brand-new User (no PK yet)
+        if not instance.pk:
+            temp_password = "P09olp09ol"
+
+            # Properly hash the password before saving
+            instance.set_password(temp_password)
+
+            # Store temporary password on instance if you want to notify/log it later
+            instance._temp_password = temp_password
+
+        super().before_save_instance(instance, using_transactions, dry_run)
+
 
 class GroupResource(resources.ModelResource):
     class Meta:

@@ -109,31 +109,29 @@ class MasterImportExportPermissionMixin:
 class OrganizationFilterMixin:
     """This mixin provides a method to filter querysets based on the user's organization."""
 
-    organization_filter = OrganizationFilter
+    def can_view_all_organizations(self, request):
+        """Determine if the user can view all organizations."""
+        return request.user.is_superuser or request.user.member.is_company_executive() or request.user.member.is_system_info_staff()
+
+    def can_view_organization(self, request):
+        """Determine if the user can view a specific organization."""
+        return request.user.member.is_organization_manager()
 
     def get_list_filter(self, request):
         filters = list(super().get_list_filter(request))
 
-        if (
-            request.user.is_superuser
-            or request.user.member.is_company_executive()
-            or request.user.member.is_system_info_staff()
-            or request.user.member.is_organization_manager()
-        ):
-            filters.insert(0, self.organization_filter)
-
-        if hasattr(self, "list_filter"):
-            filters.extend(self.list_filter)
+        if self.can_view_all_organizations(request) or self.can_view_organization(request):
+            filters.insert(0, OrganizationFilter)
 
         return tuple(filters)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
 
-        if request.user.is_superuser or request.user.member.is_company_executive() or request.user.member.is_system_info_staff():
+        if self.can_view_all_organizations(request):
             # superuser、勤怠管理グループのメンバーは全員のデータが見れる
             return qs
-        elif request.user.member.is_organization_manager():
+        elif self.can_view_organization(request):
             # 組織の管理者は自組織メンバーのデータのみ見れる
             root_organization_id = request.user.member.organization_id
             below_organization_ids_sql = Organization.get_sub_department_ids_sql(root_organization_id)
