@@ -62,42 +62,59 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
     search_fields = ("member__user__username", "member__user__last_name", "member__user__first_name", "member__organization__name")
     list_select_related = ("member", "work_pattern")
     list_filter = (MonthFilter, "approve_status") + BaseModelAdminMixin.list_filter
-    readonly_fields = ("display_worked_days", "display_working_time", "display_overtime", "display_night_working_time", "display_paid_leave_days")
+    readonly_fields = (
+        "display_worked_days",
+        "display_working_time",
+        "display_overtime",
+        "display_night_working_time",
+        "display_paid_leave_days",
+        "display_digest",
+    )
     inlines = (DailyAttendanceInline,)
 
     @display(description=_("Month"))
-    def display_month(self, obj):
+    def display_month(self, obj) -> str:
         return obj.month.strftime("%Y/%m")
 
     @display(description=_("Belong To"))
-    def belong(self, obj):
+    def belong(self, obj) -> str:
         if not obj.member or not obj.member.organization:
             return "-"
         return obj.member.organization.name
 
     @display(description=_("Days Worked"))
-    def display_worked_days(self, obj):
+    def display_worked_days(self, obj) -> str:
         if not obj or not obj.month:
-            return "-/-"
+            return ""
 
         worked_days_val = obj.worked_days or 0
         return f"{worked_days_val}/{obj.standard_working_days}日" if obj.standard_working_days is not None else ""
 
     @display(description=_("Actual Working Time"))
-    def display_working_time(self, obj):
+    def display_working_time(self, obj) -> str:
         return minutes2str(obj.actual_work_minutes)
 
     @display(description=_("Overtime"))
-    def display_overtime(self, obj):
+    def display_overtime(self, obj) -> str:
         return minutes2str(obj.overtime_minutes)
 
     @display(description=_("Night Working Time"))
-    def display_night_working_time(self, obj):
+    def display_night_working_time(self, obj) -> str:
         return minutes2str(obj.night_work_minutes)
 
     @display(description=_("Paid Leave Days"))
-    def display_paid_leave_days(self, obj):
+    def display_paid_leave_days(self, obj) -> str:
         return f"{obj.paid_leave_days:.1f}日" if obj.paid_leave_days is not None else ""
+
+    @display(description=_("Digest"))
+    def display_digest(self, obj) -> str:
+        return (
+            f"{_('Days Worked')}: {self.display_worked_days(obj)}   "
+            + f"{_('Actual Working Time')}: {self.display_working_time(obj)}  "
+            + f"{_('Overtime')}: {self.display_overtime(obj)}  "
+            + f"{_('Night Working Time')}: {self.display_night_working_time(obj)}  "
+            + f"{_('Paid Leave Days')}: {self.display_paid_leave_days(obj)}  "
+        )
 
     def has_add_permission(self, request):
         return request.user.is_authenticated and hasattr(request.user, "member")
@@ -131,10 +148,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
             (
                 None,
                 {
-                    "fields": (
-                        ("work_pattern",),
-                        ("display_worked_days", "display_working_time", "display_overtime", "display_night_working_time", "display_paid_leave_days"),
-                    ),
+                    "fields": ("work_pattern", "display_digest"),
                 },
             ),
         )
