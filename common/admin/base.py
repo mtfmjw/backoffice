@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import ClassVar
 
 from django.contrib.admin import display
@@ -146,12 +145,3 @@ class OrganizationFilterMixin:
             elif hasattr(self.model, "member"):
                 return qs.filter(member__user=request.user)
         return qs
-
-
-def show_duration(start_time: datetime, end_time: datetime):
-    """Show duration in HH:MM - HH:MM format."""
-    if start_time and end_time:
-        start = start_time.strftime("%H:%M")
-        end = end_time.strftime("%H:%M")
-        return f"{start} - {end}"
-    return "-"

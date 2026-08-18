@@ -1,8 +1,10 @@
-from datetime import timedelta
+from datetime import date
 
 from django.db import models
-from django.utils.timezone import datetime, localtime
+from django.utils.timezone import datetime
 from django.utils.translation import gettext_lazy as _
+
+from common.utils import convert2duration
 
 
 class WorkPattern(models.Model):
@@ -34,45 +36,21 @@ class WorkPattern(models.Model):
     def __str__(self):
         return self.name
 
-    def get_duration_in_minutes(self, start_time, end_time) -> int:
-        """2つの時刻の差を分単位で返す"""
+    def get_standard_duration(self, base_date: date) -> tuple[datetime, datetime]:
+        return convert2duration(base_date, self.start_time, self.end_time)
 
-        if not start_time or not end_time:
-            return 0
-
-        # Use a dummy anchor date to allow subtraction
-        dummy_date = localtime().date()
-
-        dt_start = datetime.combine(dummy_date, start_time)
-        dt_end = datetime.combine(dummy_date, end_time)
-
-        # OVERNIGHT SHIFT HANDLING:
-        # If end_time is earlier than start_time (e.g., 22:00 to 06:00), push end_time to the next day
-        if dt_end <= dt_start:
-            dt_end += timedelta(days=1)
-
-        return int((dt_end - dt_start).total_seconds() // 60)  # Returns the duration in minutes
-
-    def lunch_break_duration(self) -> int:
-        """ランチ休憩時間を分単位で返す"""
-        return self.get_duration_in_minutes(self.lunch_break_start_time, self.lunch_break_end_time)
-
-    def break1_duration(self) -> int:
-        """休憩1時間を分単位で返す"""
-        return self.get_duration_in_minutes(self.break1_start_time, self.break1_end_time)
-
-    def break2_duration(self) -> int:
-        """休憩2時間を分単位で返す"""
-        return self.get_duration_in_minutes(self.break2_start_time, self.break2_end_time)
-
-    def break3_duration(self) -> int:
-        """休憩3時間を分単位で返す"""
-        return self.get_duration_in_minutes(self.break3_start_time, self.break3_end_time)
-
-    def break4_duration(self) -> int:
-        """休憩4時間を分単位で返す"""
-        return self.get_duration_in_minutes(self.break4_start_time, self.break4_end_time)
-
-    def break5_duration(self) -> int:
-        """休憩5時間を分単位で返す"""
-        return self.get_duration_in_minutes(self.break5_start_time, self.break5_end_time)
+    def get_break_duration(self, base_date: date, break_number: int) -> tuple[datetime, datetime]:
+        if break_number == 0:
+            return convert2duration(base_date, self.lunch_break_start_time, self.lunch_break_end_time)
+        elif break_number == 1:
+            return convert2duration(base_date, self.break1_start_time, self.break1_end_time)
+        elif break_number == 2:
+            return convert2duration(base_date, self.break2_start_time, self.break2_end_time)
+        elif break_number == 3:
+            return convert2duration(base_date, self.break3_start_time, self.break3_end_time)
+        elif break_number == 4:
+            return convert2duration(base_date, self.break4_start_time, self.break4_end_time)
+        elif break_number == 5:
+            return convert2duration(base_date, self.break5_start_time, self.break5_end_time)
+        else:
+            return None, None

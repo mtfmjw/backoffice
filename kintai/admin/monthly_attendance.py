@@ -14,6 +14,7 @@ from import_export.admin import ImportExportModelAdmin
 
 from backoffice.admin import admin_site
 from common.admin.base import BaseModelAdminMixin, OrganizationFilterMixin
+from common.utils import minutes2str
 from kintai.models import DailyAttendance, MonthlyAttendance
 
 from .daily_attendance import DailyAttendanceInline
@@ -84,15 +85,15 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
 
     @display(description=_("Actual Working Time"))
     def display_working_time(self, obj):
-        return f"{int(obj.actual_work_minutes // 60):02d}:{int(obj.actual_work_minutes % 60):02d}" if obj.actual_work_minutes is not None else ""
+        return minutes2str(obj.actual_work_minutes)
 
     @display(description=_("Overtime"))
     def display_overtime(self, obj):
-        return f"{int(obj.overtime_minutes // 60):02d}:{int(obj.overtime_minutes % 60):02d}" if obj.overtime_minutes is not None else ""
+        return minutes2str(obj.overtime_minutes)
 
     @display(description=_("Night Working Time"))
     def display_night_working_time(self, obj):
-        return f"{int(obj.night_work_minutes // 60):02d}:{int(obj.night_work_minutes % 60):02d}" if obj.night_work_minutes is not None else ""
+        return minutes2str(obj.night_work_minutes)
 
     @display(description=_("Paid Leave Days"))
     def display_paid_leave_days(self, obj):
@@ -144,7 +145,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
 
         member = request.user.member
         month_str = request.GET.get("month", localdate().strftime("%Y-%m"))
-        first_day = datetime.datetime.strptime(month_str, "%Y-%m").date()
+        first_day = datetime.datetime.strptime(month_str, "%Y-%m").date()  # noqa: DTZ007
         attendance = MonthlyAttendance.objects.filter(member=member, month=first_day).first()
         if attendance:
             attendance_id = attendance.id
@@ -179,11 +180,11 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
             daily_records = parent_instance.daily_attendances.all()
 
             # Sum the return value of actual_work_minutes() for each record
-            parent_instance.actual_work_minutes = sum(record.actual_work_minutes() or 0 for record in daily_records)
-            parent_instance.overtime_minutes = sum(record.overtime_minutes() or 0 for record in daily_records)
-            parent_instance.night_work_minutes = sum(record.night_work_minutes() or 0 for record in daily_records)
+            parent_instance.actual_work_minutes = sum(record.get_actual_work_minutes() or 0 for record in daily_records)
+            parent_instance.overtime_minutes = sum(record.get_overtime_minutes() or 0 for record in daily_records)
+            parent_instance.night_work_minutes = sum(record.get_night_work_minutes() or 0 for record in daily_records)
             parent_instance.worked_days = sum(1 if record.is_present() else 0 for record in daily_records)
-            parent_instance.paid_leave_days = sum(record.paid_leave_days() or 0 for record in daily_records)
+            parent_instance.paid_leave_days = sum(record.get_paid_leave_days() or 0 for record in daily_records)
             parent_instance.standard_working_days = sum(1 if record.is_work_day() else 0 for record in daily_records)
 
             # 3. Update the parent instance
