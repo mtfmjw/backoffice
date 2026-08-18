@@ -40,9 +40,9 @@ class YearFilter(SimpleListFilter):
 
         if value is None:
             queryset.filter(date__year=current_year)
-        if value == "all":
+        elif value == "all":
             queryset.filter(date__year__gte=CALENDAR_START_YEAR)
-        if value.isdigit():
+        elif value.isdigit():
             queryset.filter(date__year=int(value))
         return queryset
 

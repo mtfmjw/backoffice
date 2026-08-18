@@ -7,8 +7,10 @@ from django.contrib import admin
 from django.contrib.admin.widgets import AdminSplitDateTime, AdminTimeWidget
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
-from kintai.models.daily_attendance import DailyAttendance
+from common.validattion import mandattory_validation
+from kintai.models import DailyAttendance
 
 
 class DailyAttendanceInlineForm(forms.ModelForm):
@@ -34,6 +36,21 @@ class DailyAttendanceInlineForm(forms.ModelForm):
             if self.instance.clock_out_time:
                 local_out = timezone.localtime(self.instance.clock_out_time)
                 self.initial["clock_out_time_only"] = local_out.strftime("%H:%M")
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        date_status = cleaned_data.get("date_status")
+        if date_status in (
+            DailyAttendance.DateStatus.PRESENT,
+            DailyAttendance.DateStatus.MORNING_PAID_LEAVE,
+            DailyAttendance.DateStatus.AFTERNOON_PAID_LEAVE,
+        ):
+            mandattory_validation(self, cleaned_data, "work_pattern", _("Work Pattern"))
+            mandattory_validation(self, cleaned_data, "clock_in_time_only", _("Clock In"))
+            mandattory_validation(self, cleaned_data, "clock_out_time_only", _("Clock Out"))
+
+        return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)

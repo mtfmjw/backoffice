@@ -64,7 +64,7 @@ class DailyAttendance(models.Model):
         verbose_name = _("Daily Attendance")
         verbose_name_plural = _("Daily Attendances")
         unique_together = ("monthly_attendance", "day")  # 1人1日1レコードに制限
-        ordering = ("day",)
+        ordering = ("monthly_attendance", "day")
 
     def __str__(self):
         default_message = f"{self.day.strftime('%Y年%m月%d日')} - {self.get_date_type_display()}"
