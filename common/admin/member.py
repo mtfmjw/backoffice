@@ -88,7 +88,7 @@ class MemberAdmin(MasterImportExportPermissionMixin, BaseModelAdminMixin, Import
         (
             None,
             {
-                "fields": (("user", "email"), ("organization", "is_organization_manager"), "work_pattern"),
+                "fields": (("user", "email"), ("organization", "is_organization_manager"), ("work_pattern",)),
             },
         ),
     )
@@ -100,3 +100,11 @@ class MemberAdmin(MasterImportExportPermissionMixin, BaseModelAdminMixin, Import
     @display(description=_("Is Organization Manager"))
     def is_organization_manager(self, obj) -> bool:
         return obj.is_organization_manager()
+
+    def has_change_permission(self, request, obj=None):
+        return super().has_change_permission(request, obj) and (
+            request.user.is_superuser
+            or request.user.member.is_system_info_staff()
+            or request.user.member.is_company_executive()
+            or (obj and obj.user == request.user)
+        )

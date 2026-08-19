@@ -13,3 +13,15 @@
     });
   </script>
 {% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <style>
+      .readonly a {
+          pointer-events: none !important;
+          cursor: default;
+          color: inherit;
+          text-decoration: none !important;
+      }
+    </style>
+{% endblock %}

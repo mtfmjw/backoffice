@@ -36,10 +36,8 @@ msgid "Full Name"
 msgstr "名前"
 
 #: .\common\admin\member.py:100
-#, fuzzy
-#| msgid "Organization Name"
 msgid "Is Organization Manager"
-msgstr "組織名"
+msgstr "組織長"
 
 #: .\common\apps.py:8
 msgid "Common"

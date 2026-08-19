@@ -38,11 +38,11 @@ class Member(BaseModel):
     def is_company_executive(self):
         return self.user.groups.filter(name=COMPANY_EXECUTIVE_GROUP).exists()
 
-    def is_organization_manager(self):
-        return self.user.groups.filter(name=ORGANIZATION_MANAGER_GROUP).exists()
-
     def is_system_info_staff(self):
         return self.user.groups.filter(name=SYSTEM_INFO_GROUP).exists()
+
+    def is_organization_manager(self):
+        return self.user.groups.filter(name=ORGANIZATION_MANAGER_GROUP).exists()
 
     def is_kintai_staff(self):
         return self.user.groups.filter(name=KINTAI_STAFF_GROUP).exists()

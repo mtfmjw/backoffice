@@ -2,6 +2,7 @@ from typing import ClassVar
 
 from django.contrib.admin import display
 from django.db.models.expressions import RawSQL
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from common.admin.filters import OrganizationFilter
@@ -49,11 +50,12 @@ class BaseModelAdminMixin(CommonAdminMixin):
     list_filter = ("valid_flag",)
 
     class Media:
-        css: ClassVar[dict[str, tuple[str, ...]]] = {"all": ("admin/admin_extra.css",)}
+        css: ClassVar[dict[str, tuple[str, ...]]] = {"all": ("admin/css/admin_extra.css",)}
 
     @display(description=_("Update Time"))
     def display_updated_at(self, obj):
-        return obj.updated_at.strftime("%Y/%m/%d %H:%M:%S")
+        updated_at = timezone.localtime(obj.updated_at)
+        return updated_at.strftime("%Y/%m/%d %H:%M:%S")
 
     def delete_model(self, request, obj):
         if not obj.valid_flag:

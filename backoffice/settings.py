@@ -89,6 +89,9 @@ DATABASES = {
         "PASSWORD": config("DB_PASSWORD", default="P09olp09ol"),
         "HOST": config("DB_HOST", default="localhost"),
         "PORT": config("DB_PORT", default="5432", cast=int),
+        "OPTIONS": {
+            "options": "-c timezone=Asia/Tokyo",
+        },
     }
 }
 
