@@ -44,5 +44,6 @@ class MonthlyAttendance(BaseModel):
         return (
             f"{self.member.user.last_name} {self.member.user.first_name}({self.member.user.username}) "
             + self.month.strftime("%Y年%m月")
+            + f" （{_('Work Pattern')}: {self.work_pattern.name if self.work_pattern else '-'})"
             + f" - {self.get_approve_status_display()}"
         )

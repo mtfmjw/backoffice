@@ -9,9 +9,9 @@ from django.utils.translation import gettext_lazy as _
 class CustomAdminSite(AdminSite):
     """Custom Admin Site that allows non-staff users to login"""
 
-    site_title = _("バックオフィス")
-    site_header = _("バックオフィス")
-    index_title = _("サイト管理")
+    site_title = _("Back Office")
+    site_header = _("Back Office")
+    index_title = _("Site Administration")
     login_template = "registration/login.html"
 
     def has_permission(self, request):
@@ -196,3 +196,4 @@ admin_site.register(Group, CustomGroupAdmin)
 
 # 手動で保持したいメッセージをここに列挙する
 _("Delete?")
+_("Run")

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-17 15:59+0900\n"
+"POT-Creation-Date: 2026-08-19 15:37+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -116,9 +116,9 @@ msgid "Belongs to"
 msgstr "所属"
 
 #: .\common\models\member.py:28 .\common\models\organization.py:11
-#: .\common\models\work_pattern.py:30
+#: .\common\models\work_pattern.py:32
 msgid "Work Pattern"
-msgstr "勤務パターン"
+msgstr "就業パターン"
 
 #: .\common\models\member.py:32
 msgid "Member"
@@ -197,90 +197,76 @@ msgstr "都道府県名"
 msgid "Prefectures"
 msgstr "都道府県一覧"
 
-#: .\common\models\work_pattern.py:11
+#: .\common\models\work_pattern.py:13
 msgid "Work Pattern Name"
 msgstr "就業パターン"
 
-#: .\common\models\work_pattern.py:12
+#: .\common\models\work_pattern.py:14
 msgid "Standard Start Time"
 msgstr "開始時刻"
 
-#: .\common\models\work_pattern.py:13
+#: .\common\models\work_pattern.py:15
 msgid "Standard End Time"
 msgstr "終了時刻"
 
-#: .\common\models\work_pattern.py:15
+#: .\common\models\work_pattern.py:17
 msgid "Lunch Break Start Time"
 msgstr "昼休開始時刻"
 
-#: .\common\models\work_pattern.py:16
+#: .\common\models\work_pattern.py:18
 msgid "Lunch Break End Time"
 msgstr "昼休終了時刻"
 
-#: .\common\models\work_pattern.py:17
+#: .\common\models\work_pattern.py:19
 msgid "Break 1 Start Time"
 msgstr "休憩1開始時刻"
 
-#: .\common\models\work_pattern.py:18
+#: .\common\models\work_pattern.py:20
 msgid "Break 1 End Time"
 msgstr "休憩1終了時刻"
 
-#: .\common\models\work_pattern.py:19
+#: .\common\models\work_pattern.py:21
 msgid "Break 2 Start Time"
 msgstr "休憩2開始時刻"
 
-#: .\common\models\work_pattern.py:20
+#: .\common\models\work_pattern.py:22
 msgid "Break 2 End Time"
 msgstr "休憩2終了時刻"
 
-#: .\common\models\work_pattern.py:21
+#: .\common\models\work_pattern.py:23
 msgid "Break 3 Start Time"
 msgstr "休憩3開始時刻"
 
-#: .\common\models\work_pattern.py:22
+#: .\common\models\work_pattern.py:24
 msgid "Break 3 End Time"
 msgstr "休憩3終了時刻"
 
-#: .\common\models\work_pattern.py:23
+#: .\common\models\work_pattern.py:25
 msgid "Break 4 Start Time"
 msgstr "休憩4開始時刻"
 
-#: .\common\models\work_pattern.py:24
+#: .\common\models\work_pattern.py:26
 msgid "Break 4 End Time"
 msgstr "休憩4終了時刻"
 
-#: .\common\models\work_pattern.py:25
+#: .\common\models\work_pattern.py:27
 msgid "Break 5 Start Time"
 msgstr "休憩5開始時刻"
 
-#: .\common\models\work_pattern.py:26
+#: .\common\models\work_pattern.py:28
 msgid "Break 5 End Time"
 msgstr "休憩5終了時刻"
 
-#: .\common\models\work_pattern.py:31
+#: .\common\models\work_pattern.py:33
 msgid "Work Patterns"
 msgstr "就業パターン一覧"
 
-#~ msgid "President"
-#~ msgstr "社長"
+#: .\common\utils.py:31 .\common\utils.py:43
+#, python-format
+msgid "Start time must be earlier than end time: %(start)s - %(end)s"
+msgstr "開始時刻は終了時刻より前のものを指定してください。%(start)s - %(end)s"
 
-#~ msgid "Vice President"
-#~ msgstr "副社長"
-
-#~ msgid "Chief Manager"
-#~ msgstr "本部長"
-
-#~ msgid "Manager"
-#~ msgstr "部長"
-
-#~ msgid "Acting Manager"
-#~ msgstr "部長代理"
-
-#~ msgid "Employee"
-#~ msgstr "社員"
-
-#~ msgid "Position"
-#~ msgstr "職務"
-
-#~ msgid "Is Head of Organization"
-#~ msgstr "責任者"
+#: .\common\validattion.py:7
+#, python-format
+msgid "%(label)s is a mandatory field."
+msgstr "%(label)sは必須項目です。"

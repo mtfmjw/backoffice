@@ -1,14 +1,14 @@
 # admin.py
-import datetime
+from datetime import timedelta
 
 from django import forms
-from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.widgets import AdminSplitDateTime, AdminTimeWidget
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from common.utils import convert2datetime, convert2duration
 from common.validattion import mandattory_validation
 from kintai.models import DailyAttendance
 
@@ -50,36 +50,31 @@ class DailyAttendanceInlineForm(forms.ModelForm):
             mandattory_validation(self, cleaned_data, "clock_in_time_only", _("Clock In"))
             mandattory_validation(self, cleaned_data, "clock_out_time_only", _("Clock Out"))
 
+        clock_in_time = cleaned_data.get("clock_in_time_only")
+        clock_out_time = cleaned_data.get("clock_out_time_only")
+        work_pattern = cleaned_data.get("work_pattern")
+        if clock_in_time and clock_out_time and work_pattern:
+            if clock_in_time == clock_out_time and work_pattern.start_time != clock_in_time:
+                self.add_error("clock_out_time_only", _("Clock-out time must be after clock-in time."))
+            else:
+                work_start, work_end = convert2duration(timezone.localdate(), clock_in_time, clock_out_time)
+                next_day_start = convert2datetime(timezone.localdate() + timedelta(days=1), work_pattern.start_time)
+                if work_start > work_end:
+                    self.add_error("clock_in_time_only", _("Clock-out time must be after clock-in time."))
+                if work_end > next_day_start:
+                    self.add_error("clock_out_time_only", _("Clock-out time must be before the next day's start time."))
+
         return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
 
-        in_time_val = self.cleaned_data.get("clock_in_time_only")
-        out_time_val = self.cleaned_data.get("clock_out_time_only")
+        clock_in_time, clock_out_time = convert2duration(
+            instance.day, self.cleaned_data.get("clock_in_time_only"), self.cleaned_data.get("clock_out_time_only")
+        )
 
-        # Base date anchor (e.g. work_date or today's date)
-        base_date = instance.day
-
-        if in_time_val:
-            in_dt = datetime.datetime.combine(base_date, in_time_val)
-            instance.clock_in_time = timezone.make_aware(in_dt) if settings.USE_TZ else in_dt
-        else:
-            instance.clock_in_time = None
-
-        if out_time_val:
-            out_date = base_date
-
-            # OVERNIGHT SHIFT DETECTOR:
-            # If clock-out time (05:00) is less than or equal to clock-in time (09:00),
-            # treat clock-out as the next calendar day (+1 day).
-            if in_time_val and out_time_val <= in_time_val:
-                out_date += datetime.timedelta(days=1)
-
-            out_dt = datetime.datetime.combine(out_date, out_time_val)
-            instance.clock_out_time = timezone.make_aware(out_dt) if settings.USE_TZ else out_dt
-        else:
-            instance.clock_out_time = None
+        instance.clock_in_time = clock_in_time
+        instance.clock_out_time = clock_out_time
 
         if commit:
             instance.save()

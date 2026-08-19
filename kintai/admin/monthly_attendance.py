@@ -148,7 +148,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
             (
                 None,
                 {
-                    "fields": ("work_pattern", "display_digest"),
+                    "fields": ("display_digest",),
                 },
             ),
         )
