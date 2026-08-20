@@ -1,14 +1,8 @@
-from datetime import time
-
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from common.models import Member, WorkPattern
 from common.models.base import BaseModel
-
-NIGHT_START_TIME = time(22, 0)
-NIGHT_END_TIME = time(5, 0)
-HALF_DAY_MINUTES = 180  # 半日休暇の時間（分）
 
 
 class MonthlyAttendance(BaseModel):

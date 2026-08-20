@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-20 13:22+0900\n"
+"POT-Creation-Date: 2026-08-20 17:54+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -116,7 +116,7 @@ msgid "Belongs to"
 msgstr "所属"
 
 #: .\common\models\member.py:28 .\common\models\organization.py:11
-#: .\common\models\work_pattern.py:28
+#: .\common\models\work_pattern.py:31
 msgid "Work Pattern"
 msgstr "就業パターン"
 
@@ -197,71 +197,75 @@ msgstr "都道府県名"
 msgid "Prefectures"
 msgstr "都道府県一覧"
 
-#: .\common\models\work_pattern.py:8
+#: .\common\models\work_pattern.py:10
 msgid "Work Pattern Name"
 msgstr "就業パターン"
 
-#: .\common\models\work_pattern.py:9
+#: .\common\models\work_pattern.py:11
 msgid "Standard Start Time"
 msgstr "標準就業時刻"
 
-#: .\common\models\work_pattern.py:10
+#: .\common\models\work_pattern.py:12
 msgid "Standard End Time"
 msgstr "標準終了時刻"
 
-#: .\common\models\work_pattern.py:12
-msgid "Lunch Break Start Time"
-msgstr "昼休開始時刻"
-
 #: .\common\models\work_pattern.py:13
-msgid "Lunch Break End Time"
-msgstr "昼休終了時刻"
-
-#: .\common\models\work_pattern.py:14
 msgid "Standard Working Time"
 msgstr "標準勤務時間"
 
-#: .\common\models\work_pattern.py:15
+#: .\common\models\work_pattern.py:14
+msgid "Half Day Time"
+msgstr "半日区切"
+
+#: .\common\models\work_pattern.py:16
+msgid "Lunch Break Start Time"
+msgstr "昼休開始時刻"
+
+#: .\common\models\work_pattern.py:17
+msgid "Lunch Break End Time"
+msgstr "昼休終了時刻"
+
+#: .\common\models\work_pattern.py:18
 msgid "Break 1 Start Time"
 msgstr "休憩1開始時刻"
 
-#: .\common\models\work_pattern.py:16
+#: .\common\models\work_pattern.py:19
 msgid "Break 1 End Time"
 msgstr "休憩1終了時刻"
 
-#: .\common\models\work_pattern.py:17
+#: .\common\models\work_pattern.py:20
 msgid "Break 2 Start Time"
 msgstr "休憩2開始時刻"
 
-#: .\common\models\work_pattern.py:18
+#: .\common\models\work_pattern.py:21
 msgid "Break 2 End Time"
 msgstr "休憩2終了時刻"
 
-#: .\common\models\work_pattern.py:19
+#: .\common\models\work_pattern.py:22
 msgid "Break 3 Start Time"
 msgstr "休憩3開始時刻"
 
-#: .\common\models\work_pattern.py:20
+#: .\common\models\work_pattern.py:23
 msgid "Break 3 End Time"
 msgstr "休憩3終了時刻"
 
-#: .\common\models\work_pattern.py:21
+#: .\common\models\work_pattern.py:24
 msgid "Break 4 Start Time"
 msgstr "休憩4開始時刻"
 
-#: .\common\models\work_pattern.py:22
+#: .\common\models\work_pattern.py:25
 msgid "Break 4 End Time"
 msgstr "休憩4終了時刻"
 
-#: .\common\models\work_pattern.py:23
+#: .\common\models\work_pattern.py:26
 msgid "Break 5 Start Time"
 msgstr "休憩5開始時刻"
 
-#: .\common\models\work_pattern.py:24
+#: .\common\models\work_pattern.py:27
 msgid "Break 5 End Time"
 msgstr "休憩5終了時刻"
 
-#: .\common\models\work_pattern.py:29
+#: .\common\models\work_pattern.py:32
 msgid "Work Patterns"
 msgstr "就業パターン一覧"
 

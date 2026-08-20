@@ -14,7 +14,11 @@ from common.utils import (
     minutes2str,
 )
 
-from .monthly_attendence import HALF_DAY_MINUTES, NIGHT_END_TIME, NIGHT_START_TIME, MonthlyAttendance
+from .monthly_attendence import MonthlyAttendance
+
+NIGHT_START_TIME = time(22, 0)
+NIGHT_END_TIME = time(5, 0)
+HALF_DAY_MINUTES = 180  # 半日休暇の時間（分）
 
 WEEKDAYS = ["月", "火", "水", "木", "金", "土", "日"]
 
@@ -82,7 +86,7 @@ class DailyAttendance(models.Model):
         ordering = ("monthly_attendance", "day")
 
     def __str__(self):
-        default_message = f"{self.day.strftime('%Y年%m月%d日')} - {self.get_date_type_display()}"
+        default_message = f"{self.day.strftime('%Y年%m月%d日')}({WEEKDAYS[self.day.isoweekday() - 1]}) - {self.get_date_type_display()}"
         if self.is_present():
             working_time = f"{_('Actual Working Time')}：{minutes2str(self.actual_work_minutes)}" if self.actual_work_minutes is not None else ""
             overtime = f"{_('Overtime')}：{minutes2str(self.overtime_minutes)}" if self.overtime_minutes is not None else ""

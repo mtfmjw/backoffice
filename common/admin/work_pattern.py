@@ -49,6 +49,7 @@ class WorkPatternAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, Impo
         "name",
         "working_duration",
         "standard_work_time",
+        "half_day_time",
         "lunch_break_duration",
         "break1_duration",
         "break2_duration",
@@ -64,7 +65,7 @@ class WorkPatternAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, Impo
                 "fields": (
                     "name",
                     ("start_time", "end_time", "standard_work_time"),
-                    ("lunch_break_start_time", "lunch_break_end_time"),
+                    ("lunch_break_start_time", "lunch_break_end_time", "half_day_time"),
                     ("break1_start_time", "break1_end_time"),
                     ("break2_start_time", "break2_end_time"),
                     ("break3_start_time", "break3_end_time"),
@@ -74,6 +75,9 @@ class WorkPatternAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, Impo
             },
         ),
     )
+
+    class Media:
+        css = {"all": ("common/css/disable_time_related_icons.css",)}  # noqa: RUF012
 
     @display(description="勤務時間")
     def working_duration(self, obj):
@@ -102,16 +106,3 @@ class WorkPatternAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, Impo
     @display(description="休憩５")
     def break5_duration(self, obj):
         return duration2str((obj.break5_start_time, obj.break5_end_time))
-
-    def get_form(self, request, obj=None, **kwargs):
-        form = super().get_form(request, obj, **kwargs)
-
-        # Check if we are viewing an existing object and the field is None
-        if obj and obj.standard_work_time is None:
-            # Set the initial default value for the field in the form
-            standard_work_minutes = obj.get_standard_work_minutes()
-            hours = standard_work_minutes // 60
-            minutes = standard_work_minutes % 60
-            form.base_fields["standard_work_time"].initial = f"{hours:02d}:{minutes:02d}"
-
-        return form
