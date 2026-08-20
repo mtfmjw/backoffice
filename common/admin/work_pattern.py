@@ -24,6 +24,7 @@ class WorkPatternResource(resources.ModelResource):
             "name",
             "start_time",
             "end_time",
+            "standard_work_time",
             "lunch_break_start_time",
             "lunch_break_end_time",
             "break1_start_time",
@@ -47,6 +48,7 @@ class WorkPatternAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, Impo
     list_display = (
         "name",
         "working_duration",
+        "standard_work_time",
         "lunch_break_duration",
         "break1_duration",
         "break2_duration",
@@ -61,7 +63,7 @@ class WorkPatternAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, Impo
             {
                 "fields": (
                     "name",
-                    ("start_time", "end_time"),
+                    ("start_time", "end_time", "standard_work_time"),
                     ("lunch_break_start_time", "lunch_break_end_time"),
                     ("break1_start_time", "break1_end_time"),
                     ("break2_start_time", "break2_end_time"),
@@ -75,28 +77,41 @@ class WorkPatternAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, Impo
 
     @display(description="勤務時間")
     def working_duration(self, obj):
-        return duration2str(obj.start_time, obj.end_time)
+        return duration2str((obj.start_time, obj.end_time))
 
     @display(description="昼休憩")
     def lunch_break_duration(self, obj):
-        return duration2str(obj.lunch_break_start_time, obj.lunch_break_end_time)
+        return duration2str((obj.lunch_break_start_time, obj.lunch_break_end_time))
 
     @display(description="休憩１")
     def break1_duration(self, obj):
-        return duration2str(obj.break1_start_time, obj.break1_end_time)
+        return duration2str((obj.break1_start_time, obj.break1_end_time))
 
     @display(description="休憩２")
     def break2_duration(self, obj):
-        return duration2str(obj.break2_start_time, obj.break2_end_time)
+        return duration2str((obj.break2_start_time, obj.break2_end_time))
 
     @display(description="休憩３")
     def break3_duration(self, obj):
-        return duration2str(obj.break3_start_time, obj.break3_end_time)
+        return duration2str((obj.break3_start_time, obj.break3_end_time))
 
     @display(description="休憩４")
     def break4_duration(self, obj):
-        return duration2str(obj.break4_start_time, obj.break4_end_time)
+        return duration2str((obj.break4_start_time, obj.break4_end_time))
 
     @display(description="休憩５")
     def break5_duration(self, obj):
-        return duration2str(obj.break5_start_time, obj.break5_end_time)
+        return duration2str((obj.break5_start_time, obj.break5_end_time))
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+
+        # Check if we are viewing an existing object and the field is None
+        if obj and obj.standard_work_time is None:
+            # Set the initial default value for the field in the form
+            standard_work_minutes = obj.get_standard_work_minutes()
+            hours = standard_work_minutes // 60
+            minutes = standard_work_minutes % 60
+            form.base_fields["standard_work_time"].initial = f"{hours:02d}:{minutes:02d}"
+
+        return form

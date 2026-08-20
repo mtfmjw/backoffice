@@ -14,7 +14,7 @@ from pathlib import Path
 
 from decouple import config
 
-from .settings_log import LOGGING
+from .settings_log import LOGGING as LOG_SETTINGS
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -130,10 +130,11 @@ LOCALE_PATHS = [
     BASE_DIR / "locale",
 ]
 
-TIME_ZONE = "Asia/Tokyo"
-
 USE_I18N = True
+# USE_L10N が True だと settings の設定より言語別設定が優先されるため False にします
+USE_L10N = False
 
+TIME_ZONE = "Asia/Tokyo"
 USE_TZ = True
 
 # 日時・時刻の表示・入力フォーマット（秒を除外）
@@ -151,13 +152,10 @@ DATETIME_INPUT_FORMATS = [
     "%Y/%m/%d %H:%M",
 ]
 
-# USE_L10N が True だと settings の設定より言語別設定が優先されるため False にします
-USE_L10N = False
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-LOGGING = LOGGING
+LOGGING = LOG_SETTINGS

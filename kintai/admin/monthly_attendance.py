@@ -173,6 +173,9 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         extra_context = extra_context or {}
         extra_context["show_save_and_add_another"] = False
+        # Hides the history button from the object tools top bar
+        extra_context["show_history"] = False
+
         return super().changeform_view(request, object_id, form_url, extra_context=extra_context)
 
     def save_formset(self, request, form, formset, change):

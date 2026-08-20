@@ -54,15 +54,10 @@ class DailyAttendanceInlineForm(forms.ModelForm):
         clock_out_time = cleaned_data.get("clock_out_time_only")
         work_pattern = cleaned_data.get("work_pattern")
         if clock_in_time and clock_out_time and work_pattern:
-            if clock_in_time == clock_out_time and work_pattern.start_time != clock_in_time:
-                self.add_error("clock_out_time_only", _("Clock-out time must be after clock-in time."))
-            else:
-                work_start, work_end = convert2duration(timezone.localdate(), clock_in_time, clock_out_time)
-                next_day_start = convert2datetime(timezone.localdate() + timedelta(days=1), work_pattern.start_time)
-                if work_start > work_end:
-                    self.add_error("clock_in_time_only", _("Clock-out time must be after clock-in time."))
-                if work_end > next_day_start:
-                    self.add_error("clock_out_time_only", _("Clock-out time must be before the next day's start time."))
+            __, work_end = convert2duration(timezone.localdate(), clock_in_time, clock_out_time)
+            next_day_start = convert2datetime(timezone.localdate() + timedelta(days=1), work_pattern.start_time)
+            if work_end > next_day_start:
+                self.add_error("clock_out_time_only", _("Clock-out time must be before the next day's start time."))
 
         return cleaned_data
 

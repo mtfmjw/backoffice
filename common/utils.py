@@ -1,8 +1,17 @@
 from datetime import date, time, timedelta
 
 from django.core.exceptions import ValidationError
-from django.utils.timezone import datetime, make_aware
+from django.utils.timezone import datetime, is_naive, localtime, make_aware
 from django.utils.translation import gettext_lazy as _
+
+
+def convert2localtime(original_datetime) -> datetime:
+    """Convert a datetime object to local time."""
+    if original_datetime is None:
+        return None
+    if is_naive(original_datetime):
+        return make_aware(original_datetime)
+    return localtime(original_datetime)
 
 
 def convert2datetime(base_date: date, time: time) -> datetime:
@@ -17,13 +26,14 @@ def convert2duration(base_date: date, start_time: time, end_time: time) -> tuple
         return None, None
 
     start_datetime = convert2datetime(base_date, start_time)
-    end_datetime = make_aware(datetime.combine(base_date, end_time))
+    end_datetime = convert2datetime(base_date, end_time)
     if end_datetime <= start_datetime:
         end_datetime += timedelta(days=1)
     return start_datetime, end_datetime
 
 
-def duration2minutes(start_time: datetime, end_time: datetime) -> int:
+def duration2minutes(duration: tuple[datetime, datetime]) -> int:
+    start_time, end_time = duration
     if start_time and end_time:
         if start_time <= end_time:
             return int((end_time - start_time).total_seconds() // 60)
@@ -32,8 +42,9 @@ def duration2minutes(start_time: datetime, end_time: datetime) -> int:
     return 0
 
 
-def duration2str(start_time: datetime, end_time: datetime) -> str:
+def duration2str(duration: tuple[time, time]) -> str:
     """Show duration in HH:MM - HH:MM format."""
+    start_time, end_time = duration
     if start_time and end_time:
         start = start_time.strftime("%H:%M")
         end = end_time.strftime("%H:%M")
@@ -44,10 +55,10 @@ def duration2str(start_time: datetime, end_time: datetime) -> str:
     return ""
 
 
-def get_overlap_duration(period1: tuple[datetime, datetime], period2: tuple[datetime, datetime]) -> tuple[datetime, datetime]:
+def get_overlap_duration(duration1: tuple[datetime, datetime], duration2: tuple[datetime, datetime]) -> tuple[datetime, datetime]:
     """Return the overlapping duration between two time periods."""
-    p1_start, p1_end = period1
-    p2_start, p2_end = period2
+    p1_start, p1_end = duration1
+    p2_start, p2_end = duration2
 
     if p1_start is None or p1_end is None or p2_start is None or p2_end is None:
         return None, None
@@ -61,12 +72,12 @@ def get_overlap_duration(period1: tuple[datetime, datetime], period2: tuple[date
     return None, None
 
 
-def get_overlap_minutes(period1: tuple[datetime, datetime], period2: tuple[datetime, datetime]) -> int:
+def get_overlap_minutes(duration1: tuple[datetime, datetime], duration2: tuple[datetime, datetime]) -> int:
     """指定された時間帯と勤務時間の重複時間を分単位で返す"""
-    overlap_start, overlap_end = get_overlap_duration(period1, period2)
+    overlap_start, overlap_end = get_overlap_duration(duration1, duration2)
 
     if overlap_start and overlap_end:
-        return int((overlap_end - overlap_start).total_seconds() // 60)
+        return max(int((overlap_end - overlap_start).total_seconds() // 60), 0)
     return 0
 
 

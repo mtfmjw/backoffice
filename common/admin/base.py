@@ -2,11 +2,11 @@ from typing import ClassVar
 
 from django.contrib.admin import display
 from django.db.models.expressions import RawSQL
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from common.admin.filters import OrganizationFilter
 from common.models import Organization
+from common.utils import convert2localtime
 
 
 class CommonAdminMixin:
@@ -54,7 +54,7 @@ class BaseModelAdminMixin(CommonAdminMixin):
 
     @display(description=_("Update Time"))
     def display_updated_at(self, obj):
-        updated_at = timezone.localtime(obj.updated_at)
+        updated_at = convert2localtime(obj.updated_at)
         return updated_at.strftime("%Y/%m/%d %H:%M:%S")
 
     def delete_model(self, request, obj):
