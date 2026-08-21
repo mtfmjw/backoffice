@@ -8,9 +8,10 @@ class WorkPattern(models.Model):
     """就業パターンマスタ（通常・シフト・フレックスなど）"""
 
     name = models.CharField(_("Work Pattern Name"), max_length=100, unique=True)
-    start_time = models.TimeField(_("Standard Start Time"), default="09:30")
-    end_time = models.TimeField(_("Standard End Time"), default="18:00")
+    start_time = models.TimeField(_("Standard Start Time"), default="09:30", null=True, blank=True)
+    end_time = models.TimeField(_("Standard End Time"), default="18:00", null=True, blank=True)
     standard_work_time = models.TimeField(_("Standard Working Time"), default="07:30", null=True, blank=True)
+    # 半休区切、午前半休後の勤務開始時刻＆午後半休前の勤務終了時刻
     half_day_time = models.TimeField(_("Half Day Time"), default="12:30", null=True, blank=True)
 
     lunch_break_start_time = models.TimeField(_("Lunch Break Start Time"), default="12:00", null=True, blank=True)
@@ -65,6 +66,17 @@ class WorkPattern(models.Model):
             hours = half_day_minutes // 60
             return time(hour=hours + self.start_time.hour, minute=self.start_time.minute)
         return None
+
+    def get_break_durations(self) -> list[tuple[time, time]]:
+        """Return a list of break durations as tuples of (start_time, end_time)."""
+        breaks = []
+        breaks.append((self.lunch_break_start_time, self.lunch_break_end_time))
+        for i in range(1, 6):
+            start_time = getattr(self, f"break{i}_start_time")
+            end_time = getattr(self, f"break{i}_end_time")
+            if start_time is not None and end_time is not None:
+                breaks.append((start_time, end_time))
+        return breaks
 
     def save(self, *args, **kwargs):
         """日次勤怠を保存する際に、月次勤怠の実労働時間、残業時間、深夜労働時間を更新する"""

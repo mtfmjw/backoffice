@@ -1,5 +1,9 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.admin import display
+from django.utils.text import format_lazy
+from django.utils.timezone import localdate
+from django.utils.translation import gettext_lazy as _
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.formats.base_formats import CSV
@@ -7,7 +11,8 @@ from import_export.instance_loaders import CachedInstanceLoader
 
 from backoffice.admin import admin_site
 from common.models import WorkPattern
-from common.utils import duration2str
+from common.utils import convert2duration, duration2minutes, duration2str
+from common.validation import time_range_validation
 
 from .base import CommonAdminMixin, MasterImportExportPermissionMixin
 
@@ -25,6 +30,7 @@ class WorkPatternResource(resources.ModelResource):
             "start_time",
             "end_time",
             "standard_work_time",
+            "half_day_time",
             "lunch_break_start_time",
             "lunch_break_end_time",
             "break1_start_time",
@@ -41,8 +47,70 @@ class WorkPatternResource(resources.ModelResource):
         import_id_fields = ("name",)
 
 
+class WorkPatternForm(forms.ModelForm):
+    class Meta:
+        model = WorkPattern
+        fields = "__all__"
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        start_time = cleaned_data.get("start_time")
+        end_time = cleaned_data.get("end_time")
+        time_range_validation(self, cleaned_data, "start_time", "end_time", _("Standard Start Time"), _("Standard End Time"))
+
+        standard_work_time = cleaned_data.get("standard_work_time")
+        if start_time is None and end_time is None and standard_work_time is None:
+            self.add_error("start_time", _("Either start time and end time or standard work time must be provided."))
+            self.add_error("end_time", _("Either start time and end time or standard work time must be provided."))
+            self.add_error("standard_work_time", _("Either start time and end time or standard work time must be provided."))
+
+        if start_time is not None and end_time is not None:
+            standard_work_minutes = duration2minutes(convert2duration(localdate(), start_time, end_time))
+            if standard_work_minutes > 6 * 60:  # 6時間超える勤務
+                lunch_break_start_time = cleaned_data.get("lunch_break_start_time")
+                lunch_break_end_time = cleaned_data.get("lunch_break_end_time")
+                if lunch_break_start_time is None or lunch_break_end_time is None:
+                    self.add_error(
+                        "lunch_break_start_time", _("Lunch break start time and end time must be provided for work durations exceeding 6 hours.")
+                    )
+                    self.add_error(
+                        "lunch_break_end_time", _("Lunch break start time and end time must be provided for work durations exceeding 6 hours.")
+                    )
+                else:
+                    lunch_break_minutes = duration2minutes(convert2duration(localdate(), lunch_break_start_time, lunch_break_end_time))
+                    if lunch_break_minutes < 45:  # 45分未満の昼休憩
+                        self.add_error(
+                            "lunch_break_start_time", _("Lunch break duration must be at least 45 minutes for work durations exceeding 6 hours.")
+                        )
+                        self.add_error(
+                            "lunch_break_end_time", _("Lunch break duration must be at least 45 minutes for work durations exceeding 6 hours.")
+                        )
+                    elif standard_work_minutes > 8 * 60 and lunch_break_minutes < 60:  # 8時間超える勤務の60分未満の昼休憩
+                        self.add_error(
+                            "lunch_break_start_time", _("Lunch break duration must be at least 60 minutes for work durations exceeding 8 hours.")
+                        )
+                        self.add_error(
+                            "lunch_break_end_time", _("Lunch break duration must be at least 60 minutes for work durations exceeding 8 hours.")
+                        )
+
+            time_range_validation(
+                self, cleaned_data, "lunch_break_start_time", "lunch_break_end_time", _("Lunch Break Start Time"), _("Lunch Break End Time")
+            )
+
+        for i in range(1, 6):
+            start_field_name = f"break{i}_start_time"
+            end_field_name = f"break{i}_end_time"
+            start_field_label = format_lazy("Break {i} Start Time", i=i)
+            end_field_label = format_lazy("Break {i} End Time", i=i)
+            time_range_validation(self, cleaned_data, start_field_name, end_field_name, start_field_label, end_field_label)
+
+        return cleaned_data
+
+
 @admin.register(WorkPattern, site=admin_site)
 class WorkPatternAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, ImportExportModelAdmin):
+    form = WorkPatternForm
     resource_class = WorkPatternResource
     formats = (CSV,)
     list_display = (

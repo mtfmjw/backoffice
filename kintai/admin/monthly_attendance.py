@@ -48,6 +48,7 @@ class MonthFilter(SimpleListFilter):
 @admin.register(MonthlyAttendance, site=admin_site)
 class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, ImportExportModelAdmin):
     change_list_template = "kintai/monthly_attendance_change_list.html"
+    change_form_template = "kintai/monthly_attendance_change_form.html"
     list_display = (
         "member",
         "display_month",
@@ -58,6 +59,10 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
         "display_overtime",
         "display_night_working_time",
         "display_paid_leave_days",
+        "absence_days",
+        "early_leave_days",
+        "late_days",
+        "display_total_absence_minutes",
     ) + BaseModelAdminMixin.list_display
     search_fields = ("member__user__username", "member__user__last_name", "member__user__first_name", "member__organization__name")
     list_select_related = ("member", "work_pattern")
@@ -106,14 +111,22 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
     def display_paid_leave_days(self, obj) -> str:
         return f"{obj.paid_leave_days:.1f}日" if obj.paid_leave_days is not None else ""
 
+    @display(description=_("Total Absence Time"))
+    def display_total_absence_minutes(self, obj) -> str:
+        return minutes2str(obj.total_absence_minutes)
+
     @display(description=_("Digest"))
     def display_digest(self, obj) -> str:
         return (
-            f"{_('Days Worked')}: {self.display_worked_days(obj)}   "
-            + f"{_('Actual Working Time')}: {self.display_working_time(obj)}  "
-            + f"{_('Overtime')}: {self.display_overtime(obj)}  "
-            + f"{_('Night Working Time')}: {self.display_night_working_time(obj)}  "
-            + f"{_('Paid Leave Days')}: {self.display_paid_leave_days(obj)}  "
+            f"{_('Days Worked')}: {self.display_worked_days(obj)}　　"
+            + f"{_('Actual Working Time')}: {self.display_working_time(obj)}　　"
+            + f"{_('Overtime')}: {self.display_overtime(obj)}　　"
+            + f"{_('Night Working Time')}: {self.display_night_working_time(obj)}　　"
+            + f"{_('Paid Leave Days')}: {self.display_paid_leave_days(obj)}　　"
+            + f"{_('Absence Days')}: {obj.absence_days}　　"
+            + f"{_('Early Leave Days')}: {obj.early_leave_days}　　"
+            + f"{_('Late Days')}: {obj.late_days}　　"
+            + f"{_('Total Absence Time')}: {self.display_total_absence_minutes(obj)}　　"
         )
 
     def has_add_permission(self, request):
@@ -197,12 +210,21 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
             daily_records = parent_instance.daily_attendances.all()
 
             # Sum the return value of actual_work_minutes() for each record
-            parent_instance.actual_work_minutes = sum(record.get_actual_work_minutes() or 0 for record in daily_records)
-            parent_instance.overtime_minutes = sum(record.get_overtime_minutes() or 0 for record in daily_records)
-            parent_instance.night_work_minutes = sum(record.get_night_work_minutes() or 0 for record in daily_records)
+            parent_instance.actual_work_minutes = sum(record.actual_work_minutes or 0 for record in daily_records)
+            parent_instance.overtime_minutes = sum(record.overtime_minutes or 0 for record in daily_records)
+            parent_instance.night_work_minutes = sum(record.night_work_minutes or 0 for record in daily_records)
             parent_instance.worked_days = sum(1 if record.is_present() else 0 for record in daily_records)
             parent_instance.paid_leave_days = sum(record.get_paid_leave_days() or 0 for record in daily_records)
             parent_instance.standard_working_days = sum(1 if record.is_work_day() else 0 for record in daily_records)
+            parent_instance.absence_days = sum(1 if record.date_status == DailyAttendance.DateStatus.ABSENCE else 0 for record in daily_records)
+            parent_instance.early_leave_days = sum(1 if (record.early_leave_minutes or 0) > 0 else 0 for record in daily_records)
+            parent_instance.late_days = sum(1 if (record.late_minutes or 0) > 0 else 0 for record in daily_records)
+            parent_instance.total_absence_minutes = sum(
+                (record.early_leave_minutes or 0)
+                + (record.late_minutes or 0)
+                + (record.work_pattern.get_standard_work_minutes() if record.date_status == DailyAttendance.DateStatus.ABSENCE else 0)
+                for record in daily_records
+            )
 
             # 3. Update the parent instance
             parent_instance.save(
@@ -213,5 +235,9 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
                     "worked_days",
                     "paid_leave_days",
                     "standard_working_days",
+                    "absence_days",
+                    "early_leave_days",
+                    "late_days",
+                    "total_absence_minutes",
                 ]
             )
