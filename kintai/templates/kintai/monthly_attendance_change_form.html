@@ -1,7 +1,12 @@
 {% extends "admin/change_form.html" %}
-{% load i18n admin_urls %}
+{% load i18n admin_urls static %}
 
 {% block object-tools-items %}
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static 'kintai/js/apply_to_all_checkboxes.js' %}"></script>
 {% endblock %}
 
 {% block extrastyle %}
@@ -10,5 +15,35 @@
       #monthlyattendance_form .module {
           margin-bottom: 10px;
       }
+      fieldset .fieldBox {
+          margin-right: 10px;
+      }
+        /* Center and constrain the main container width */
+        .flex-container.form-multiline {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;    /* Centers items horizontally */
+            align-items: center;        /* Aligns checkboxes and button vertically */
+            gap: 8px 16px;              /* Controls row and column spacing */
+            max-width: 650px;           /* Narrows the overall container width */
+            margin: 0 auto;             /* Centers the entire container on the page */
+        }
+
+        /* Compact individual input fields */
+        .flex-container.fieldBox {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;                   /* Tightens space between checkbox and text label */
+            margin: 0 !important;       /* Overrides Django default margins */
+        }
+
+        /* Align the button container */
+        .field-apply_to_all {
+            display: flex;
+            align-items: center;
+        }
+        .field-apply_to_all label[for="id_apply_to_all"] {
+            display: none;
+        }
     </style>
 {% endblock %}

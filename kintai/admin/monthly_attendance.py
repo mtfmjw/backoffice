@@ -2,12 +2,14 @@ import datetime
 from urllib.parse import urlencode
 
 from dateutil.relativedelta import relativedelta
+from django import forms
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter, display
 from django.core.exceptions import PermissionDenied
 from django.db import connection, transaction
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
 from import_export.admin import ImportExportModelAdmin
@@ -45,8 +47,46 @@ class MonthFilter(SimpleListFilter):
             return queryset
 
 
+class ButtonWidget(forms.Widget):
+    def render(self, name, value, attrs=None, renderer=None):
+        return format_html('<button type="button" class="button" onclick="applyToAll(this)">{}</button>', _("Apply to All"))
+
+
+class MonthlyAttendanceForm(forms.ModelForm):
+    apply_lunch_break = forms.BooleanField(
+        required=False,
+        label=_("Lunch Break"),
+    )
+    apply_break1 = forms.BooleanField(
+        required=False,
+        label=_("Break 1"),
+    )
+    apply_break2 = forms.BooleanField(
+        required=False,
+        label=_("Break 2"),
+    )
+    apply_break3 = forms.BooleanField(
+        required=False,
+        label=_("Break 3"),
+    )
+    apply_break4 = forms.BooleanField(
+        required=False,
+        label=_("Break 4"),
+    )
+    apply_break5 = forms.BooleanField(
+        required=False,
+        label=_("Break 5"),
+    )
+    apply_to_all = forms.CharField(required=False, label="", widget=ButtonWidget())
+
+    class Meta:
+        model = MonthlyAttendance
+        fields = "__all__"
+
+
 @admin.register(MonthlyAttendance, site=admin_site)
 class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, ImportExportModelAdmin):
+    form = MonthlyAttendanceForm
     change_list_template = "kintai/monthly_attendance_change_list.html"
     change_form_template = "kintai/monthly_attendance_change_form.html"
     list_display = (
@@ -161,7 +201,10 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
             (
                 None,
                 {
-                    "fields": ("display_digest",),
+                    "fields": (
+                        ("apply_lunch_break", "apply_break1", "apply_break2", "apply_break3", "apply_break4", "apply_break5", "apply_to_all"),
+                        ("display_digest",),
+                    ),
                 },
             ),
         )
