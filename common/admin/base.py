@@ -72,6 +72,16 @@ class BaseModelAdminMixin(CommonAdminMixin):
             else:
                 obj.delete()
 
+    def get_readonly_fields(self, request, obj=None):
+        # 1. Fetch base/parent readonly fields safely
+        parent_readonly = super().get_readonly_fields(request, obj)
+
+        # 2. Define audit fields required for your custom fieldset
+        audit_readonly = ("valid_flag", "created_by", "created_at", "updated_by", "updated_at")
+
+        # 3. Merge without creating duplicates
+        return tuple(set(parent_readonly) | set(audit_readonly))
+
     def get_fieldsets(self, request, obj=None):
         fieldsets = super().get_fieldsets(request, obj)
         audit_section = (

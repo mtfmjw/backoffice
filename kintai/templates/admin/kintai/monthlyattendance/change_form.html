@@ -1,0 +1,195 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static %}
+
+{% block object-tools-items %}
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static 'kintai/js/apply_to_all_checkboxes.js' %}"></script>
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <style>
+        #monthlyattendance_form .module {
+            margin-bottom: 10px;
+        }
+        fieldset .fieldBox {
+            margin-right: 10px;
+        }
+        .object-tools {
+            display: none;
+        }
+
+        /* 備考のラベルを小さくする */
+        .form-row.field-note .flex-container{
+            width: 80%;
+            display: flex;
+            justify-content: center;
+            margin: 0px auto;
+        }
+        label[for="id_note"] {
+            min-width: 30px;
+            width: 10%;
+            font-size: 12px;
+        }
+        input#id_note {
+            width: 90% !important; /* Overriding the current fixed percentage */
+            font-size: 12px;
+        }
+
+
+        /* inline 明細のスタイル調整 */
+        .inline-group thead th {
+            text-align: center;
+            padding-top: 4px;
+            padding-bottom: 0px;
+        }
+        .inline-group .tabular tr.has_original td {
+            text-align: center;
+            padding-bottom: 0px;
+        }
+        .inline-group .tabular td.original p {
+            text-align: left;
+            font-size: 12px;
+        }
+        
+
+        /* Container: Defines 8 equal columns and handles scrolling on narrow screens */
+        .summary-grid-container {
+            display: grid;
+            grid-template-columns: repeat(9, minmax(60px, 1fr));
+            gap: 1px;
+            width: 80%;
+            overflow-x: auto;
+            margin: 0px auto;
+        }
+
+        /* Shared styles for headers and data cells */
+        .break-grid-header, .break-grid-cell {
+            padding: 0px 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .break-grid-header {
+            font-weight: bold;
+        }
+        .apply-button {
+            grid-row: span 2 ; 
+            grid-column: span 2; 
+            
+            /* 中央寄せ設定 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .break-grid-cell.summary {
+            border-bottom: 1px solid #ccc; 
+        }
+        .break-grid-cell {
+            padding-bottom: 2px;
+        }
+
+        /* apply to all checkbox styling */
+        .apply-break-checkbox {
+            margin-left: 5px;
+            transform: scale(0.8);
+        }
+
+
+        /* インラインテーブル内の select と text input の余白調整 */
+        tr.dynamic-daily_attendances select,
+        tr.dynamic-daily_attendances input[type="text"],
+        tr.dynamic-daily_attendances .vTimeField {
+            /* マージン上下を削除 */
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+            
+            /* パディング上下を2pxに固定 */
+            padding-top: 2px !important;
+            padding-bottom: 2px !important;
+            
+            /* 高さ計算の崩れを防ぐ */
+            box-sizing: border-box !important;
+            height: auto !important;
+
+            font-size: 12px !important;
+        }
+        tr.dynamic-daily_attendances .vTimeField {
+            width: 50px !important;
+            max-width: 50px !important;
+        }
+        td.field-note input[type="text"] {
+            width: 300px;
+            min-width: 300px;
+        }
+
+        /* 時間入力欄が入っている <p class="time"> の不要な上下余白もクリア */
+        tr.dynamic-daily_attendances p.time,
+        tr.dynamic-daily_attendances p {
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+        .inline-group .tabular tr.has_original td[class*="field-"] {
+            padding-top: 1.4em;
+        }
+    </style>
+{% endblock %}
+
+{% block after_field_sets %}
+    {{ block.super }}
+
+    <div class="summary-grid-container">
+        <!-- 月次集計結果 Headers -->
+        <div class="break-grid-header summary">{{ worked_days_label }}</div>
+        <div class="break-grid-header summary">{{ actual_working_time_label }}</div>
+        <div class="break-grid-header summary">{{ overtime_label }}</div>
+        <div class="break-grid-header summary">{{ night_working_time_label }}</div>
+        <div class="break-grid-header summary">{{ paid_leave_days_label }}</div>
+        <div class="break-grid-header summary">{{ absence_days_label }}</div>
+        <div class="break-grid-header summary">{{ early_leave_days_label }}</div>
+        <div class="break-grid-header summary">{{ late_days_label }}</div>
+        <div class="break-grid-header summary">{{ total_absence_time_label }}</div>
+
+        <!-- 月次集計結果 -->
+        <div class="break-grid-cell summary">{{ worked_days }}</div>
+        <div class="break-grid-cell summary">{{ actual_working_time }}</div>
+        <div class="break-grid-cell summary">{{ overtime }}</div>
+        <div class="break-grid-cell summary">{{ night_working_time }}</div>
+        <div class="break-grid-cell summary">{{ paid_leave_days }}</div>
+        <div class="break-grid-cell summary">{{ absence_days }}</div>
+        <div class="break-grid-cell summary">{{ early_leave_days }}</div>
+        <div class="break-grid-cell summary">{{ late_days }}</div>
+        <div class="break-grid-cell summary">{{ total_absence_time }}</div>
+
+        <!-- WorkPattern Headers -->
+        <div class="break-grid-header work-pattern">勤務時間</div>
+        <div class="break-grid-header work-pattern">昼休憩<input type="checkbox" name="apply_lunch_break" id="id_apply_lunch_break" class="apply-break-checkbox"></div>
+        <div class="break-grid-header work-pattern">休憩1<input type="checkbox" name="apply_break1" id="id_apply_break1" class="apply-break-checkbox"></div>
+        <div class="break-grid-header work-pattern">休憩2<input type="checkbox" name="apply_break2" id="id_apply_break2" class="apply-break-checkbox"></div>
+        <div class="break-grid-header work-pattern">休憩3<input type="checkbox" name="apply_break3" id="id_apply_break3" class="apply-break-checkbox"></div>
+        <div class="break-grid-header work-pattern">休憩4<input type="checkbox" name="apply_break4" id="id_apply_break4" class="apply-break-checkbox"></div>
+        <div class="break-grid-header work-pattern">休憩5<input type="checkbox" name="apply_break5" id="id_apply_break5" class="apply-break-checkbox"></div>
+        <!-- 結合する最終列のセル（8番目の要素） -->
+        <div class="break-grid-cell work-pattern apply-button">
+            <button type="button" class="button" onclick="applyToAll(this)">休憩パターン適用</button>
+        </div>
+
+        <!-- WorkPattern Values -->
+        <div class="break-grid-cell work-pattern">{{ work_duration }}</div>
+        <div class="break-grid-cell work-pattern">{{ lunch_break_duration }}</div>
+        <div class="break-grid-cell work-pattern">{{ break1_duration }}</div>
+        <div class="break-grid-cell work-pattern">{{ break2_duration }}</div>
+        <div class="break-grid-cell work-pattern">{{ break3_duration }}</div>
+        <div class="break-grid-cell work-pattern">{{ break4_duration }}</div>
+        <div class="break-grid-cell work-pattern">{{ break5_duration }}</div>
+    </div>
+
+{% endblock %}

@@ -3,6 +3,8 @@ from datetime import time
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+DEFAULT_WORK_PATTERN_NAME = "所定"
+
 
 class WorkPattern(models.Model):
     """就業パターンマスタ（通常・シフト・フレックスなど）"""
@@ -91,3 +93,11 @@ class WorkPattern(models.Model):
             if half_day_time is not None:
                 self.half_day_time = half_day_time
         super().save(*args, **kwargs)
+
+    @staticmethod
+    def get_work_pattern(member) -> "WorkPattern":
+        """Return the work pattern for a member, falling back to the organization's work pattern or the default."""
+        work_pattern = member.work_pattern or member.organization.work_pattern
+        if work_pattern is None:
+            work_pattern = WorkPattern.objects.filter(name=DEFAULT_WORK_PATTERN_NAME).first()
+        return work_pattern

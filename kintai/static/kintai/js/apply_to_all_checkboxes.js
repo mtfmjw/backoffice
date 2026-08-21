@@ -1,4 +1,3 @@
-js
 function applyToAll(button) {
     const mappings = [
         { master: 'apply_lunch_break', rowSuffix: 'has_lunch_break' },

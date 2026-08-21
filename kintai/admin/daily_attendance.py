@@ -26,7 +26,7 @@ class DailyAttendanceInlineForm(forms.ModelForm):
     night_absence = forms.TimeField(label=_("Night Absence"), widget=AdminTimeWidget(format="%H:%M", attrs={"placeholder": "HH:MM"}), required=False)
     note = forms.CharField(
         label=_("Note"),
-        widget=TextInput(attrs={"placeholder": _("夜間：22:00~05:00")}),
+        widget=TextInput(attrs={"placeholder": _("休憩については実際休んだ分だけチェックしてください。")}),
         required=False,
     )
 
