@@ -8,6 +8,7 @@ from import_export.formats.base_formats import CSV
 from import_export.widgets import ForeignKeyWidget
 
 from backoffice.admin import admin_site
+from common.admin.filters import SimpleOrganizationFilter
 from common.form import DirectExportForm
 from common.models import Member, Organization, WorkPattern
 
@@ -28,7 +29,6 @@ class MemberResource(resources.ModelResource):
             "email",
             "organization",
             "work_pattern",
-            "manage_flag",
             "valid_flag",
             "created_at",
             "created_by",
@@ -40,7 +40,6 @@ class MemberResource(resources.ModelResource):
             "email",
             "organization",
             "work_pattern",
-            "manage_flag",
             "valid_flag",
             "created_at",
             "created_by",
@@ -68,14 +67,15 @@ class MemberResource(resources.ModelResource):
 
 
 @admin.register(Member, site=admin_site)
-class MemberAdmin(ImportExportModelAdmin, MasterImportExportPermissionMixin, BaseModelAdminMixin):
+class MemberAdmin(MasterImportExportPermissionMixin, BaseModelAdminMixin, ImportExportModelAdmin):
     resource_class = MemberResource
     formats = (CSV,)
     export_form_class = DirectExportForm
 
     has_add_permission = lambda self, request: False
-    readonly_fields = ("user",) + BaseModelAdminMixin.readonly_fields
-    list_display = ("full_name", "user", "email", "organization", "work_pattern") + BaseModelAdminMixin.list_display
+    readonly_fields = ("user", "is_organization_manager") + BaseModelAdminMixin.readonly_fields
+    list_display = ("full_name", "user", "email", "organization", "is_organization_manager", "work_pattern") + BaseModelAdminMixin.list_display
+    list_filter = (SimpleOrganizationFilter,) + BaseModelAdminMixin.list_filter
     search_fields = (
         "user__username",
         "user__first_name",
@@ -84,12 +84,11 @@ class MemberAdmin(ImportExportModelAdmin, MasterImportExportPermissionMixin, Bas
         "organization__name",
     )
     list_select_related = ("user", "organization")
-    list_filter = ("organization",) + BaseModelAdminMixin.list_filter
     fieldsets = (
         (
             None,
             {
-                "fields": (("user", "email"), ("organization", "manager_flag"), "work_pattern"),
+                "fields": (("user", "email"), ("organization", "is_organization_manager"), ("work_pattern",)),
             },
         ),
     )
@@ -97,3 +96,15 @@ class MemberAdmin(ImportExportModelAdmin, MasterImportExportPermissionMixin, Bas
     @display(description=_("Full Name"))
     def full_name(self, obj):
         return f"{obj.user.last_name} {obj.user.first_name}"
+
+    @display(description=_("Is Organization Manager"))
+    def is_organization_manager(self, obj) -> bool:
+        return obj.is_organization_manager()
+
+    def has_change_permission(self, request, obj=None):
+        return super().has_change_permission(request, obj) and (
+            request.user.is_superuser
+            or request.user.member.is_system_info_staff()
+            or request.user.member.is_company_executive()
+            or (obj and obj.user == request.user)
+        )

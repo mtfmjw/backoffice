@@ -1,6 +1,9 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+# 2020年からのカレンダーを表示する
+CALENDAR_START_YEAR = 2020
+
 
 class Holiday(models.Model):
     """

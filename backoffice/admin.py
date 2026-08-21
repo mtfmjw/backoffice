@@ -1,7 +1,5 @@
 from django.contrib.admin import AdminSite
-from django.contrib.auth.admin import GroupAdmin
 from django.contrib.auth.models import Group
-from django.contrib.auth.models import User as AuthUser
 from django.contrib.auth.views import LoginView
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
@@ -11,9 +9,9 @@ from django.utils.translation import gettext_lazy as _
 class CustomAdminSite(AdminSite):
     """Custom Admin Site that allows non-staff users to login"""
 
-    site_title = _("バックオフィス")
-    site_header = _("バックオフィス")
-    index_title = _("サイト管理")
+    site_title = _("Back Office")
+    site_header = _("Back Office")
+    index_title = _("Site Administration")
     login_template = "registration/login.html"
 
     def has_permission(self, request):
@@ -68,17 +66,67 @@ class CustomAdminSite(AdminSite):
 # admin.py
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from import_export import fields, resources
+from import_export.admin import ImportExportMixin
+from import_export.formats.base_formats import CSV
+from import_export.widgets import ManyToManyWidget
 
 User = get_user_model()
 
+# superuserを一つに限定し、ほかのsuperuserを登録できないように制限する
 SUPER_USER_NAME = "admin"
 
 # 既存の UserAdmin の登録を解除（すでに登録されている場合）
 admin.site.unregister(User)
 
 
-class AuthUserAdmin(BaseUserAdmin):
+class UserResource(resources.ModelResource):
+    # Map M2M groups field cleanly if needed
+    groups = fields.Field(attribute="groups", widget=ManyToManyWidget(Group, field="name"))
+
+    class Meta:
+        skip_unchanged = True
+        report_skipped = True
+        model = User
+        # Exclude sensitive fields like password hash from export/import
+        exclude = ("password", "user_permissions")
+        # Specify explicit fields to control order
+        fields = ("username", "email", "first_name", "last_name", "is_staff", "is_active", "groups")
+        import_id_fields = ("username",)
+
+    def before_save_instance(self, instance, using_transactions, dry_run):
+        """
+        Triggered right before saving each instance.
+        """
+        # Only set password if creating a brand-new User (no PK yet)
+        if not instance.pk:
+            temp_password = "P09olp09ol"
+
+            # Properly hash the password before saving
+            instance.set_password(temp_password)
+
+            # Store temporary password on instance if you want to notify/log it later
+            instance._temp_password = temp_password
+
+        super().before_save_instance(instance, using_transactions, dry_run)
+
+
+class GroupResource(resources.ModelResource):
+    class Meta:
+        model = Group
+        fields = ("name",)
+        import_id_fields = ("name",)
+        skip_unchanged = True
+        report_skipped = True
+
+
+class CustomUserAdmin(ImportExportMixin, BaseUserAdmin):
+    resource_class = UserResource
+    formats = (CSV,)
+    list_display = ("username", "email", "last_name", "first_name", "is_active")
+
     def get_form(self, request, obj=None, **kwargs):
         """
         フォームを生成する際、ログインユーザーが superuser でない場合は
@@ -125,13 +173,27 @@ class AuthUserAdmin(BaseUserAdmin):
 
         super().save_model(request, obj, form, change)
 
+    def get_queryset(self, request):
+        """
+        superuser を閲覧できないようにする
+        """
+        qs = super().get_queryset(request)
+        return qs.exclude(is_superuser=True)
+
+
+class CustomGroupAdmin(ImportExportMixin, BaseGroupAdmin):
+    resource_class = GroupResource
+    formats = (CSV,)
+
 
 # Create an instance of the custom admin site to be used in urls.py
 admin_site = CustomAdminSite()
+admin_site.site_url = None
 
 
-admin_site.register(AuthUser, AuthUserAdmin)
-admin_site.register(Group, GroupAdmin)
+admin_site.register(User, CustomUserAdmin)
+admin_site.register(Group, CustomGroupAdmin)
 
 # 手動で保持したいメッセージをここに列挙する
 _("Delete?")
+_("Run")

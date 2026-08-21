@@ -1,5 +1,5 @@
-name,start_time,end_time,lunch_break_start_time,lunch_break_end_time,break1_start_time,break1_end_time,break2_start_time,break2_end_time,break3_start_time,break3_end_time,break4_start_time,break4_end_time,break5_start_time,break5_end_time
-シフト１,09:00,17:30,11:30,12:30,17:30,18:00,19:30,20:00,22:00,22:15,02:30,03:00,08:30,09:00
-所定,09:30,18:00,12:00,13:00,18:00,18:30,20:00,20:30,22:30,22:45,03:00,03:30,09:00,09:30
-シフト２,10:00,18:30,12:30,13:30,18:30,19:00,20:30,21:00,23:00,23:15,03:30,04:00,09:30,10:00
-シフト３,10:30,19:00,13:00,14:00,19:00,19:30,21:00,21:30,23:30,23:45,04:00,04:30,10:00,10:30
+name,start_time,end_time,standard_work_time,half_day_time,lunch_break_start_time,lunch_break_end_time,break1_start_time,break1_end_time,break2_start_time,break2_end_time,break3_start_time,break3_end_time,break4_start_time,break4_end_time,break5_start_time,break5_end_time
+シフト１,09:00,17:30,07:30,12:00,11:30,12:30,17:30,18:00,19:30,20:00,22:00,22:15,02:30,03:00,08:30,09:00
+所定,09:30,18:00,07:30,12:30,12:00,13:00,18:00,18:30,20:00,20:30,22:30,22:45,03:00,03:30,09:00,09:30
+シフト２,10:00,18:30,07:30,13:00,12:30,13:30,18:30,19:00,20:30,21:00,23:00,23:15,03:30,04:00,09:30,10:00
+シフト３,10:30,19:00,07:30,13:30,13:00,14:00,19:00,19:30,21:00,21:30,23:30,23:45,04:00,04:30,10:00,10:30

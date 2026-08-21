@@ -52,12 +52,12 @@ coverage.xml
 cover/
 
 # Translations
-*.mo
 *.pot
 
 # Django stuff:
 *.log
 *.log.*
+*.lock
 local_settings.py
 db.sqlite3
 db.sqlite3-journal

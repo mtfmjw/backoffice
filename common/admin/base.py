@@ -1,12 +1,17 @@
 from typing import ClassVar
 
 from django.contrib.admin import display
+from django.db.models.expressions import RawSQL
 from django.utils.translation import gettext_lazy as _
 
-from common.const import MASTER_MANAGER_GROUP_NAME, SYSTEM_MANAGER_GROUP_NAME
+from common.admin.filters import OrganizationFilter
+from common.models import Organization
+from common.utils import convert2localtime
 
 
 class CommonAdminMixin:
+    """This mixin provides common functionality for Django admin classes, including methods for generating search help text and customizing the changelist view."""
+
     def get_search_help_text(self):
         """Generate help text for search_fields based on model verbose names, supporting __ lookups."""
         help_texts = []
@@ -45,11 +50,12 @@ class BaseModelAdminMixin(CommonAdminMixin):
     list_filter = ("valid_flag",)
 
     class Media:
-        css: ClassVar[dict[str, tuple[str, ...]]] = {"all": ("admin/admin_extra.css",)}
+        css: ClassVar[dict[str, tuple[str, ...]]] = {"all": ("admin/css/admin_extra.css",)}
 
     @display(description=_("Update Time"))
     def display_updated_at(self, obj):
-        return obj.updated_at.strftime("%Y/%m/%d %H:%M:%S")
+        updated_at = convert2localtime(obj.updated_at)
+        return updated_at.strftime("%Y/%m/%d %H:%M:%S")
 
     def delete_model(self, request, obj):
         if not obj.valid_flag:
@@ -92,16 +98,52 @@ class BaseModelAdminMixin(CommonAdminMixin):
 
 
 class MasterImportExportPermissionMixin:
+    """This mixin provides import and export permissions for superusers and members of specific groups."""
+
     def has_import_permission(self, request):
-        return request.user.is_superuser or request.user.groups.filter(name__in=(MASTER_MANAGER_GROUP_NAME, SYSTEM_MANAGER_GROUP_NAME)).exists()
+        return request.user.is_superuser or request.user.member.is_system_info_staff()
 
     def has_export_permission(self, request):
-        return request.user.is_superuser or request.user.groups.filter(name__in=(MASTER_MANAGER_GROUP_NAME, SYSTEM_MANAGER_GROUP_NAME)).exists()
+        return request.user.is_superuser or request.user.member.is_system_info_staff()
 
 
-def show_duration(start_time, end_time):
-    if start_time and end_time:
-        start = start_time.strftime("%H:%M")
-        end = end_time.strftime("%H:%M")
-        return f"{start} - {end}"
-    return "-"
+class OrganizationFilterMixin:
+    """This mixin provides a method to filter querysets based on the user's organization."""
+
+    def can_view_all_organizations(self, request):
+        """Determine if the user can view all organizations."""
+        return request.user.is_superuser or request.user.member.is_company_executive() or request.user.member.is_system_info_staff()
+
+    def can_view_organization(self, request):
+        """Determine if the user can view a specific organization."""
+        return request.user.member.is_organization_manager()
+
+    def get_list_filter(self, request):
+        filters = list(super().get_list_filter(request))
+
+        if self.can_view_all_organizations(request) or self.can_view_organization(request):
+            filters.insert(0, OrganizationFilter)
+
+        return tuple(filters)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+
+        if self.can_view_all_organizations(request):
+            # superuser、勤怠管理グループのメンバーは全員のデータが見れる
+            return qs
+        elif self.can_view_organization(request):
+            # 組織の管理者は自組織メンバーのデータのみ見れる
+            root_organization_id = request.user.member.organization_id
+            below_organization_ids_sql = Organization.get_sub_department_ids_sql(root_organization_id)
+            if hasattr(self.model, "organization"):
+                return qs.filter(organization_id__in=RawSQL(below_organization_ids_sql, []))
+            elif hasattr(self.model, "member"):
+                return qs.filter(member__organization_id__in=RawSQL(below_organization_ids_sql, []))
+        else:
+            # 自分のデータのみ見れる
+            if self.model._meta.model_name == "member":
+                return qs.filter(user=request.user)
+            elif hasattr(self.model, "member"):
+                return qs.filter(member__user=request.user)
+        return qs

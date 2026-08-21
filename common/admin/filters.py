@@ -1,9 +1,14 @@
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.filters import RelatedOnlyFieldListFilter
+from django.db import connection
+from django.db.models.expressions import RawSQL
 from django.utils.timezone import localdate
+from django.utils.translation import gettext_lazy as _
 
-from common.const import CALENDAR_START_YEAR
 from common.models.organization import Organization
+
+# 2020年からのカレンダーを表示する
+CALENDAR_START_YEAR = 2020
 
 
 class PrefectureFilter(RelatedOnlyFieldListFilter):
@@ -18,7 +23,7 @@ class PrefectureFilter(RelatedOnlyFieldListFilter):
 
 
 class YearFilter(SimpleListFilter):
-    title = "対象年"
+    title = _("Year")
     parameter_name = "year"
 
     def lookups(self, request, model_admin):
@@ -34,11 +39,11 @@ class YearFilter(SimpleListFilter):
         current_year = localdate().year
 
         if value is None:
-            return queryset.filter(date__year=current_year)
-        if value == "all":
-            return queryset.filter(date__year__gte=CALENDAR_START_YEAR)
-        if value.isdigit():
-            return queryset.filter(date__year=int(value))
+            queryset.filter(date__year=current_year)
+        elif value == "all":
+            queryset.filter(date__year__gte=CALENDAR_START_YEAR)
+        elif value.isdigit():
+            queryset.filter(date__year=int(value))
         return queryset
 
     def choices(self, changelist):
@@ -53,18 +58,45 @@ class YearFilter(SimpleListFilter):
         return all_choices[1:]
 
 
-class OrganizationFilter(SimpleListFilter):
-    title = "対象組織"
+class SimpleOrganizationFilter(SimpleListFilter):
+    title = _("Organization")
     parameter_name = "organization"
 
     def lookups(self, request, model_admin):
-        choices = Organization.objects.filter(valid_flag=True, parent__isnull=True).order_by("code").values_list("id", "name")
-        return choices
+        sql = Organization.get_whole_organization_tree_sql()
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+        return [(str(org_id), f"{'--' * depth}{name}") for org_id, name, depth in rows]
 
     def queryset(self, request, queryset):
         value = self.value()
 
         if value is not None:
-            return queryset.filter(organization__id=int(value))
+            below_organization_ids_sql = Organization.get_sub_department_ids_sql(int(value))
+            if queryset.model._meta.model_name == "organization":
+                return queryset.filter(id__in=RawSQL(below_organization_ids_sql, []))
+            elif hasattr(queryset.model, "organization"):
+                return queryset.filter(organization__id__in=RawSQL(below_organization_ids_sql, []))
+            elif hasattr(queryset.model, "member"):
+                return queryset.filter(member__organization_id__in=RawSQL(below_organization_ids_sql, []))
 
         return queryset
+
+
+class OrganizationFilter(SimpleOrganizationFilter):
+    title = _("Organization")
+    parameter_name = "organization"
+
+    def lookups(self, request, model_admin):
+        if model_admin.can_view_all_organizations(request):
+            choices = super().lookups(request, model_admin)
+        elif model_admin.can_view_organization(request):
+            root_organization_id = request.user.member.organization_id
+            sql = Organization.get_sub_organization_tree_sql(root_organization_id)
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
+                rows = cursor.fetchall()
+            choices = [(str(org_id), f"{'--' * depth}{name}") for org_id, name, depth in rows]
+
+        return choices if "choices" in locals() else []

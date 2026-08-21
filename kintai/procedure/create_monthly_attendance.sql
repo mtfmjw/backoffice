@@ -81,18 +81,18 @@ BEGIN
     SELECT 
         d.day_date, 
         p_attendance_id, 
-        v_work_pattern_id,
+        CASE WHEN not day_off THEN v_work_pattern_id ELSE NULL END AS work_pattern_id,
         CASE WHEN d.is_holiday THEN 3 -- 祝日
              WHEN d.is_substitute_holiday THEN 4 -- 振替休日
              WHEN d.day_of_week = 0 THEN 2 -- 日曜日、法定休日
              WHEN d.day_of_week = 6 THEN 1 -- 土曜日、所定休日
              ELSE 0 -- 平日
         END AS date_type,
-        CASE WHEN day_off THEN 0 -- 休み
-             ELSE 1 -- 出勤
+        CASE WHEN day_off THEN null -- 休み
+             ELSE 0 -- 出勤
         END AS date_status,
-        CASE WHEN not day_off THEN d.day_date + wp.start_time END AS clock_in_time,
-        CASE WHEN not day_off THEN d.day_date + wp.end_time END AS clock_out_time,
+        CASE WHEN not day_off THEN ((d.day_date + wp.start_time) AT TIME ZONE 'Asia/Tokyo') AT TIME ZONE 'UTC' END AS clock_in_time,
+        CASE WHEN not day_off THEN ((d.day_date + wp.end_time) AT TIME ZONE 'Asia/Tokyo') AT TIME ZONE 'UTC' END AS clock_out_time,
         CASE WHEN not day_off THEN true ELSE false END AS has_lunch_break,
         CASE WHEN not day_off THEN true ELSE false END AS has_break1,
         CASE WHEN not day_off THEN true ELSE false END AS has_break2,
