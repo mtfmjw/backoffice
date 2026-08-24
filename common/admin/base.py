@@ -41,6 +41,43 @@ class CommonAdminMixin:
         extra_context["search_help_text"] = self.get_search_help_text()
         return super().changelist_view(request, extra_context)
 
+    def is_available_member(self, request):
+        if request.user.is_superuser or request.user.is_authenticated is False or not hasattr(request.user, "member") or request.user.member is None:
+            return False
+        if request.user.member.organization is None:
+            return request.user.member.is_company_executive()
+        return True
+
+    def has_view_permission(self, request, obj=None):
+        """Override to check if the user has permission to view the object."""
+        return super().has_view_permission(request, obj) and self.is_available_member(request)
+
+    def has_add_permission(self, request):
+        """Override to check if the user has permission to add a new object."""
+        return super().has_add_permission(request) and self.is_available_member(request)
+
+    def has_change_permission(self, request, obj=None):
+        """Override to check if the user has permission to change the object."""
+        if not self.is_available_member(request):
+            return False
+        if obj is not None and hasattr(obj, "is_editable_by"):
+            return super().has_change_permission(request, obj) and obj.is_editable_by(request.user)
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        """Override to check if the user has permission to delete the object."""
+        if not self.is_available_member(request):
+            return False
+        if obj is not None and hasattr(obj, "is_deletable_by"):
+            return super().has_delete_permission(request, obj) and obj.is_deletable_by(request.user)
+        return super().has_delete_permission(request, obj)
+
+    def has_import_permission(self, request):
+        return request.user.member.is_company_executive() or request.user.member.is_system_info_staff()
+
+    def has_export_permission(self, request):
+        return request.user.member.is_company_executive() or request.user.member.is_system_info_staff()
+
 
 class BaseModelAdminMixin(CommonAdminMixin):
     """Base ModelAdmin for common models with soft delete and audit fields"""
@@ -105,16 +142,6 @@ class BaseModelAdminMixin(CommonAdminMixin):
                     all_fields.append(f)
         kwargs["fields"] = all_fields
         return super().get_form(request, obj, **kwargs)
-
-
-class MasterImportExportPermissionMixin:
-    """This mixin provides import and export permissions for superusers and members of specific groups."""
-
-    def has_import_permission(self, request):
-        return request.user.is_superuser or request.user.member.is_system_info_staff()
-
-    def has_export_permission(self, request):
-        return request.user.is_superuser or request.user.member.is_system_info_staff()
 
 
 class OrganizationFilterMixin:

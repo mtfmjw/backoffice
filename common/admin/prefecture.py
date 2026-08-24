@@ -6,7 +6,7 @@ from import_export.formats.base_formats import CSV
 from backoffice.admin import admin_site
 from common.models import Prefecture
 
-from .base import CommonAdminMixin, MasterImportExportPermissionMixin
+from .base import CommonAdminMixin
 
 
 class PrefectureResource(resources.ModelResource):
@@ -20,7 +20,7 @@ class PrefectureResource(resources.ModelResource):
 
 
 @admin.register(Prefecture, site=admin_site)
-class PrefectureAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, ImportMixin, admin.ModelAdmin):
+class PrefectureAdmin(CommonAdminMixin, ImportMixin, admin.ModelAdmin):
     resource_class = PrefectureResource
     formats = (CSV,)
     list_display = ("name", "code")

@@ -63,6 +63,18 @@ class Member(BaseModel):
 
     def is_editable_by(self, login_user):
         """Check if the record is editable by the given user."""
-        return super().is_editable_by(login_user) and (
-            login_user.member.is_company_executive() or login_user.member.is_system_info_staff() or login_user.member == self
-        )
+        if not login_user.is_authenticated or not hasattr(login_user, "member") or getattr(login_user, "member", None) is None:
+            return False
+        elif login_user.member.is_company_executive() or login_user.member.is_system_info_staff():
+            return True
+        elif login_user.member.organization is None:
+            return False
+
+        if login_user.member == self:
+            return True
+
+        if self.organization is None:
+            return not self.is_company_executive()
+
+        # ログインユーザーが組織長の場合、自分の所属組織の下部組織に所属するモデルを編集可能
+        return login_user.member.is_organization_manager() and login_user.member.organization in self.organization.get_ancestor_organizations()

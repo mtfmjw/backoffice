@@ -120,11 +120,3 @@ class Organization(BaseModel):
             ancestors.append(current_org.parent)
             current_org = current_org.parent
         return ancestors
-
-    def is_editable_by(self, login_user):
-        """
-        Checks if the current organization is editable by the given user.
-        """
-        return (login_user.member.is_company_executive() or login_user.member.is_system_info_staff()) or (
-            login_user.member.organization in self.get_ancestor_organizations() and login_user.member.is_organization_manager()
-        )

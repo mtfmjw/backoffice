@@ -9,7 +9,7 @@ from common.admin.filters import SimpleOrganizationFilter
 from common.form import DirectExportForm
 from common.models import Organization, WorkPattern
 
-from .base import BaseModelAdminMixin, MasterImportExportPermissionMixin
+from .base import BaseModelAdminMixin
 
 
 class OrganizationResource(resources.ModelResource):
@@ -36,7 +36,7 @@ class OrganizationResource(resources.ModelResource):
 
 
 @admin.register(Organization, site=admin_site)
-class OrganizationAdmin(BaseModelAdminMixin, MasterImportExportPermissionMixin, ImportExportModelAdmin):
+class OrganizationAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
     resource_class = OrganizationResource
     formats = (CSV,)
     export_form_class = DirectExportForm

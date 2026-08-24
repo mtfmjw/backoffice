@@ -5,22 +5,28 @@ from common.middleware import get_current_user
 
 
 class AuthenticationModelMixin:
+    """
+    Modelインスタンスごとに編集と削除の権限を制限するためのメソッドを提供するミックスイン
+    modelAdminのhas_change_permissionとhas_delete_permissionで使用することを想定
+    has_add_permissionとhas_view_permissionはdjangoの仕組みをそのまま使用するため、ここでは定義しない
+    """
+
     def is_editable_by(self, login_user):
         """Check if the record is editable by the given user."""
         # ログインユーザーによる判定
-        if (
-            not login_user.is_authenticated
-            or not hasattr(login_user, "member")
-            or getattr(login_user, "member", None) is None
-            or login_user.member.organization is None
-        ):
+        if not login_user.is_authenticated or not hasattr(login_user, "member") or getattr(login_user, "member", None) is None:
             return False
         elif login_user.member.is_company_executive() or login_user.member.is_system_info_staff():
             return True
+        elif login_user.member.organization is None:
+            return False
 
-        # アクセル対象モデルによる判定
-        if not hasattr(self, "member") or getattr(self, "member", None) is None or self.member.organization is None:
+        # アクセスする対象モデルによる判定
+        if not hasattr(self, "member") or getattr(self, "member", None) is None:
             return True
+
+        if self.member.organization is None:
+            return not self.member.is_company_executive()
 
         # ログインユーザーは自分が所有するモデルを編集可能
         if login_user.member == self.member:

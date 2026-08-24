@@ -12,7 +12,7 @@ from common.admin.filters import SimpleOrganizationFilter
 from common.form import DirectExportForm
 from common.models import Member, Organization, WorkPattern
 
-from .base import BaseModelAdminMixin, MasterImportExportPermissionMixin
+from .base import BaseModelAdminMixin
 
 User = get_user_model()
 
@@ -67,7 +67,7 @@ class MemberResource(resources.ModelResource):
 
 
 @admin.register(Member, site=admin_site)
-class MemberAdmin(MasterImportExportPermissionMixin, BaseModelAdminMixin, ImportExportModelAdmin):
+class MemberAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
     resource_class = MemberResource
     formats = (CSV,)
     export_form_class = DirectExportForm
@@ -97,14 +97,8 @@ class MemberAdmin(MasterImportExportPermissionMixin, BaseModelAdminMixin, Import
     def full_name(self, obj):
         return f"{obj.user.last_name} {obj.user.first_name}"
 
-    @display(description=_("Is Organization Manager"))
+    @display(description=_("Is Organization Manager"), boolean=True)
     def is_organization_manager(self, obj) -> bool:
-        return obj.is_organization_manager()
-
-    def has_change_permission(self, request, obj=None):
-        return super().has_change_permission(request, obj) and (
-            request.user.is_superuser
-            or request.user.member.is_system_info_staff()
-            or request.user.member.is_company_executive()
-            or (obj and obj.user == request.user)
-        )
+        if obj is None:
+            return False
+        return obj.is_organization_manager() or obj.is_company_executive()

@@ -8,7 +8,7 @@ from backoffice.admin import admin_site
 from common.form import DirectExportForm
 from common.models import Holiday
 
-from .base import CommonAdminMixin, MasterImportExportPermissionMixin
+from .base import CommonAdminMixin
 from .filters import YearFilter
 
 
@@ -33,7 +33,7 @@ class HolidayResource(resources.ModelResource):
 
 
 @admin.register(Holiday, site=admin_site)
-class HolidayAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, ImportExportModelAdmin):
+class HolidayAdmin(CommonAdminMixin, ImportExportModelAdmin):
     resource_class = HolidayResource
     formats = (CSV,)
     export_form_class = DirectExportForm

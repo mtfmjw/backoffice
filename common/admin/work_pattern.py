@@ -14,7 +14,7 @@ from common.models import WorkPattern
 from common.utils import convert2duration, duration2minutes, duration2str
 from common.validation import time_range_validation
 
-from .base import CommonAdminMixin, MasterImportExportPermissionMixin
+from .base import CommonAdminMixin
 
 
 class WorkPatternResource(resources.ModelResource):
@@ -109,7 +109,7 @@ class WorkPatternForm(forms.ModelForm):
 
 
 @admin.register(WorkPattern, site=admin_site)
-class WorkPatternAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, ImportExportModelAdmin):
+class WorkPatternAdmin(CommonAdminMixin, ImportExportModelAdmin):
     form = WorkPatternForm
     resource_class = WorkPatternResource
     formats = (CSV,)

@@ -2,10 +2,10 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from common.models import Member, WorkPattern
-from common.models.base import BaseModel
+from common.models.base import AuthenticationModelMixin, BaseModel
 
 
-class MonthlyAttendance(BaseModel):
+class MonthlyAttendance(AuthenticationModelMixin, BaseModel):
     """月次勤怠テーブル（1人1月あたりの確定データ）"""
 
     class ApproveStatus(models.IntegerChoices):
@@ -46,3 +46,16 @@ class MonthlyAttendance(BaseModel):
             + f" （{_('Work Pattern')}: {self.work_pattern.name if self.work_pattern else '-'})"
             + f" - {self.get_approve_status_display()}"
         )
+
+    def is_editable_by(self, login_user):
+        is_editable = super().is_editable_by(login_user) or login_user.member.is_attendance_management_staff()
+        if self.approve_status in [self.ApproveStatus.DRAFT, self.ApproveStatus.REJECTED]:
+            return is_editable and (login_user.member == self.member)
+        elif self.approve_status == self.ApproveStatus.APPLIED:
+            return is_editable and (
+                login_user.member.organization in self.member.get_ancestor_organizations() and login_user.member.is_organization_manager()
+            )
+        elif self.approve_status == self.ApproveStatus.APPROVED:
+            return is_editable and login_user.member.is_attendance_management_staff()
+        else:
+            return False
