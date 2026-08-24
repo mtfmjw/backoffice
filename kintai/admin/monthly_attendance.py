@@ -139,7 +139,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
 
     def can_view_all_organizations(self, request):
         """Determine if the user can view all organizations."""
-        return super().can_view_all_organizations(request) or request.user.member.is_kintai_staff()
+        return super().can_view_all_organizations(request) or request.user.member.is_attendance_management_staff()
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}

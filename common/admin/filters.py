@@ -73,13 +73,12 @@ class SimpleOrganizationFilter(SimpleListFilter):
         value = self.value()
 
         if value is not None:
-            below_organization_ids_sql = Organization.get_sub_department_ids_sql(int(value))
             if queryset.model._meta.model_name == "organization":
-                return queryset.filter(id__in=RawSQL(below_organization_ids_sql, []))
+                return queryset.filter(id__in=RawSQL(Organization.get_below_organization_ids_sql(int(value)), []))
             elif hasattr(queryset.model, "organization"):
-                return queryset.filter(organization__id__in=RawSQL(below_organization_ids_sql, []))
+                return queryset.filter(organization__id__in=RawSQL(Organization.get_below_organization_ids_sql(int(value)), []))
             elif hasattr(queryset.model, "member"):
-                return queryset.filter(member__organization_id__in=RawSQL(below_organization_ids_sql, []))
+                return queryset.filter(member__organization_id__in=RawSQL(Organization.get_below_organization_ids_sql(int(value)), []))
 
         return queryset
 
@@ -89,11 +88,13 @@ class OrganizationFilter(SimpleOrganizationFilter):
     parameter_name = "organization"
 
     def lookups(self, request, model_admin):
-        if model_admin.can_view_all_organizations(request):
+        if model_admin.is_all_organizations_accessible(request):
             choices = super().lookups(request, model_admin)
-        elif model_admin.can_view_organization(request):
-            root_organization_id = request.user.member.organization_id
-            sql = Organization.get_sub_organization_tree_sql(root_organization_id)
+        else:
+            top_organization = model_admin.get_accessible_top_level_organization(request)
+            if top_organization is None:
+                return []
+            sql = Organization.get_below_organization_tree_sql(top_organization.id)
             with connection.cursor() as cursor:
                 cursor.execute(sql)
                 rows = cursor.fetchall()

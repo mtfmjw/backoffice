@@ -4,6 +4,38 @@ from django.utils.translation import gettext_lazy as _
 from common.middleware import get_current_user
 
 
+class AuthenticationModelMixin:
+    def is_editable_by(self, login_user):
+        """Check if the record is editable by the given user."""
+        # ログインユーザーによる判定
+        if (
+            not login_user.is_authenticated
+            or not hasattr(login_user, "member")
+            or getattr(login_user, "member", None) is None
+            or login_user.member.organization is None
+        ):
+            return False
+        elif login_user.member.is_company_executive() or login_user.member.is_system_info_staff():
+            return True
+
+        # アクセル対象モデルによる判定
+        if not hasattr(self, "member") or getattr(self, "member", None) is None or self.member.organization is None:
+            return True
+
+        # ログインユーザーは自分が所有するモデルを編集可能
+        if login_user.member == self.member:
+            return True
+
+        # ログインユーザーが組織長の場合、自分の所属組織の下部組織に所属するモデルを編集可能
+        return (
+            login_user.member.is_organization_manager() and login_user.member.organization in self.member.organization.get_ancestor_organizations()
+        )
+
+    def is_deletable_by(self, login_user):
+        """Check if the record is deletable by the given user."""
+        return self.is_editable_by(login_user)
+
+
 class BaseModel(models.Model):
     valid_flag = models.BooleanField(default=True, verbose_name=_("Valid"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created at"))

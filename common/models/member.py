@@ -7,7 +7,7 @@ from common.models.organization import Organization
 from common.models.work_pattern import WorkPattern
 
 # 会社経営層グループ
-COMPANY_EXECUTIVE_GROUP = "経営幹部グループ"
+COMPANY_EXECUTIVE_GROUP = "経営管理グループ"
 
 # 組織責任者グループ
 ORGANIZATION_MANAGER_GROUP = "組織責任者グループ"
@@ -16,7 +16,10 @@ ORGANIZATION_MANAGER_GROUP = "組織責任者グループ"
 SYSTEM_INFO_GROUP = "情シスグループ"
 
 # 勤怠管理グループ
-KINTAI_STAFF_GROUP = "勤怠管理グループ"
+ATTENDANCE_MANAGEMENT_GROUP = "勤怠管理グループ"
+
+# 営業グループ
+SALES_GROUP = "営業グループ"
 
 
 class Member(BaseModel):
@@ -44,5 +47,22 @@ class Member(BaseModel):
     def is_organization_manager(self):
         return self.user.groups.filter(name=ORGANIZATION_MANAGER_GROUP).exists()
 
-    def is_kintai_staff(self):
-        return self.user.groups.filter(name=KINTAI_STAFF_GROUP).exists()
+    def is_attendance_management_staff(self):
+        return self.user.groups.filter(name=ATTENDANCE_MANAGEMENT_GROUP).exists()
+
+    def is_same_organization(self, other_member):
+        """Check if the other member belongs to the same organization."""
+        if not isinstance(other_member, Member) or self.organization is None or other_member.organization is None:
+            return False
+
+        return self.organization.is_same_organization(other_member.organization)
+
+    def is_all_organizations_accessible(self):
+        """Check if the member can view all organizations."""
+        return self.is_system_info_staff() or self.is_company_executive()
+
+    def is_editable_by(self, login_user):
+        """Check if the record is editable by the given user."""
+        return super().is_editable_by(login_user) and (
+            login_user.member.is_company_executive() or login_user.member.is_system_info_staff() or login_user.member == self
+        )

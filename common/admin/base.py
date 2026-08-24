@@ -120,18 +120,22 @@ class MasterImportExportPermissionMixin:
 class OrganizationFilterMixin:
     """This mixin provides a method to filter querysets based on the user's organization."""
 
-    def can_view_all_organizations(self, request):
+    def is_all_organizations_accessible(self, request):
         """Determine if the user can view all organizations."""
-        return request.user.is_superuser or request.user.member.is_company_executive() or request.user.member.is_system_info_staff()
+        if getattr(request.user, "member", None) is None or request.user.member is None:
+            return False
+        return request.user.member.is_all_organizations_accessible()
 
-    def can_view_organization(self, request):
+    def get_accessible_top_level_organization(self, request):
         """Determine if the user can view a specific organization."""
-        return request.user.member.is_organization_manager()
+        if getattr(request.user, "member", None) is None or request.user.member is None:
+            return None
+        return request.user.member.organization if request.user.member.is_organization_manager() else None
 
     def get_list_filter(self, request):
         filters = list(super().get_list_filter(request))
 
-        if self.can_view_all_organizations(request) or self.can_view_organization(request):
+        if self.is_all_organizations_accessible(request) or self.get_accessible_top_level_organization(request) is not None:
             filters.insert(0, OrganizationFilter)
 
         return tuple(filters)
@@ -139,13 +143,15 @@ class OrganizationFilterMixin:
     def get_queryset(self, request):
         qs = super().get_queryset(request)
 
-        if self.can_view_all_organizations(request):
+        if self.is_all_organizations_accessible(request):
             # superuser、勤怠管理グループのメンバーは全員のデータが見れる
             return qs
-        elif self.can_view_organization(request):
+        elif self.get_accessible_top_level_organization(request) is not None:
             # 組織の管理者は自組織メンバーのデータのみ見れる
-            root_organization_id = request.user.member.organization_id
-            below_organization_ids_sql = Organization.get_sub_department_ids_sql(root_organization_id)
+            root_organization = self.get_accessible_top_level_organization(request)
+            if root_organization is None:
+                return qs.none()
+            below_organization_ids_sql = Organization.get_below_organization_ids_sql(root_organization.id)
             if hasattr(self.model, "organization"):
                 return qs.filter(organization_id__in=RawSQL(below_organization_ids_sql, []))
             elif hasattr(self.model, "member"):
