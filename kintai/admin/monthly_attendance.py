@@ -137,6 +137,10 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
     def has_add_permission(self, request):
         return request.user.is_authenticated and hasattr(request.user, "member")
 
+    def has_change_permission(self, request, obj=None):
+        return super().is_available_member(request)
+        # return request.user.is_authenticated and hasattr(request.user, "member")
+
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
 
@@ -210,6 +214,12 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
             extra_context["late_days"] = f"{obj.late_days}回" if obj.late_days is not None else ""
             extra_context["total_absence_time"] = self.display_total_absence_minutes(obj)
             work_pattern = obj.work_pattern
+
+            obj = self.get_object(request, object_id)
+            if obj is not None:
+                is_readonly = not obj.is_editable_by(request.user)
+                if is_readonly:
+                    extra_context["adminform_class"] = "is-readonly-form"
         else:
             work_pattern = WorkPattern.get_work_pattern(request.user.member)
 
