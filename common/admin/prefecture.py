@@ -3,7 +3,6 @@ from import_export import resources
 from import_export.admin import ImportMixin
 from import_export.formats.base_formats import CSV
 
-from backoffice.admin import admin_site
 from common.models import Prefecture
 
 from .base import CommonAdminMixin
@@ -19,7 +18,7 @@ class PrefectureResource(resources.ModelResource):
         import_id_fields = ("code",)
 
 
-@admin.register(Prefecture, site=admin_site)
+# @admin.register(Prefecture, site=admin_site)
 class PrefectureAdmin(CommonAdminMixin, ImportMixin, admin.ModelAdmin):
     resource_class = PrefectureResource
     formats = (CSV,)

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-19 15:43+0900\n"
+"POT-Creation-Date: 2026-08-25 07:14+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -114,6 +114,38 @@ msgstr "はい、削除を取消"
 #: .\templates\admin\delete_confirmation.html:39
 msgid "No, take me back"
 msgstr "いいえ、戻る"
+
+#: .\templates\admin\submit_line.html:9
+msgid "Save"
+msgstr "保存"
+
+#: .\templates\admin\submit_line.html:12
+msgid "Save as new"
+msgstr "コピーを新規作成"
+
+#: .\templates\admin\submit_line.html:13
+msgid "Save and add another"
+msgstr "保存して次を編集する"
+
+#: .\templates\admin\submit_line.html:14
+msgid "Save and continue editing"
+msgstr "保存して編集を続ける"
+
+#: .\templates\admin\submit_line.html:14
+msgid "Save and view"
+msgstr "保存して編集を続ける"
+
+#: .\templates\admin\submit_line.html:15
+msgid "Close"
+msgstr "閉じる"
+
+#: .\templates\admin\submit_line.html:18
+msgid "Reject"
+msgstr "却下"
+
+#: .\templates\admin\submit_line.html:22
+msgid "Delete"
+msgstr "削除"
 
 #: .\templates\registration\login.html:4
 msgid "error:"

@@ -65,7 +65,7 @@ class Member(BaseModel):
         """Check if the record is editable by the given user."""
         if not login_user.is_authenticated or not hasattr(login_user, "member") or getattr(login_user, "member", None) is None:
             return False
-        elif login_user.member.is_company_executive() or login_user.member.is_system_info_staff():
+        elif login_user.member.is_company_executive():
             return True
         elif login_user.member.organization is None:
             return False

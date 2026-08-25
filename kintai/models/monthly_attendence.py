@@ -47,15 +47,19 @@ class MonthlyAttendance(AuthenticationModelMixin, BaseModel):
             + f" - {self.get_approve_status_display()}"
         )
 
-    def is_editable_by(self, login_user):
+    def is_daily_attendance_editable_by(self, login_user):
+        """Check if the daily attendance records associated with this monthly attendance are editable by the given user."""
         is_editable = super().is_editable_by(login_user) or login_user.member.is_attendance_management_staff()
+
         if self.approve_status in [self.ApproveStatus.DRAFT, self.ApproveStatus.REJECTED]:
             return is_editable and (login_user.member == self.member)
-        elif self.approve_status == self.ApproveStatus.APPLIED:
-            return is_editable and (
-                login_user.member.organization in self.member.get_ancestor_organizations() and login_user.member.is_organization_manager()
-            )
-        elif self.approve_status == self.ApproveStatus.APPROVED:
-            return is_editable and login_user.member.is_attendance_management_staff()
         else:
             return False
+
+    def is_deletable_by(self, login_user):
+        """Check if the record is deletable by the given user."""
+        return (
+            self.is_editable_by(login_user)
+            and self.member == login_user.member
+            and self.approve_status in [self.ApproveStatus.DRAFT, self.ApproveStatus.REJECTED]
+        )

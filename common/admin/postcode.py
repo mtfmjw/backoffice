@@ -4,8 +4,7 @@ from import_export import resources
 from import_export.admin import ImportMixin
 from import_export.formats.base_formats import CSV
 
-from backoffice.admin import admin_site
-from common.models import Postcode, PostcodeImport
+from common.models import PostcodeImport
 
 from .base import CommonAdminMixin
 from .filters import PrefectureFilter
@@ -74,7 +73,7 @@ class PostcodeResource(resources.ModelResource):
         super().after_import(dataset, result, **kwargs)
 
 
-@admin.register(Postcode, site=admin_site)
+# @admin.register(Postcode, site=admin_site)
 class PostcodeAdmin(CommonAdminMixin, ImportMixin, admin.ModelAdmin):
     resource_class = PostcodeResource
     formats = (CSV,)

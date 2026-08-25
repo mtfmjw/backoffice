@@ -27,4 +27,10 @@
 {% block welcome-msg %}
     {% translate 'Welcome,' %}
     <strong>{% if user.last_name %}{{ user.last_name }} {{ user.first_name }}({{ user.get_username }}){% else %}{{ user.get_username }}{% endif %}さん </strong>
-{% endblock %}
+    {% with org=user.member.organization %}
+        {% if org %}
+            、所属：{{ org.name }}
+        {% endif %}
+    {% endwith %}
+
+    {% endblock %}

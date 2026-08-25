@@ -3,7 +3,7 @@
 
 {% block object-tools-items %}
   <li>
-    <a href="{% url opts|admin_urlname:'add' %}?{{ add_url_params }}" class="addlink">
+    <a href="{% url opts|admin_urlname:'add' %}?month={{ month_filtered }}" class="addlink">
       {% blocktranslate with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktranslate %}
     </a>
   </li>

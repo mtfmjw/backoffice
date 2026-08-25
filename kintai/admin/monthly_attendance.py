@@ -1,5 +1,4 @@
 import datetime
-from urllib.parse import urlencode
 
 from dateutil.relativedelta import relativedelta
 from django import forms
@@ -7,6 +6,7 @@ from django.contrib import admin
 from django.contrib.admin import SimpleListFilter, display
 from django.core.exceptions import PermissionDenied
 from django.db import connection, transaction
+from django.db.models import Q
 from django.forms import TextInput
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -66,9 +66,10 @@ class MonthlyAttendanceForm(forms.ModelForm):
 
 @admin.register(MonthlyAttendance, site=admin_site)
 class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, ImportExportModelAdmin):
+    change_list_template = "kintai/monthlyattendance/change_list.html"
+    change_form_template = "kintai/monthlyattendance/change_form.html"
     form = MonthlyAttendanceForm
-    # change_list_template = "kintai/monthly_attendance_change_list.html"
-    # change_form_template = "kintai/monthly_attendance_change_form.html"
+    save_on_top = True
     list_display = (
         "member",
         "display_month",
@@ -137,10 +138,6 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
     def has_add_permission(self, request):
         return request.user.is_authenticated and hasattr(request.user, "member")
 
-    def has_change_permission(self, request, obj=None):
-        return super().is_available_member(request)
-        # return request.user.is_authenticated and hasattr(request.user, "member")
-
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
 
@@ -148,12 +145,20 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
         month_filtered = request.GET.get("month", localdate().strftime("%Y-%m"))
 
         # used internally to redirect users back to the filtered list view after saving an object
-        extra_context["preserved_filters"] = f"?month={month_filtered}"
+        extra_context["preserved_filters"] = self.get_preserved_filters(request)
 
         # Inject custom query string for the Add URL
-        extra_context["add_url_params"] = urlencode({"month": month_filtered})
+        extra_context["month_filtered"] = month_filtered
 
         return super().changelist_view(request, extra_context=extra_context)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+
+        # 未申請のものは本人のみ表示、申請済み以降のものは本人以外も表示
+        queryset = queryset.filter(Q(member=request.user.member) | ~Q(approve_status=MonthlyAttendance.ApproveStatus.DRAFT))
+
+        return queryset
 
     def get_changeform_initial_data(self, request):
         if not request.user.is_authenticated or not hasattr(request.user, "member"):
@@ -217,11 +222,33 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
 
             obj = self.get_object(request, object_id)
             if obj is not None:
-                is_readonly = not obj.is_editable_by(request.user)
-                if is_readonly:
+                if not obj.is_daily_attendance_editable_by(request.user):
                     extra_context["adminform_class"] = "is-readonly-form"
+
+                # 保存ボタンのラベルを変更する
+                extra_context["show_apply_button"] = True
+                extra_context["show_reject_button"] = False
+                if obj.approve_status == MonthlyAttendance.ApproveStatus.DRAFT:
+                    extra_context["apply_button_name"] = "_apply"
+                    extra_context["apply_button_label"] = _("Apply")
+                elif obj.approve_status == MonthlyAttendance.ApproveStatus.APPLIED:
+                    extra_context["apply_button_name"] = "_approve"
+                    extra_context["apply_button_label"] = _("Approve")
+                    extra_context["show_reject_button"] = True
+                elif obj.approve_status == MonthlyAttendance.ApproveStatus.APPROVED:
+                    extra_context["apply_button_name"] = "_finalize"
+                    extra_context["apply_button_label"] = _("Finalize")
+                    extra_context["show_reject_button"] = True
+                elif obj.approve_status == MonthlyAttendance.ApproveStatus.REJECTED:
+                    extra_context["apply_button_name"] = "_reapply"
+                    extra_context["apply_button_label"] = _("Reapply")
+                elif obj.approve_status == MonthlyAttendance.ApproveStatus.FINALIZED:
+                    extra_context["show_apply_button"] = False
         else:
             work_pattern = WorkPattern.get_work_pattern(request.user.member)
+            extra_context["show_apply_button"] = True
+            extra_context["apply_button_name"] = "_apply"
+            extra_context["apply_button_label"] = _("Apply")
 
         # 就業パターンの情報を取得して、テンプレートに渡す
         if work_pattern is not None:
@@ -232,6 +259,20 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
                     extra_context[name] = f"{duration[0].strftime('%H:%M')} - {duration[1].strftime('%H:%M')}"
 
         return super().changeform_view(request, object_id, form_url, extra_context=extra_context)
+
+    def save_model(self, request, obj, form, change):
+        if "_apply" in request.POST:
+            obj.approve_status = MonthlyAttendance.ApproveStatus.APPLIED
+        elif "_approve" in request.POST:
+            obj.approve_status = MonthlyAttendance.ApproveStatus.APPROVED
+        elif "_finalize" in request.POST:
+            obj.approve_status = MonthlyAttendance.ApproveStatus.FINALIZED
+        elif "_reject" in request.POST:
+            obj.approve_status = MonthlyAttendance.ApproveStatus.REJECTED
+        elif "_reapply" in request.POST:
+            obj.approve_status = MonthlyAttendance.ApproveStatus.APPLIED
+
+        super().save_model(request, obj, form, change)
 
     def save_formset(self, request, form, formset, change):
         # 1. Save the inline formset instances first
