@@ -1,14 +1,11 @@
 from django.contrib import admin
 from import_export import fields, resources
-from import_export.admin import ImportMixin
-from import_export.formats.base_formats import CSV
 from import_export.instance_loaders import CachedInstanceLoader
 from import_export.widgets import ForeignKeyWidget
 
-from backoffice.admin import admin_site
+from common.admin.base import AuthorizedModelAdminMixin
 from common.models import Municipality, Prefecture
 
-from .base import CommonAdminMixin, MasterImportExportPermissionMixin
 from .filters import PrefectureFilter
 
 
@@ -31,10 +28,9 @@ class MunicipalityResource(resources.ModelResource):
     )
 
 
-@admin.register(Municipality, site=admin_site)
-class MunicipalityAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, ImportMixin, admin.ModelAdmin):
+# @admin.register(Municipality, site=admin_site)
+class MunicipalityAdmin(AuthorizedModelAdminMixin, admin.ModelAdmin):
     resource_class = MunicipalityResource
-    formats = (CSV,)
     list_display = ("prefecture", "code", "name")
     search_fields = ("prefecture__name", "code", "name")
     list_select_related = ()
@@ -48,4 +44,7 @@ class MunicipalityAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, Imp
         return False
 
     def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_export_permission(self, request):
         return False

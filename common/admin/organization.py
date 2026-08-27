@@ -1,15 +1,13 @@
 from django.contrib import admin
+from django.db.models import Case, When
 from import_export import fields, resources
-from import_export.admin import ImportExportModelAdmin
-from import_export.formats.base_formats import CSV
 from import_export.widgets import ForeignKeyWidget
 
 from backoffice.admin import admin_site
 from common.admin.filters import SimpleOrganizationFilter
-from common.form import DirectExportForm
 from common.models import Organization, WorkPattern
 
-from .base import BaseModelAdminMixin, MasterImportExportPermissionMixin
+from .base import BaseModelAdminMixin
 
 
 class OrganizationResource(resources.ModelResource):
@@ -36,10 +34,8 @@ class OrganizationResource(resources.ModelResource):
 
 
 @admin.register(Organization, site=admin_site)
-class OrganizationAdmin(BaseModelAdminMixin, MasterImportExportPermissionMixin, ImportExportModelAdmin):
+class OrganizationAdmin(BaseModelAdminMixin, admin.ModelAdmin):
     resource_class = OrganizationResource
-    formats = (CSV,)
-    export_form_class = DirectExportForm
 
     list_display = ("code", "name", "parent", "work_pattern") + BaseModelAdminMixin.list_display
     list_filter = (SimpleOrganizationFilter,) + BaseModelAdminMixin.list_filter
@@ -53,3 +49,12 @@ class OrganizationAdmin(BaseModelAdminMixin, MasterImportExportPermissionMixin, 
             },
         ),
     )
+
+    def get_export_queryset(self, queryset=None):
+        descendants = self.model.get_descendant_organizations()
+        ordered_ids = [item[0] for item in descendants]
+        if not ordered_ids:
+            return Organization.objects.none()
+
+        preserved_order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ordered_ids)])
+        return Organization.objects.filter(id__in=ordered_ids).order_by(preserved_order)

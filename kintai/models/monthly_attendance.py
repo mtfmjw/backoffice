@@ -1,21 +1,21 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from common.models import Member, WorkPattern
-from common.models.base import BaseModel
+from common.models import BaseModel, Member, MemberScopedBaseModel, WorkPattern
 
 
-class MonthlyAttendance(BaseModel):
+class ApproveStatus(models.IntegerChoices):
+    DRAFT = 0, _("Draft")  # 入力中
+    APPLIED = 1, _("Applied")  # 申請済
+    APPROVED = 2, _("Approved")  # 承認済
+    REJECTED = 3, _("Rejected")  # 却下
+    FINALIZED = 4, _("Finalized")  # 確定済
+
+
+class MonthlyAttendance(MemberScopedBaseModel, BaseModel):
     """月次勤怠テーブル（1人1月あたりの確定データ）"""
 
-    class ApproveStatus(models.IntegerChoices):
-        DRAFT = 0, _("Draft")  # 入力中
-        APPLIED = 1, _("Applied")  # 申請済
-        APPROVED = 2, _("Approved")  # 承認済
-        REJECTED = 3, _("Rejected")  # 却下
-        FINALIZED = 4, _("Finalized")  # 確定済
-
-    member = models.ForeignKey(Member, on_delete=models.DO_NOTHING, related_name="attendance_records", verbose_name=_("Member"))
+    member = models.ForeignKey(Member, on_delete=models.DO_NOTHING, related_name="attendance_records", verbose_name=_("OrganizationMember"))
     work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name=_("Work Pattern"))
     month = models.DateField(_("Month"))
     approve_status = models.IntegerField(_("Approve Status"), choices=ApproveStatus.choices, default=ApproveStatus.DRAFT)
@@ -46,3 +46,35 @@ class MonthlyAttendance(BaseModel):
             + f" （{_('Work Pattern')}: {self.work_pattern.name if self.work_pattern else '-'})"
             + f" - {self.get_approve_status_display()}"
         )
+
+    def is_editable_by(self, login_user):
+        """The daily attendance records are only editable by the member themselves when the record is in DRAFT or REJECTED status."""
+        if self.approve_status in [ApproveStatus.DRAFT, ApproveStatus.REJECTED]:
+            return login_user.member == self.member
+        else:
+            return False
+
+    def is_deletable_by(self, login_user):
+        """Check if the record is deletable by the given user."""
+        return (
+            self.is_editable_by(login_user)
+            and self.member == login_user.member
+            and self.approve_status in [ApproveStatus.DRAFT, ApproveStatus.REJECTED]
+        )
+
+    def is_approvable_by(self, login_user):
+        """Check if the record is approvable by the given user."""
+        return (
+            login_user.member.is_organization_manager() or login_user.member.is_company_executive()
+        ) and self.approve_status == ApproveStatus.APPLIED
+
+    def is_finalizable_by(self, login_user):
+        """Check if the record is finalizable by the given user."""
+        return (
+            login_user.member.is_attendance_management_staff() or login_user.member.is_company_executive()
+        ) and self.approve_status == ApproveStatus.APPROVED
+
+    @classmethod
+    def is_all_organizations_accessible(cls, login_user):
+        """Check if the model is accessible to all organizations."""
+        return super().is_all_organizations_accessible(login_user) or login_user.member.is_attendance_management_staff()

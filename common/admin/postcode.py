@@ -1,13 +1,10 @@
-from django.contrib import admin
 from django.db import connection
 from import_export import resources
-from import_export.admin import ImportMixin
-from import_export.formats.base_formats import CSV
 
-from backoffice.admin import admin_site
-from common.models import Postcode, PostcodeImport
+from backoffice.admin import admin
+from common.admin.base import AuthorizedModelAdminMixin
+from common.models import PostcodeImport
 
-from .base import CommonAdminMixin, MasterImportExportPermissionMixin
 from .filters import PrefectureFilter
 
 
@@ -74,10 +71,9 @@ class PostcodeResource(resources.ModelResource):
         super().after_import(dataset, result, **kwargs)
 
 
-@admin.register(Postcode, site=admin_site)
-class PostcodeAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, ImportMixin, admin.ModelAdmin):
+# @admin.register(Postcode, site=admin_site)
+class PostcodeAdmin(AuthorizedModelAdminMixin, admin.ModelAdmin):
     resource_class = PostcodeResource
-    formats = (CSV,)
     list_display = ("postcode", "municipality", "town_name", "town_name_kana")
     search_fields = ("postcode", "municipality__name", "town_name")
     list_select_related = ("municipality",)
@@ -91,4 +87,7 @@ class PostcodeAdmin(CommonAdminMixin, MasterImportExportPermissionMixin, ImportM
         return False
 
     def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_export_permission(self, request):
         return False

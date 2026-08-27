@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-21 08:00+0900\n"
+"POT-Creation-Date: 2026-08-27 08:30+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,63 +18,66 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: .\common\admin\base.py:55
+#: .\common\admin\base.py:105
 msgid "Update Time"
 msgstr "更新日時"
 
-#: .\common\admin\filters.py:26
+#: .\common\admin\filters.py:24
 msgid "Year"
 msgstr "年"
 
-#: .\common\admin\filters.py:62 .\common\admin\filters.py:88
-#: .\common\models\organization.py:18
+#: .\common\admin\filters.py:60 .\common\admin\filters.py:83
+#: .\common\models\organization.py:20
 msgid "Organization"
 msgstr "組織"
 
-#: .\common\admin\member.py:96
+#: .\common\admin\member.py:91
 msgid "Full Name"
 msgstr "名前"
 
-#: .\common\admin\member.py:100
+#: .\common\admin\member.py:95
 msgid "Is Organization Manager"
 msgstr "組織長"
 
-#: .\common\admin\work_pattern.py:60 .\common\models\work_pattern.py:11
+#: .\common\admin\work_pattern.py:58 .\common\models\work_pattern.py:15
 msgid "Standard Start Time"
 msgstr "標準就業時刻"
 
-#: .\common\admin\work_pattern.py:60 .\common\models\work_pattern.py:12
+#: .\common\admin\work_pattern.py:58 .\common\models\work_pattern.py:16
 msgid "Standard End Time"
 msgstr "標準終了時刻"
 
-#: .\common\admin\work_pattern.py:64 .\common\admin\work_pattern.py:65
-#: .\common\admin\work_pattern.py:66
+#: .\common\admin\work_pattern.py:62 .\common\admin\work_pattern.py:63
+#: .\common\admin\work_pattern.py:64
 msgid "Either start time and end time or standard work time must be provided."
-msgstr "標準勤務開始時刻と終了時刻を入力するか、標準勤務時間を入力してください。"
+msgstr ""
+"標準勤務開始時刻と終了時刻を入力するか、標準勤務時間を入力してください。"
 
-#: .\common\admin\work_pattern.py:75 .\common\admin\work_pattern.py:78
+#: .\common\admin\work_pattern.py:73 .\common\admin\work_pattern.py:76
 msgid ""
 "Lunch break start time and end time must be provided for work durations "
 "exceeding 6 hours."
 msgstr "標準勤務時間が6時間を超える場合は、昼休憩を設ける必要があります。"
 
-#: .\common\admin\work_pattern.py:84 .\common\admin\work_pattern.py:87
+#: .\common\admin\work_pattern.py:82 .\common\admin\work_pattern.py:85
 msgid ""
 "Lunch break duration must be at least 45 minutes for work durations "
 "exceeding 6 hours."
-msgstr "標準勤務時間が6時間を超える場合は、昼休憩時間は45分以上設けてください。"
+msgstr ""
+"標準勤務時間が6時間を超える場合は、昼休憩時間は45分以上設けてください。"
 
-#: .\common\admin\work_pattern.py:91 .\common\admin\work_pattern.py:94
+#: .\common\admin\work_pattern.py:89 .\common\admin\work_pattern.py:92
 msgid ""
 "Lunch break duration must be at least 60 minutes for work durations "
 "exceeding 8 hours."
-msgstr "標準勤務時間が8時間を超える場合は、昼休憩時間を60分以上設けてください。"
+msgstr ""
+"標準勤務時間が8時間を超える場合は、昼休憩時間を60分以上設けてください。"
 
-#: .\common\admin\work_pattern.py:98 .\common\models\work_pattern.py:17
+#: .\common\admin\work_pattern.py:96 .\common\models\work_pattern.py:21
 msgid "Lunch Break Start Time"
 msgstr "昼休開始時刻"
 
-#: .\common\admin\work_pattern.py:98 .\common\models\work_pattern.py:18
+#: .\common\admin\work_pattern.py:96 .\common\models\work_pattern.py:22
 msgid "Lunch Break End Time"
 msgstr "昼休終了時刻"
 
@@ -82,41 +85,33 @@ msgstr "昼休終了時刻"
 msgid "Common"
 msgstr "共通マスタ"
 
-#: .\common\models\base.py:8
+#: .\common\models\base.py:32
 msgid "Valid"
 msgstr "有効"
 
-#: .\common\models\base.py:9
+#: .\common\models\base.py:33
 msgid "Created at"
 msgstr "作成日時"
 
-#: .\common\models\base.py:10
+#: .\common\models\base.py:34
 msgid "Created by"
 msgstr "作成者"
 
-#: .\common\models\base.py:11
+#: .\common\models\base.py:35
 msgid "Updated at"
 msgstr "更新日時"
 
-#: .\common\models\base.py:12
+#: .\common\models\base.py:36
 msgid "Updated by"
 msgstr "更新者"
 
-#: .\common\models\holiday.py:14
+#: .\common\models\holiday.py:16
 msgid "National Holiday"
 msgstr "国民の祝日"
 
-#: .\common\models\holiday.py:15
+#: .\common\models\holiday.py:17
 msgid "Company Holiday (Summer/New Year, etc.)"
 msgstr "会社制定休日（夏季・年末年始等）"
-
-#: .\common\models\holiday.py:16
-msgid "Legal Holiday"
-msgstr "法定休日"
-
-#: .\common\models\holiday.py:17
-msgid "Non-Legal Holiday"
-msgstr "所定休日"
 
 #: .\common\models\holiday.py:19
 msgid "Date"
@@ -142,153 +137,153 @@ msgstr "祝日・休日"
 msgid "Holidays"
 msgstr "祝日・休日一覧"
 
-#: .\common\models\member.py:23
+#: .\common\models\member.py:13
 msgid "Employee Number"
 msgstr "社員番号"
 
-#: .\common\models\member.py:24
+#: .\common\models\member.py:14
 msgid "Email address"
 msgstr "Eメール"
 
-#: .\common\models\member.py:26
+#: .\common\models\member.py:16
 msgid "Belongs to"
 msgstr "所属"
 
-#: .\common\models\member.py:28 .\common\models\organization.py:11
-#: .\common\models\work_pattern.py:32
+#: .\common\models\member.py:18 .\common\models\organization.py:13
+#: .\common\models\work_pattern.py:36
 msgid "Work Pattern"
 msgstr "就業パターン"
 
-#: .\common\models\member.py:32
+#: .\common\models\member.py:22
 msgid "Member"
 msgstr "社員"
 
-#: .\common\models\member.py:33
+#: .\common\models\member.py:23
 msgid "Members"
 msgstr "社員一覧"
 
-#: .\common\models\municipality.py:10 .\common\models\postcode.py:33
+#: .\common\models\municipality.py:11 .\common\models\postcode.py:34
 msgid "Municipality Code"
 msgstr "市区町村コード"
 
-#: .\common\models\municipality.py:11
+#: .\common\models\municipality.py:12
 msgid "Municipality Name"
 msgstr "市区町村名"
 
-#: .\common\models\municipality.py:12
+#: .\common\models\municipality.py:13
 msgid "Municipality Name Kana"
 msgstr "市区町村名カナ"
 
-#: .\common\models\municipality.py:13 .\common\models\prefecture.py:13
+#: .\common\models\municipality.py:14 .\common\models\prefecture.py:15
 msgid "Prefecture"
 msgstr "都道府県"
 
-#: .\common\models\municipality.py:17 .\common\models\postcode.py:11
+#: .\common\models\municipality.py:18 .\common\models\postcode.py:12
 msgid "Municipality"
 msgstr "市区町村"
 
-#: .\common\models\municipality.py:18
+#: .\common\models\municipality.py:19
 msgid "Municipalities"
 msgstr "市区町村一覧"
 
-#: .\common\models\organization.py:9
+#: .\common\models\organization.py:11
 msgid "Organization Code"
 msgstr "組織コード"
 
-#: .\common\models\organization.py:10
+#: .\common\models\organization.py:12
 msgid "Organization Name"
 msgstr "組織名"
 
-#: .\common\models\organization.py:13
+#: .\common\models\organization.py:15
 msgid "Parent Organization"
 msgstr "親組織"
 
-#: .\common\models\organization.py:19
+#: .\common\models\organization.py:21
 msgid "Organizations"
 msgstr "組織一覧"
 
-#: .\common\models\postcode.py:10 .\common\models\postcode.py:17
-#: .\common\models\postcode.py:32
+#: .\common\models\postcode.py:11 .\common\models\postcode.py:18
+#: .\common\models\postcode.py:33
 msgid "Postcode"
 msgstr "郵便番号"
 
-#: .\common\models\postcode.py:12 .\common\models\postcode.py:34
+#: .\common\models\postcode.py:13 .\common\models\postcode.py:35
 msgid "Town Name"
 msgstr "町域名"
 
-#: .\common\models\postcode.py:13 .\common\models\postcode.py:35
+#: .\common\models\postcode.py:14 .\common\models\postcode.py:36
 msgid "Town Name Kana"
 msgstr "町域名カナ"
 
-#: .\common\models\postcode.py:18
+#: .\common\models\postcode.py:19
 msgid "Postcodes"
 msgstr "郵便番号一覧"
 
-#: .\common\models\prefecture.py:8
+#: .\common\models\prefecture.py:10
 msgid "Prefecture Code"
 msgstr "都道府県コード"
 
-#: .\common\models\prefecture.py:9
+#: .\common\models\prefecture.py:11
 msgid "Prefecture Name"
 msgstr "都道府県名"
 
-#: .\common\models\prefecture.py:14
+#: .\common\models\prefecture.py:16
 msgid "Prefectures"
 msgstr "都道府県一覧"
 
-#: .\common\models\work_pattern.py:10
+#: .\common\models\work_pattern.py:14
 msgid "Work Pattern Name"
 msgstr "就業パターン"
 
-#: .\common\models\work_pattern.py:13
+#: .\common\models\work_pattern.py:17
 msgid "Standard Working Time"
 msgstr "標準勤務時間"
 
-#: .\common\models\work_pattern.py:15
+#: .\common\models\work_pattern.py:19
 msgid "Half Day Time"
 msgstr "半日区切"
 
-#: .\common\models\work_pattern.py:19
+#: .\common\models\work_pattern.py:23
 msgid "Break 1 Start Time"
 msgstr "休憩1開始時刻"
 
-#: .\common\models\work_pattern.py:20
+#: .\common\models\work_pattern.py:24
 msgid "Break 1 End Time"
 msgstr "休憩1終了時刻"
 
-#: .\common\models\work_pattern.py:21
+#: .\common\models\work_pattern.py:25
 msgid "Break 2 Start Time"
 msgstr "休憩2開始時刻"
 
-#: .\common\models\work_pattern.py:22
+#: .\common\models\work_pattern.py:26
 msgid "Break 2 End Time"
 msgstr "休憩2終了時刻"
 
-#: .\common\models\work_pattern.py:23
+#: .\common\models\work_pattern.py:27
 msgid "Break 3 Start Time"
 msgstr "休憩3開始時刻"
 
-#: .\common\models\work_pattern.py:24
+#: .\common\models\work_pattern.py:28
 msgid "Break 3 End Time"
 msgstr "休憩3終了時刻"
 
-#: .\common\models\work_pattern.py:25
+#: .\common\models\work_pattern.py:29
 msgid "Break 4 Start Time"
 msgstr "休憩4開始時刻"
 
-#: .\common\models\work_pattern.py:26
+#: .\common\models\work_pattern.py:30
 msgid "Break 4 End Time"
 msgstr "休憩4終了時刻"
 
-#: .\common\models\work_pattern.py:27
+#: .\common\models\work_pattern.py:31
 msgid "Break 5 Start Time"
 msgstr "休憩5開始時刻"
 
-#: .\common\models\work_pattern.py:28
+#: .\common\models\work_pattern.py:32
 msgid "Break 5 End Time"
 msgstr "休憩5終了時刻"
 
-#: .\common\models\work_pattern.py:33
+#: .\common\models\work_pattern.py:37
 msgid "Work Patterns"
 msgstr "就業パターン一覧"
 
@@ -311,3 +306,9 @@ msgstr "%(label)sと%(start_label)sは同時に入力する必要があります
 #, python-format
 msgid "%(label)s must be provided when %(end_label)s is provided."
 msgstr "%(label)sと%(end_label)sは同時に入力する必要があります。"
+
+#~ msgid "Legal Holiday"
+#~ msgstr "法定休日"
+
+#~ msgid "Non-Legal Holiday"
+#~ msgstr "所定休日"

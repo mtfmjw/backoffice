@@ -3,16 +3,13 @@ from django.contrib.admin import display
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
-from import_export.admin import ImportExportModelAdmin
-from import_export.formats.base_formats import CSV
 from import_export.widgets import ForeignKeyWidget
 
 from backoffice.admin import admin_site
 from common.admin.filters import SimpleOrganizationFilter
-from common.form import DirectExportForm
 from common.models import Member, Organization, WorkPattern
 
-from .base import BaseModelAdminMixin, MasterImportExportPermissionMixin
+from .base import BaseModelAdminMixin, MemberScopedModelAdminMixin
 
 User = get_user_model()
 
@@ -67,12 +64,9 @@ class MemberResource(resources.ModelResource):
 
 
 @admin.register(Member, site=admin_site)
-class MemberAdmin(MasterImportExportPermissionMixin, BaseModelAdminMixin, ImportExportModelAdmin):
+class MemberAdmin(MemberScopedModelAdminMixin, admin.ModelAdmin):
     resource_class = MemberResource
-    formats = (CSV,)
-    export_form_class = DirectExportForm
 
-    has_add_permission = lambda self, request: False
     readonly_fields = ("user", "is_organization_manager") + BaseModelAdminMixin.readonly_fields
     list_display = ("full_name", "user", "email", "organization", "is_organization_manager", "work_pattern") + BaseModelAdminMixin.list_display
     list_filter = (SimpleOrganizationFilter,) + BaseModelAdminMixin.list_filter
@@ -97,14 +91,28 @@ class MemberAdmin(MasterImportExportPermissionMixin, BaseModelAdminMixin, Import
     def full_name(self, obj):
         return f"{obj.user.last_name} {obj.user.first_name}"
 
-    @display(description=_("Is Organization Manager"))
+    @display(description=_("Is Organization Manager"), boolean=True)
     def is_organization_manager(self, obj) -> bool:
-        return obj.is_organization_manager()
+        if obj is None:
+            return False
+        return obj.is_organization_manager() or obj.is_company_executive()
 
-    def has_change_permission(self, request, obj=None):
-        return super().has_change_permission(request, obj) and (
-            request.user.is_superuser
-            or request.user.member.is_system_info_staff()
-            or request.user.member.is_company_executive()
-            or (obj and obj.user == request.user)
-        )
+    def has_add_permission(self, request):
+        """Members cannot be added via the admin interface. They are created automatically when a user is created."""
+        return False
+
+    def has_import_permission(self, request):
+        return self.has_change_permission(request)
+
+    def get_readonly_fields(self, request, obj=None):
+        """Make all fields read-only for non-system info staff users."""
+        readonly_fields = list(super().get_readonly_fields(request, obj))
+        if obj is not None and obj.is_editable_by(request.user) and obj == request.user.member and "organization" not in readonly_fields:
+            readonly_fields.append("organization")
+        return tuple(readonly_fields)
+
+
+# print Method Resolution Order of MemberAdmin class
+# print([cls.__name__ for cls in MemberAdmin.__mro__])
+# Find which class in the MRO actually owns the active has_add_permission implementation
+# print(MemberAdmin.has_add_permission.__qualname__)

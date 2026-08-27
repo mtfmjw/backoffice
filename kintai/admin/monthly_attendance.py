@@ -1,5 +1,4 @@
 import datetime
-from urllib.parse import urlencode
 
 from dateutil.relativedelta import relativedelta
 from django import forms
@@ -7,17 +6,18 @@ from django.contrib import admin
 from django.contrib.admin import SimpleListFilter, display
 from django.core.exceptions import PermissionDenied
 from django.db import connection, transaction
+from django.db.models import Q
+from django.forms import TextInput
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.utils.html import format_html
 from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
-from import_export.admin import ImportExportModelAdmin
 
 from backoffice.admin import admin_site
-from common.admin.base import BaseModelAdminMixin, OrganizationFilterMixin
+from common.admin.base import BaseModelAdminMixin, MemberScopedModelAdminMixin
+from common.models import WorkPattern
 from common.utils import minutes2str
-from kintai.models import DailyAttendance, MonthlyAttendance
+from kintai.models import ApproveStatus, DailyAttendance, MonthlyAttendance
 
 from .daily_attendance import DailyAttendanceInline
 
@@ -47,37 +47,16 @@ class MonthFilter(SimpleListFilter):
             return queryset
 
 
-class ButtonWidget(forms.Widget):
-    def render(self, name, value, attrs=None, renderer=None):
-        return format_html('<button type="button" class="button" onclick="applyToAll(this)">{}</button>', _("Apply to All"))
-
-
 class MonthlyAttendanceForm(forms.ModelForm):
-    apply_lunch_break = forms.BooleanField(
+    note = forms.CharField(
+        label=_("Note"),
+        widget=TextInput(
+            attrs={
+                "placeholder": _("昼間不在は[05:00~22:00]、夜間不在は[22:00~翌05:00]期間中期間中の標準休憩以外の不在時間があれば入力してください。")
+            }
+        ),
         required=False,
-        label=_("Lunch Break"),
     )
-    apply_break1 = forms.BooleanField(
-        required=False,
-        label=_("Break 1"),
-    )
-    apply_break2 = forms.BooleanField(
-        required=False,
-        label=_("Break 2"),
-    )
-    apply_break3 = forms.BooleanField(
-        required=False,
-        label=_("Break 3"),
-    )
-    apply_break4 = forms.BooleanField(
-        required=False,
-        label=_("Break 4"),
-    )
-    apply_break5 = forms.BooleanField(
-        required=False,
-        label=_("Break 5"),
-    )
-    apply_to_all = forms.CharField(required=False, label="", widget=ButtonWidget())
 
     class Meta:
         model = MonthlyAttendance
@@ -85,10 +64,11 @@ class MonthlyAttendanceForm(forms.ModelForm):
 
 
 @admin.register(MonthlyAttendance, site=admin_site)
-class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, ImportExportModelAdmin):
+class MonthlyAttendanceAdmin(MemberScopedModelAdminMixin, admin.ModelAdmin):
+    change_list_template = "kintai/monthlyattendance/change_list.html"
+    change_form_template = "kintai/monthlyattendance/change_form.html"
     form = MonthlyAttendanceForm
-    change_list_template = "kintai/monthly_attendance_change_list.html"
-    change_form_template = "kintai/monthly_attendance_change_form.html"
+    save_on_top = True
     list_display = (
         "member",
         "display_month",
@@ -113,7 +93,6 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
         "display_overtime",
         "display_night_working_time",
         "display_paid_leave_days",
-        "display_digest",
     )
     inlines = (DailyAttendanceInline,)
 
@@ -155,26 +134,17 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
     def display_total_absence_minutes(self, obj) -> str:
         return minutes2str(obj.total_absence_minutes)
 
-    @display(description=_("Digest"))
-    def display_digest(self, obj) -> str:
-        return (
-            f"{_('Days Worked')}: {self.display_worked_days(obj)}　　"
-            + f"{_('Actual Working Time')}: {self.display_working_time(obj)}　　"
-            + f"{_('Overtime')}: {self.display_overtime(obj)}　　"
-            + f"{_('Night Working Time')}: {self.display_night_working_time(obj)}　　"
-            + f"{_('Paid Leave Days')}: {self.display_paid_leave_days(obj)}　　"
-            + f"{_('Absence Days')}: {obj.absence_days}　　"
-            + f"{_('Early Leave Days')}: {obj.early_leave_days}　　"
-            + f"{_('Late Days')}: {obj.late_days}　　"
-            + f"{_('Total Absence Time')}: {self.display_total_absence_minutes(obj)}　　"
-        )
-
     def has_add_permission(self, request):
         return request.user.is_authenticated and hasattr(request.user, "member")
 
-    def can_view_all_organizations(self, request):
-        """Determine if the user can view all organizations."""
-        return super().can_view_all_organizations(request) or request.user.member.is_kintai_staff()
+    def has_change_permission(self, request, obj=None):
+        # self.model.is_editable_by()によりCSSで編集可不可を制御するため、常にTrueを返す
+        return self.model.is_authorized(request.user)
+
+    def is_all_organizations_accessible(self, request):
+        return super().is_all_organizations_accessible(request) or (
+            getattr(request.user, "member", None) is not None and request.user.member.is_attendance_management_staff()
+        )
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
@@ -183,12 +153,20 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
         month_filtered = request.GET.get("month", localdate().strftime("%Y-%m"))
 
         # used internally to redirect users back to the filtered list view after saving an object
-        extra_context["preserved_filters"] = f"?month={month_filtered}"
+        extra_context["preserved_filters"] = self.get_preserved_filters(request)
 
         # Inject custom query string for the Add URL
-        extra_context["add_url_params"] = urlencode({"month": month_filtered})
+        extra_context["month_filtered"] = month_filtered
 
         return super().changelist_view(request, extra_context=extra_context)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+
+        # 未申請のものは本人のみ表示、申請済み以降のものは本人以外も表示
+        queryset = queryset.filter(Q(member=request.user.member) | ~Q(approve_status=ApproveStatus.DRAFT))
+
+        return queryset
 
     def get_changeform_initial_data(self, request):
         if not request.user.is_authenticated or not hasattr(request.user, "member"):
@@ -201,10 +179,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
             (
                 None,
                 {
-                    "fields": (
-                        ("apply_lunch_break", "apply_break1", "apply_break2", "apply_break3", "apply_break4", "apply_break5", "apply_to_all"),
-                        ("display_digest",),
-                    ),
+                    "fields": ("note",),
                 },
             ),
         )
@@ -228,11 +203,93 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
 
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         extra_context = extra_context or {}
-        extra_context["show_save_and_add_another"] = False
-        # Hides the history button from the object tools top bar
-        extra_context["show_history"] = False
+
+        extra_context["worked_days_label"] = _("Days Worked")
+        extra_context["actual_working_time_label"] = _("Actual Working Time")
+        extra_context["overtime_label"] = _("Overtime")
+        extra_context["night_working_time_label"] = _("Night Working Time")
+        extra_context["paid_leave_days_label"] = _("Paid Leave Days")
+        extra_context["absence_days_label"] = _("Absence Days")
+        extra_context["early_leave_days_label"] = _("Early Leave Days")
+        extra_context["late_days_label"] = _("Late Days")
+        extra_context["total_absence_time_label"] = _("Total Absence Time")
+
+        if object_id is not None:
+            obj = self.get_object(request, object_id)
+            extra_context["worked_days"] = self.display_worked_days(obj)
+            extra_context["actual_working_time"] = self.display_working_time(obj)
+            extra_context["overtime"] = self.display_overtime(obj)
+            extra_context["night_working_time"] = self.display_night_working_time(obj)
+            extra_context["paid_leave_days"] = self.display_paid_leave_days(obj)
+            extra_context["absence_days"] = f"{obj.absence_days}回" if obj.absence_days is not None else ""
+            extra_context["early_leave_days"] = f"{obj.early_leave_days}回" if obj.early_leave_days is not None else ""
+            extra_context["late_days"] = f"{obj.late_days}回" if obj.late_days is not None else ""
+            extra_context["total_absence_time"] = self.display_total_absence_minutes(obj)
+            work_pattern = obj.work_pattern
+
+            extra_context["show_save_and_add_another"] = False
+            obj = self.get_object(request, object_id)
+            if obj.is_editable_by(request.user):
+                extra_context["show_apply_button"] = True
+                extra_context["show_save"] = True
+                extra_context["show_save_and_continue"] = True
+                extra_context["show_reject_button"] = False
+                extra_context["next"] = False
+                extra_context["apply_button_name"] = "_apply"
+                extra_context["apply_button_label"] = _("Apply")
+            else:
+                extra_context["adminform_class"] = "is-readonly-form"
+
+                extra_context["show_save"] = False
+                extra_context["show_save_and_continue"] = False
+                extra_context["next"] = True
+                if obj.approve_status in [ApproveStatus.REJECTED, ApproveStatus.FINALIZED]:
+                    extra_context["show_apply_button"] = False
+                    extra_context["show_reject_button"] = False
+                else:
+                    login_user = request.user
+                    if obj.approve_status == ApproveStatus.APPLIED:
+                        extra_context["show_apply_button"] = obj.is_approvable_by(login_user)
+                        extra_context["show_reject_button"] = obj.is_approvable_by(login_user)
+                        extra_context["apply_button_name"] = "_approve"
+                        extra_context["apply_button_label"] = _("Approve")
+                        extra_context["save_and_add_label"] = _("Approve and Go to Next")
+                    elif obj.approve_status == ApproveStatus.APPROVED:
+                        extra_context["show_apply_button"] = obj.is_finalizable_by(login_user)
+                        extra_context["show_reject_button"] = obj.is_finalizable_by(login_user)
+                        extra_context["show_reject_button"] = True
+                        extra_context["apply_button_name"] = "_finalize"
+                        extra_context["apply_button_label"] = _("Finalize")
+                        extra_context["save_and_add_label"] = _("Finalize and Go to Next")
+        else:
+            work_pattern = WorkPattern.get_work_pattern(request.user.member)
+            extra_context["show_apply_button"] = True
+            extra_context["apply_button_name"] = "_apply"
+            extra_context["apply_button_label"] = _("Apply")
+
+        # 就業パターンの情報を取得して、テンプレートに渡す
+        if work_pattern is not None:
+            extra_context["work_duration"] = f"{work_pattern.start_time.strftime('%H:%M')} - {work_pattern.end_time.strftime('%H:%M')}"
+            for i, duration in enumerate(work_pattern.get_break_durations()):
+                if duration[0] and duration[1]:
+                    name = f"break{i}_duration" if i > 0 else "lunch_break_duration"
+                    extra_context[name] = f"{duration[0].strftime('%H:%M')} - {duration[1].strftime('%H:%M')}"
 
         return super().changeform_view(request, object_id, form_url, extra_context=extra_context)
+
+    def save_model(self, request, obj, form, change):
+        if "_apply" in request.POST:
+            obj.approve_status = ApproveStatus.APPLIED
+        elif "_approve" in request.POST:
+            obj.approve_status = ApproveStatus.APPROVED
+        elif "_finalize" in request.POST:
+            obj.approve_status = ApproveStatus.FINALIZED
+        elif "_reject" in request.POST:
+            obj.approve_status = ApproveStatus.REJECTED
+        elif "_reapply" in request.POST:
+            obj.approve_status = ApproveStatus.APPLIED
+
+        super().save_model(request, obj, form, change)
 
     def save_formset(self, request, form, formset, change):
         # 1. Save the inline formset instances first
