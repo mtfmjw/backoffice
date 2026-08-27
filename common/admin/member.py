@@ -3,16 +3,13 @@ from django.contrib.admin import display
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
-from import_export.admin import ImportExportModelAdmin
-from import_export.formats.base_formats import CSV
 from import_export.widgets import ForeignKeyWidget
 
 from backoffice.admin import admin_site
 from common.admin.filters import SimpleOrganizationFilter
-from common.form import DirectExportForm
 from common.models import Member, Organization, WorkPattern
 
-from .base import BaseModelAdminMixin
+from .base import BaseModelAdminMixin, OrgScopedModelAdminMixin
 
 User = get_user_model()
 
@@ -67,12 +64,9 @@ class MemberResource(resources.ModelResource):
 
 
 @admin.register(Member, site=admin_site)
-class MemberAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
+class MemberAdmin(OrgScopedModelAdminMixin, admin.ModelAdmin):
     resource_class = MemberResource
-    formats = (CSV,)
-    export_form_class = DirectExportForm
 
-    has_add_permission = lambda self, request: False
     readonly_fields = ("user", "is_organization_manager") + BaseModelAdminMixin.readonly_fields
     list_display = ("full_name", "user", "email", "organization", "is_organization_manager", "work_pattern") + BaseModelAdminMixin.list_display
     list_filter = (SimpleOrganizationFilter,) + BaseModelAdminMixin.list_filter
@@ -102,3 +96,16 @@ class MemberAdmin(BaseModelAdminMixin, ImportExportModelAdmin):
         if obj is None:
             return False
         return obj.is_organization_manager() or obj.is_company_executive()
+
+    def has_add_permission(self, request):
+        """Members cannot be added via the admin interface. They are created automatically when a user is created."""
+        return False
+
+    def has_import_permission(self, request):
+        return self.has_change_permission(request)
+
+
+# print Method Resolution Order of MemberAdmin class
+# print([cls.__name__ for cls in MemberAdmin.__mro__])
+# Find which class in the MRO actually owns the active has_add_permission implementation
+# print(MemberAdmin.has_add_permission.__qualname__)

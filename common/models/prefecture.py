@@ -1,8 +1,10 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from .base import AuthorizedModelMixin
 
-class Prefecture(models.Model):
+
+class Prefecture(AuthorizedModelMixin, models.Model):
     """都道府県マスタ"""
 
     code = models.CharField(_("Prefecture Code"), max_length=2, unique=True)  # 都道府県コード

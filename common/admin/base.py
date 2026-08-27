@@ -3,14 +3,33 @@ from typing import ClassVar
 from django.contrib.admin import display
 from django.db.models.expressions import RawSQL
 from django.utils.translation import gettext_lazy as _
+from import_export.admin import ImportExportMixin
+from import_export.formats.base_formats import CSV
+from import_export.forms import ExportForm
 
 from common.admin.filters import OrganizationFilter
 from common.models import Organization
 from common.utils import convert2localtime
 
 
-class CommonAdminMixin:
-    """This mixin provides common functionality for Django admin classes, including methods for generating search help text and customizing the changelist view."""
+class AuthorizedModelAdminMixin(ImportExportMixin):
+    """This mixin provides methods to check if a user is authorized to perform import/export actions in the Django admin interface."""
+
+    class DirectExportForm(ExportForm):
+        """
+        Export form that completely removes the field-selection checkboxes,
+        forcing django-import-export to use the resource's predefined fields.
+        """
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            # Remove the export_fields selection box
+            if "export_fields" in self.fields:
+                del self.fields["export_fields"]
+
+    import_formats = (CSV,)
+    export_formats = (CSV,)
+    export_form_class = DirectExportForm
 
     def get_search_help_text(self):
         """Generate help text for search_fields based on model verbose names, supporting __ lookups."""
@@ -41,45 +60,39 @@ class CommonAdminMixin:
         extra_context["search_help_text"] = self.get_search_help_text()
         return super().changelist_view(request, extra_context)
 
-    def is_available_member(self, request):
-        if request.user.is_superuser or request.user.is_authenticated is False or not hasattr(request.user, "member") or request.user.member is None:
-            return False
-        if request.user.member.organization is None:
-            return request.user.member.is_company_executive()
-        return True
-
     def has_view_permission(self, request, obj=None):
         """Override to check if the user has permission to view the object."""
-        return super().has_view_permission(request, obj) and self.is_available_member(request)
+        return super().has_view_permission(request, obj) and self.model.is_authorized(request.user)
 
     def has_add_permission(self, request):
         """Override to check if the user has permission to add a new object."""
-        return super().has_add_permission(request) and self.is_available_member(request)
+        return super().has_add_permission(request) and self.model.is_authorized(request.user)
 
     def has_change_permission(self, request, obj=None):
         """Override to check if the user has permission to change the object."""
-        if not self.is_available_member(request):
+        if not super().has_change_permission(request, obj):
             return False
-        if obj is not None and hasattr(obj, "is_editable_by"):
-            return super().has_change_permission(request, obj) and obj.is_editable_by(request.user)
-        return super().has_change_permission(request, obj)
+        if obj is None:
+            return self.model.is_authorized(request.user)
+        return obj.is_editable_by(request.user)
 
     def has_delete_permission(self, request, obj=None):
         """Override to check if the user has permission to delete the object."""
-        if not self.is_available_member(request):
+        if not super().has_delete_permission(request, obj):
             return False
-        if obj is not None and hasattr(obj, "is_deletable_by"):
-            return super().has_delete_permission(request, obj) and obj.is_deletable_by(request.user)
-        return super().has_delete_permission(request, obj)
+        if obj is None:
+            return self.model.is_authorized(request.user)
+        return obj.is_deletable_by(request.user)
 
     def has_import_permission(self, request):
-        return request.user.member.is_company_executive() or request.user.member.is_system_info_staff()
+        return self.has_add_permission(request) and self.has_change_permission(request)
 
     def has_export_permission(self, request):
-        return request.user.member.is_company_executive() or request.user.member.is_system_info_staff()
+        """Override to check if the user has permission to export data."""
+        return self.has_view_permission(request)
 
 
-class BaseModelAdminMixin(CommonAdminMixin):
+class BaseModelAdminMixin(AuthorizedModelAdminMixin):
     """Base ModelAdmin for common models with soft delete and audit fields"""
 
     readonly_fields = ("valid_flag", "created_by", "created_at", "updated_by", "updated_at")
@@ -144,25 +157,13 @@ class BaseModelAdminMixin(CommonAdminMixin):
         return super().get_form(request, obj, **kwargs)
 
 
-class OrganizationFilterMixin:
-    """This mixin provides a method to filter querysets based on the user's organization."""
-
-    def is_all_organizations_accessible(self, request):
-        """Determine if the user can view all organizations."""
-        if getattr(request.user, "member", None) is None or request.user.member is None:
-            return False
-        return request.user.member.is_all_organizations_accessible()
-
-    def get_accessible_top_level_organization(self, request):
-        """Determine if the user can view a specific organization."""
-        if getattr(request.user, "member", None) is None or request.user.member is None:
-            return None
-        return request.user.member.organization if request.user.member.is_organization_manager() else None
+class OrgScopedModelAdminMixin(BaseModelAdminMixin):
+    """This mixin provides methods to check if a user with a member profile can access a model instance in the Django admin interface."""
 
     def get_list_filter(self, request):
         filters = list(super().get_list_filter(request))
 
-        if self.is_all_organizations_accessible(request) or self.get_accessible_top_level_organization(request) is not None:
+        if self.model.is_all_organizations_accessible(request.user) or self.model.get_accessible_top_organization(request.user) is not None:
             filters.insert(0, OrganizationFilter)
 
         return tuple(filters)
@@ -170,15 +171,15 @@ class OrganizationFilterMixin:
     def get_queryset(self, request):
         qs = super().get_queryset(request)
 
-        if self.is_all_organizations_accessible(request):
-            # superuser、勤怠管理グループのメンバーは全員のデータが見れる
+        if self.model.is_all_organizations_accessible(request.user):
             return qs
-        elif self.get_accessible_top_level_organization(request) is not None:
+        elif self.model.get_accessible_top_organization(request.user) is not None:
             # 組織の管理者は自組織メンバーのデータのみ見れる
-            root_organization = self.get_accessible_top_level_organization(request)
-            if root_organization is None:
+            accessible_organization = self.model.get_accessible_top_organization(request.user)
+            if accessible_organization is None:
                 return qs.none()
-            below_organization_ids_sql = Organization.get_below_organization_ids_sql(root_organization.id)
+
+            below_organization_ids_sql = Organization.get_below_organization_ids_sql(accessible_organization.id)
             if hasattr(self.model, "organization"):
                 return qs.filter(organization_id__in=RawSQL(below_organization_ids_sql, []))
             elif hasattr(self.model, "member"):

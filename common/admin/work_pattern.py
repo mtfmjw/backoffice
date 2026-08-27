@@ -5,8 +5,6 @@ from django.utils.text import format_lazy
 from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
 from import_export import resources
-from import_export.admin import ImportExportModelAdmin
-from import_export.formats.base_formats import CSV
 from import_export.instance_loaders import CachedInstanceLoader
 
 from backoffice.admin import admin_site
@@ -14,7 +12,7 @@ from common.models import WorkPattern
 from common.utils import convert2duration, duration2minutes, duration2str
 from common.validation import time_range_validation
 
-from .base import CommonAdminMixin
+from .base import AuthorizedModelAdminMixin
 
 
 class WorkPatternResource(resources.ModelResource):
@@ -109,10 +107,9 @@ class WorkPatternForm(forms.ModelForm):
 
 
 @admin.register(WorkPattern, site=admin_site)
-class WorkPatternAdmin(CommonAdminMixin, ImportExportModelAdmin):
+class WorkPatternAdmin(AuthorizedModelAdminMixin, admin.ModelAdmin):
     form = WorkPatternForm
     resource_class = WorkPatternResource
-    formats = (CSV,)
     list_display = (
         "name",
         "working_duration",

@@ -1,7 +1,5 @@
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.filters import RelatedOnlyFieldListFilter
-from django.db import connection
-from django.db.models.expressions import RawSQL
 from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
 
@@ -63,22 +61,20 @@ class SimpleOrganizationFilter(SimpleListFilter):
     parameter_name = "organization"
 
     def lookups(self, request, model_admin):
-        sql = Organization.get_whole_organization_tree_sql()
-        with connection.cursor() as cursor:
-            cursor.execute(sql)
-            rows = cursor.fetchall()
-        return [(str(org_id), f"{'--' * depth}{name}") for org_id, name, depth in rows]
+        return Organization.get_descendant_organization_tree()
 
     def queryset(self, request, queryset):
         value = self.value()
 
         if value is not None:
+            descendants = Organization.get_descendant_organizations(Organization.objects.get(id=int(value)))
+            organization_ids = [org_id for org_id, __, __ in descendants]
             if queryset.model._meta.model_name == "organization":
-                return queryset.filter(id__in=RawSQL(Organization.get_below_organization_ids_sql(int(value)), []))
+                return queryset.filter(id__in=organization_ids)
             elif hasattr(queryset.model, "organization"):
-                return queryset.filter(organization__id__in=RawSQL(Organization.get_below_organization_ids_sql(int(value)), []))
+                return queryset.filter(organization__id__in=organization_ids)
             elif hasattr(queryset.model, "member"):
-                return queryset.filter(member__organization_id__in=RawSQL(Organization.get_below_organization_ids_sql(int(value)), []))
+                return queryset.filter(member__organization_id__in=organization_ids)
 
         return queryset
 
@@ -88,16 +84,12 @@ class OrganizationFilter(SimpleOrganizationFilter):
     parameter_name = "organization"
 
     def lookups(self, request, model_admin):
-        if model_admin.is_all_organizations_accessible(request):
+        if model_admin.model.is_all_organizations_accessible(request.user):
             choices = super().lookups(request, model_admin)
         else:
-            top_organization = model_admin.get_accessible_top_level_organization(request)
-            if top_organization is None:
+            accessible_organization = model_admin.model.get_accessible_top_organization(request.user)
+            if accessible_organization is None:
                 return []
-            sql = Organization.get_below_organization_tree_sql(top_organization.id)
-            with connection.cursor() as cursor:
-                cursor.execute(sql)
-                rows = cursor.fetchall()
-            choices = [(str(org_id), f"{'--' * depth}{name}") for org_id, name, depth in rows]
+            choices = Organization.get_descendant_organization_tree(accessible_organization)
 
         return choices if "choices" in locals() else []

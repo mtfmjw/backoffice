@@ -1,11 +1,10 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from common.models import Member, WorkPattern
-from common.models.base import AuthenticationModelMixin, BaseModel
+from common.models import BaseModel, Member, OrgScopedBaseModel, WorkPattern
 
 
-class MonthlyAttendance(AuthenticationModelMixin, BaseModel):
+class MonthlyAttendance(OrgScopedBaseModel, BaseModel):
     """月次勤怠テーブル（1人1月あたりの確定データ）"""
 
     class ApproveStatus(models.IntegerChoices):
@@ -15,7 +14,7 @@ class MonthlyAttendance(AuthenticationModelMixin, BaseModel):
         REJECTED = 3, _("Rejected")  # 却下
         FINALIZED = 4, _("Finalized")  # 確定済
 
-    member = models.ForeignKey(Member, on_delete=models.DO_NOTHING, related_name="attendance_records", verbose_name=_("Member"))
+    member = models.ForeignKey(Member, on_delete=models.DO_NOTHING, related_name="attendance_records", verbose_name=_("OrganizationMember"))
     work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name=_("Work Pattern"))
     month = models.DateField(_("Month"))
     approve_status = models.IntegerField(_("Approve Status"), choices=ApproveStatus.choices, default=ApproveStatus.DRAFT)
@@ -47,7 +46,7 @@ class MonthlyAttendance(AuthenticationModelMixin, BaseModel):
             + f" - {self.get_approve_status_display()}"
         )
 
-    def is_daily_attendance_editable_by(self, login_user):
+    def is_editable_by(self, login_user):
         """Check if the daily attendance records associated with this monthly attendance are editable by the given user."""
         is_editable = super().is_editable_by(login_user) or login_user.member.is_attendance_management_staff()
 

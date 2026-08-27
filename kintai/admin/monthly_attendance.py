@@ -12,10 +12,9 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
-from import_export.admin import ImportExportModelAdmin
 
 from backoffice.admin import admin_site
-from common.admin.base import BaseModelAdminMixin, OrganizationFilterMixin
+from common.admin.base import BaseModelAdminMixin, OrgScopedModelAdminMixin
 from common.models import WorkPattern
 from common.utils import minutes2str
 from kintai.models import DailyAttendance, MonthlyAttendance
@@ -65,7 +64,7 @@ class MonthlyAttendanceForm(forms.ModelForm):
 
 
 @admin.register(MonthlyAttendance, site=admin_site)
-class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, ImportExportModelAdmin):
+class MonthlyAttendanceAdmin(OrgScopedModelAdminMixin, admin.ModelAdmin):
     change_list_template = "kintai/monthlyattendance/change_list.html"
     change_form_template = "kintai/monthlyattendance/change_form.html"
     form = MonthlyAttendanceForm
@@ -137,6 +136,15 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
 
     def has_add_permission(self, request):
         return request.user.is_authenticated and hasattr(request.user, "member")
+
+    def has_change_permission(self, request, obj=None):
+        # モデルのis_editable_byメソッド無効化するため、常にTrueを返す
+        return True
+
+    def is_all_organizations_accessible(self, request):
+        return super().is_all_organizations_accessible(request) or (
+            hasattr(request.user, "member") and request.user.member and request.user.member.is_attendance_management_staff()
+        )
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
@@ -222,7 +230,7 @@ class MonthlyAttendanceAdmin(BaseModelAdminMixin, OrganizationFilterMixin, Impor
 
             obj = self.get_object(request, object_id)
             if obj is not None:
-                if not obj.is_daily_attendance_editable_by(request.user):
+                if not obj.is_editable_by(request.user):
                     extra_context["adminform_class"] = "is-readonly-form"
 
                 # 保存ボタンのラベルを変更する

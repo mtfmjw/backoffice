@@ -3,10 +3,12 @@ from datetime import time
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from .base import AuthorizedModelMixin
+
 DEFAULT_WORK_PATTERN_NAME = "所定"
 
 
-class WorkPattern(models.Model):
+class WorkPattern(AuthorizedModelMixin, models.Model):
     """就業パターンマスタ（通常・シフト・フレックスなど）"""
 
     name = models.CharField(_("Work Pattern Name"), max_length=100, unique=True)

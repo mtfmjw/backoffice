@@ -1,14 +1,11 @@
 from django.contrib import admin
 from import_export import fields, resources
-from import_export.admin import ImportExportModelAdmin
-from import_export.formats.base_formats import CSV
 from import_export.widgets import DateWidget
 
 from backoffice.admin import admin_site
-from common.form import DirectExportForm
 from common.models import Holiday
 
-from .base import CommonAdminMixin
+from .base import AuthorizedModelAdminMixin
 from .filters import YearFilter
 
 
@@ -33,10 +30,8 @@ class HolidayResource(resources.ModelResource):
 
 
 @admin.register(Holiday, site=admin_site)
-class HolidayAdmin(CommonAdminMixin, ImportExportModelAdmin):
+class HolidayAdmin(AuthorizedModelAdminMixin, admin.ModelAdmin):
     resource_class = HolidayResource
-    formats = (CSV,)
-    export_form_class = DirectExportForm
 
     list_display = ("date", "type", "name")
     list_filter = (YearFilter,)

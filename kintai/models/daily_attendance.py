@@ -31,8 +31,8 @@ class DailyAttendance(models.Model):
         """勤務日分類"""
 
         WORK_DAY = 0, _("Work Day")  # 平日
-        SCHEDULED_DAY_OFF = 1, _("Scheduled Day Off")  # 所定休日
-        STATUTORY_DAY_OFF = 2, _("Statutory Day Off")  # 法定休日
+        SCHEDULED_DAY_OFF = 1, _("Scheduled Day Off")  # 所定休日(週休2日制の土曜日、年末年始など)
+        STATUTORY_DAY_OFF = 2, _("Statutory Day Off")  # 法定休日（法律で定められた月4回の休日、日曜日など）
         NATIONAL_HOLIDAY = 3, _("National Holiday")  # 国民の祝日
         TRANSFER_HOLIDAY = 4, _("Transfer Holiday")  # 振替休日、祝日が土日と重なった場合に、翌日を振替休日（法定休日）とする
 

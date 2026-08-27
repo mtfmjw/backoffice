@@ -1,8 +1,10 @@
-from django.db import models
+from __future__ import annotations
+
+from django.db import connection, models
 from django.utils.translation import gettext_lazy as _
 
-from common.models.base import BaseModel
-from common.models.work_pattern import WorkPattern
+from .base import BaseModel
+from .work_pattern import WorkPattern
 
 
 class Organization(BaseModel):
@@ -22,29 +24,13 @@ class Organization(BaseModel):
         return self.name
 
     @classmethod
-    def get_below_organization_ids_sql(cls, root_organization_id: int) -> str:
+    def get_descendant_organizations(cls, current_organization: Organization | None = None) -> list[tuple[int, str, int]]:
         """
-        SQL snippet using a recursive CTE to return IDs of root_organization_id
-        and all its descendants.
+        Returns a list of descendant organizations for the given organization.
+        If the current_organization is None, it returns all organizations.
         """
-        return f"""
-        WITH RECURSIVE organization_tree AS (
-            SELECT id FROM organization WHERE id = {root_organization_id}
-            UNION ALL
-            SELECT d.id 
-            FROM organization d
-            INNER JOIN organization_tree dt ON d.parent_id = dt.id
-        )
-        SELECT id FROM organization_tree
-    """
 
-    @classmethod
-    def get_below_organization_tree_sql(cls, current_organization_id) -> str:
-        """
-        Returns a recursive CTE SQL query that calculates hierarchy depth
-        and sort order path based on organization code.
-        """
-        return f"""
+        sql = """
                     WITH RECURSIVE organization_tree AS (
                         SELECT 
                             id, 
@@ -54,7 +40,9 @@ class Organization(BaseModel):
                             0 AS depth,
                             CAST(code AS VARCHAR(1000)) AS sort_path
                         FROM organization
-                        WHERE id = {int(current_organization_id)} AND valid_flag = TRUE
+                        WHERE ((%s::integer IS NULL AND parent_id IS NULL AND valid_flag = TRUE)
+                            OR (id = %s::integer AND valid_flag = TRUE))
+                            AND valid_flag = TRUE
                         UNION ALL
                         SELECT 
                             o.id, 
@@ -67,56 +55,33 @@ class Organization(BaseModel):
                         INNER JOIN organization_tree dt ON o.parent_id = dt.id
                         WHERE o.valid_flag = TRUE
                     )
-                    SELECT id, name, depth FROM organization_tree ORDER BY sort_path
+                    SELECT id, name, depth
+                    FROM organization_tree tree
+                    ORDER BY sort_path
                 """
+        current_organization_id = current_organization.id if current_organization else None
+        with connection.cursor() as cursor:
+            cursor.execute(sql, [current_organization_id, current_organization_id])
+            rows = cursor.fetchall()
+        return rows
 
     @classmethod
-    def get_whole_organization_tree_sql(cls) -> str:
+    def get_descendant_organization_tree(cls, current_organization: Organization | None = None) -> list[tuple[str, str]]:
         """
         Returns a recursive CTE SQL query that calculates hierarchy depth
         and sort order path based on organization code.
         """
-        return """
-                    WITH RECURSIVE organization_tree AS (
-                        SELECT 
-                            id, 
-                            name, 
-                            code, 
-                            parent_id, 
-                            0 AS depth,
-                            CAST(code AS VARCHAR(1000)) AS sort_path
-                        FROM organization
-                        WHERE parent_id is null AND valid_flag = TRUE
-                        UNION ALL
-                        SELECT 
-                            o.id, 
-                            o.name, 
-                            o.code, 
-                            o.parent_id, 
-                            dt.depth + 1 AS depth,
-                            CAST(dt.sort_path || '/' || o.code AS VARCHAR(1000)) AS sort_path
-                        FROM organization o
-                        INNER JOIN organization_tree dt ON o.parent_id = dt.id
-                        WHERE o.valid_flag = TRUE
-                    )
-                    SELECT id, name, depth FROM organization_tree ORDER BY sort_path
-                """
-
-    def get_parent_organization(self):
-        """
-        Returns the parent organization of the current organization.
-        If the current organization has no parent, returns None.
-        """
-        return self.parent if self.parent else None
+        descendants = cls.get_descendant_organizations(current_organization)
+        return [(str(org_id), f"{'--' * depth}{name}") for org_id, name, depth in descendants]
 
     def get_ancestor_organizations(self):
         """
         Returns a list of organizations from the current organization up to the root organization.
         The list is ordered from the current organization to the root organization.
         """
-        current_org = self
-        ancestors = [current_org]
-        while current_org.parent is not None:
-            ancestors.append(current_org.parent)
-            current_org = current_org.parent
+        current_organization = self
+        ancestors = [current_organization]
+        while current_organization.parent is not None:
+            ancestors.append(current_organization.parent)
+            current_organization = current_organization.parent
         return ancestors
