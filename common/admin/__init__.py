@@ -1,4 +1,4 @@
-from .base import AuthorizedModelAdminMixin, BaseModelAdminMixin, OrgScopedModelAdminMixin
+from .base import AuthorizedModelAdminMixin, BaseModelAdminMixin, MemberScopedModelAdminMixin
 from .filters import PrefectureFilter, YearFilter
 from .holiday import HolidayAdmin
 from .member import MemberAdmin
@@ -11,7 +11,7 @@ from .work_pattern import WorkPatternAdmin
 __all__ = [  # noqa: RUF022
     "AuthorizedModelAdminMixin",
     "BaseModelAdminMixin",
-    "OrgScopedModelAdminMixin",
+    "MemberScopedModelAdminMixin",
     "PrefectureFilter",
     "YearFilter",
     "HolidayAdmin",

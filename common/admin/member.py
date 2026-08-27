@@ -9,7 +9,7 @@ from backoffice.admin import admin_site
 from common.admin.filters import SimpleOrganizationFilter
 from common.models import Member, Organization, WorkPattern
 
-from .base import BaseModelAdminMixin, OrgScopedModelAdminMixin
+from .base import BaseModelAdminMixin, MemberScopedModelAdminMixin
 
 User = get_user_model()
 
@@ -64,7 +64,7 @@ class MemberResource(resources.ModelResource):
 
 
 @admin.register(Member, site=admin_site)
-class MemberAdmin(OrgScopedModelAdminMixin, admin.ModelAdmin):
+class MemberAdmin(MemberScopedModelAdminMixin, admin.ModelAdmin):
     resource_class = MemberResource
 
     readonly_fields = ("user", "is_organization_manager") + BaseModelAdminMixin.readonly_fields
@@ -103,6 +103,13 @@ class MemberAdmin(OrgScopedModelAdminMixin, admin.ModelAdmin):
 
     def has_import_permission(self, request):
         return self.has_change_permission(request)
+
+    def get_readonly_fields(self, request, obj=None):
+        """Make all fields read-only for non-system info staff users."""
+        readonly_fields = list(super().get_readonly_fields(request, obj))
+        if obj is not None and obj.is_editable_by(request.user) and obj == request.user.member and "organization" not in readonly_fields:
+            readonly_fields.append("organization")
+        return tuple(readonly_fields)
 
 
 # print Method Resolution Order of MemberAdmin class

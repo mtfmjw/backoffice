@@ -14,7 +14,7 @@ from common.utils import (
     minutes2str,
 )
 
-from .monthly_attendence import MonthlyAttendance
+from .monthly_attendance import MonthlyAttendance
 
 NIGHT_START_TIME = time(22, 0)
 NIGHT_END_TIME = time(5, 0)

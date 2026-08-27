@@ -1,7 +1,6 @@
 from typing import ClassVar
 
 from django.contrib.admin import display
-from django.db.models.expressions import RawSQL
 from django.utils.translation import gettext_lazy as _
 from import_export.admin import ImportExportMixin
 from import_export.formats.base_formats import CSV
@@ -91,6 +90,11 @@ class AuthorizedModelAdminMixin(ImportExportMixin):
         """Override to check if the user has permission to export data."""
         return self.has_view_permission(request)
 
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        extra_context = extra_context or {}
+        extra_context["show_return"] = True
+        return super().changeform_view(request, object_id, form_url, extra_context=extra_context)
+
 
 class BaseModelAdminMixin(AuthorizedModelAdminMixin):
     """Base ModelAdmin for common models with soft delete and audit fields"""
@@ -157,7 +161,7 @@ class BaseModelAdminMixin(AuthorizedModelAdminMixin):
         return super().get_form(request, obj, **kwargs)
 
 
-class OrgScopedModelAdminMixin(BaseModelAdminMixin):
+class MemberScopedModelAdminMixin(BaseModelAdminMixin):
     """This mixin provides methods to check if a user with a member profile can access a model instance in the Django admin interface."""
 
     def get_list_filter(self, request):
@@ -179,11 +183,11 @@ class OrgScopedModelAdminMixin(BaseModelAdminMixin):
             if accessible_organization is None:
                 return qs.none()
 
-            below_organization_ids_sql = Organization.get_below_organization_ids_sql(accessible_organization.id)
+            descendants = Organization.get_descendant_organizations(accessible_organization)
             if hasattr(self.model, "organization"):
-                return qs.filter(organization_id__in=RawSQL(below_organization_ids_sql, []))
+                return qs.filter(organization_id__in=[o[0] for o in descendants])
             elif hasattr(self.model, "member"):
-                return qs.filter(member__organization_id__in=RawSQL(below_organization_ids_sql, []))
+                return qs.filter(member__organization_id__in=[o[0] for o in descendants])
         else:
             # 自分のデータのみ見れる
             if self.model._meta.model_name == "member":

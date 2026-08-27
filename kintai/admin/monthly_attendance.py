@@ -14,10 +14,10 @@ from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
 
 from backoffice.admin import admin_site
-from common.admin.base import BaseModelAdminMixin, OrgScopedModelAdminMixin
+from common.admin.base import BaseModelAdminMixin, MemberScopedModelAdminMixin
 from common.models import WorkPattern
 from common.utils import minutes2str
-from kintai.models import DailyAttendance, MonthlyAttendance
+from kintai.models import ApproveStatus, DailyAttendance, MonthlyAttendance
 
 from .daily_attendance import DailyAttendanceInline
 
@@ -64,7 +64,7 @@ class MonthlyAttendanceForm(forms.ModelForm):
 
 
 @admin.register(MonthlyAttendance, site=admin_site)
-class MonthlyAttendanceAdmin(OrgScopedModelAdminMixin, admin.ModelAdmin):
+class MonthlyAttendanceAdmin(MemberScopedModelAdminMixin, admin.ModelAdmin):
     change_list_template = "kintai/monthlyattendance/change_list.html"
     change_form_template = "kintai/monthlyattendance/change_form.html"
     form = MonthlyAttendanceForm
@@ -138,12 +138,12 @@ class MonthlyAttendanceAdmin(OrgScopedModelAdminMixin, admin.ModelAdmin):
         return request.user.is_authenticated and hasattr(request.user, "member")
 
     def has_change_permission(self, request, obj=None):
-        # モデルのis_editable_byメソッド無効化するため、常にTrueを返す
-        return True
+        # self.model.is_editable_by()によりCSSで編集可不可を制御するため、常にTrueを返す
+        return self.model.is_authorized(request.user)
 
     def is_all_organizations_accessible(self, request):
         return super().is_all_organizations_accessible(request) or (
-            hasattr(request.user, "member") and request.user.member and request.user.member.is_attendance_management_staff()
+            getattr(request.user, "member", None) is not None and request.user.member.is_attendance_management_staff()
         )
 
     def changelist_view(self, request, extra_context=None):
@@ -164,7 +164,7 @@ class MonthlyAttendanceAdmin(OrgScopedModelAdminMixin, admin.ModelAdmin):
         queryset = super().get_queryset(request)
 
         # 未申請のものは本人のみ表示、申請済み以降のものは本人以外も表示
-        queryset = queryset.filter(Q(member=request.user.member) | ~Q(approve_status=MonthlyAttendance.ApproveStatus.DRAFT))
+        queryset = queryset.filter(Q(member=request.user.member) | ~Q(approve_status=ApproveStatus.DRAFT))
 
         return queryset
 
@@ -203,7 +203,6 @@ class MonthlyAttendanceAdmin(OrgScopedModelAdminMixin, admin.ModelAdmin):
 
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         extra_context = extra_context or {}
-        extra_context["show_save_and_add_another"] = False
 
         extra_context["worked_days_label"] = _("Days Worked")
         extra_context["actual_working_time_label"] = _("Actual Working Time")
@@ -228,30 +227,40 @@ class MonthlyAttendanceAdmin(OrgScopedModelAdminMixin, admin.ModelAdmin):
             extra_context["total_absence_time"] = self.display_total_absence_minutes(obj)
             work_pattern = obj.work_pattern
 
+            extra_context["show_save_and_add_another"] = False
             obj = self.get_object(request, object_id)
-            if obj is not None:
-                if not obj.is_editable_by(request.user):
-                    extra_context["adminform_class"] = "is-readonly-form"
-
-                # 保存ボタンのラベルを変更する
+            if obj.is_editable_by(request.user):
                 extra_context["show_apply_button"] = True
+                extra_context["show_save"] = True
+                extra_context["show_save_and_continue"] = True
                 extra_context["show_reject_button"] = False
-                if obj.approve_status == MonthlyAttendance.ApproveStatus.DRAFT:
-                    extra_context["apply_button_name"] = "_apply"
-                    extra_context["apply_button_label"] = _("Apply")
-                elif obj.approve_status == MonthlyAttendance.ApproveStatus.APPLIED:
-                    extra_context["apply_button_name"] = "_approve"
-                    extra_context["apply_button_label"] = _("Approve")
-                    extra_context["show_reject_button"] = True
-                elif obj.approve_status == MonthlyAttendance.ApproveStatus.APPROVED:
-                    extra_context["apply_button_name"] = "_finalize"
-                    extra_context["apply_button_label"] = _("Finalize")
-                    extra_context["show_reject_button"] = True
-                elif obj.approve_status == MonthlyAttendance.ApproveStatus.REJECTED:
-                    extra_context["apply_button_name"] = "_reapply"
-                    extra_context["apply_button_label"] = _("Reapply")
-                elif obj.approve_status == MonthlyAttendance.ApproveStatus.FINALIZED:
+                extra_context["next"] = False
+                extra_context["apply_button_name"] = "_apply"
+                extra_context["apply_button_label"] = _("Apply")
+            else:
+                extra_context["adminform_class"] = "is-readonly-form"
+
+                extra_context["show_save"] = False
+                extra_context["show_save_and_continue"] = False
+                extra_context["next"] = True
+                if obj.approve_status in [ApproveStatus.REJECTED, ApproveStatus.FINALIZED]:
                     extra_context["show_apply_button"] = False
+                    extra_context["show_reject_button"] = False
+                else:
+                    login_user = request.user
+                    if obj.approve_status == ApproveStatus.APPLIED:
+                        extra_context["show_apply_button"] = obj.is_approvable_by(login_user)
+                        extra_context["show_reject_button"] = obj.is_approvable_by(login_user)
+                        extra_context["apply_button_name"] = "_approve"
+                        extra_context["apply_button_label"] = _("Approve")
+                        extra_context["save_and_add_label"] = _("Approve and Go to Next")
+                    elif obj.approve_status == ApproveStatus.APPROVED:
+                        extra_context["show_apply_button"] = obj.is_finalizable_by(login_user)
+                        extra_context["show_reject_button"] = obj.is_finalizable_by(login_user)
+                        extra_context["show_reject_button"] = True
+                        extra_context["apply_button_name"] = "_finalize"
+                        extra_context["apply_button_label"] = _("Finalize")
+                        extra_context["save_and_add_label"] = _("Finalize and Go to Next")
         else:
             work_pattern = WorkPattern.get_work_pattern(request.user.member)
             extra_context["show_apply_button"] = True
@@ -270,15 +279,15 @@ class MonthlyAttendanceAdmin(OrgScopedModelAdminMixin, admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if "_apply" in request.POST:
-            obj.approve_status = MonthlyAttendance.ApproveStatus.APPLIED
+            obj.approve_status = ApproveStatus.APPLIED
         elif "_approve" in request.POST:
-            obj.approve_status = MonthlyAttendance.ApproveStatus.APPROVED
+            obj.approve_status = ApproveStatus.APPROVED
         elif "_finalize" in request.POST:
-            obj.approve_status = MonthlyAttendance.ApproveStatus.FINALIZED
+            obj.approve_status = ApproveStatus.FINALIZED
         elif "_reject" in request.POST:
-            obj.approve_status = MonthlyAttendance.ApproveStatus.REJECTED
+            obj.approve_status = ApproveStatus.REJECTED
         elif "_reapply" in request.POST:
-            obj.approve_status = MonthlyAttendance.ApproveStatus.APPLIED
+            obj.approve_status = ApproveStatus.APPLIED
 
         super().save_model(request, obj, form, change)
 

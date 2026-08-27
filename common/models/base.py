@@ -44,7 +44,7 @@ class BaseModel(AuthorizedModelMixin, models.Model):
         self.save()
 
 
-class OrgScopedBaseModel(BaseModel):
+class MemberScopedBaseModel(BaseModel):
     """This mixin provides methods to check if a user with a member profile can access a model instance."""
 
     class Meta:
@@ -77,7 +77,7 @@ class OrgScopedBaseModel(BaseModel):
     @classmethod
     def is_all_organizations_accessible(cls, login_user):
         """Check if the member can view all organizations."""
-        return cls.is_authorized(login_user) and (login_user.member.is_system_info_staff() or login_user.member.is_company_executive())
+        return cls.is_authorized(login_user) and login_user.member.is_company_executive()
 
     @classmethod
     def get_accessible_top_organization(cls, login_user):

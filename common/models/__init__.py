@@ -1,4 +1,4 @@
-from .base import AuthorizedModelMixin, BaseModel, OrgScopedBaseModel
+from .base import AuthorizedModelMixin, BaseModel, MemberScopedBaseModel
 from .holiday import Holiday
 from .member import Member
 from .municipality import Municipality
@@ -10,7 +10,7 @@ from .work_pattern import WorkPattern
 __all__ = [  # noqa: RUF022
     "BaseModel",
     "AuthorizedModelMixin",
-    "OrgScopedBaseModel",
+    "MemberScopedBaseModel",
     "Holiday",
     "Prefecture",
     "Municipality",
