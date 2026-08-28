@@ -4,12 +4,12 @@ from django.utils.translation import gettext_lazy as _
 
 from common.const import ATTENDANCE_MANAGEMENT_GROUP, COMPANY_EXECUTIVE_GROUP, ORGANIZATION_MANAGER_GROUP, SYSTEM_INFO_GROUP
 
-from .base import MemberScopedBaseModel
+from .base import RowScopedBaseModel
 from .organization import Organization
 from .work_pattern import WorkPattern
 
 
-class Member(MemberScopedBaseModel):
+class Member(RowScopedBaseModel):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="member", verbose_name=_("Employee Number"))
     email = models.EmailField(verbose_name=_("Email address"), blank=True, null=True, unique=True)
     organization = models.ForeignKey(

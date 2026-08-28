@@ -7,7 +7,7 @@ from backoffice.admin import admin_site
 from common.admin.filters import SimpleOrganizationFilter
 from common.models import Organization, WorkPattern
 
-from .base import BaseModelAdminMixin
+from .base import MemberScopedBaseModelAdmin
 
 
 class OrganizationResource(resources.ModelResource):
@@ -34,23 +34,17 @@ class OrganizationResource(resources.ModelResource):
 
 
 @admin.register(Organization, site=admin_site)
-class OrganizationAdmin(BaseModelAdminMixin, admin.ModelAdmin):
+class OrganizationAdmin(MemberScopedBaseModelAdmin):
     resource_class = OrganizationResource
 
-    list_display = ("code", "name", "parent", "work_pattern") + BaseModelAdminMixin.list_display
-    list_filter = (SimpleOrganizationFilter,) + BaseModelAdminMixin.list_filter
+    list_display = ("code", "name", "parent", "work_pattern")
+    list_filter = (SimpleOrganizationFilter,)
     search_fields = ("code", "name")
     list_select_related = ("parent",)
-    fieldsets = (
-        (
-            None,
-            {
-                "fields": (("code", "name", "parent"), "work_pattern"),
-            },
-        ),
-    )
+    fields = (("code", "name", "parent"), "work_pattern")
 
     def get_export_queryset(self, queryset=None):
+        """Get the queryset for exporting data, ordering by the hierarchy of descendant organizations."""
         descendants = self.model.get_descendant_organizations()
         ordered_ids = [item[0] for item in descendants]
         if not ordered_ids:

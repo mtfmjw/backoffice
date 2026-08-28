@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-27 08:30+0900\n"
+"POT-Creation-Date: 2026-08-28 15:03+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,24 +18,30 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: .\common\admin\base.py:105
+#: .\common\admin\base.py:158
 msgid "Update Time"
 msgstr "更新日時"
 
-#: .\common\admin\filters.py:24
-msgid "Year"
-msgstr "年"
+#: .\common\admin\base.py:216
+msgid ""
+"This record was modified by another user while you were editing it. Your "
+"changes were not saved."
+msgstr "編集中に他のユーザーより内容が変更されましたので保存できません。もう一度読み込んでください。"
 
-#: .\common\admin\filters.py:60 .\common\admin\filters.py:83
+#: .\common\admin\filters.py:22 .\common\admin\filters.py:45
 #: .\common\models\organization.py:20
 msgid "Organization"
 msgstr "組織"
 
-#: .\common\admin\member.py:91
+#: .\common\admin\holiday.py:17
+msgid "Year"
+msgstr "年"
+
+#: .\common\admin\member.py:83
 msgid "Full Name"
 msgstr "名前"
 
-#: .\common\admin\member.py:95
+#: .\common\admin\member.py:87
 msgid "Is Organization Manager"
 msgstr "組織長"
 
@@ -85,23 +91,23 @@ msgstr "昼休終了時刻"
 msgid "Common"
 msgstr "共通マスタ"
 
-#: .\common\models\base.py:32
+#: .\common\models\base.py:77
 msgid "Valid"
 msgstr "有効"
 
-#: .\common\models\base.py:33
+#: .\common\models\base.py:78
 msgid "Created at"
 msgstr "作成日時"
 
-#: .\common\models\base.py:34
+#: .\common\models\base.py:79
 msgid "Created by"
 msgstr "作成者"
 
-#: .\common\models\base.py:35
+#: .\common\models\base.py:80
 msgid "Updated at"
 msgstr "更新日時"
 
-#: .\common\models\base.py:36
+#: .\common\models\base.py:81
 msgid "Updated by"
 msgstr "更新者"
 

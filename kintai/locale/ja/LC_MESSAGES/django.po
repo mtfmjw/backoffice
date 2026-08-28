@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-26 20:18+0900\n"
+"POT-Creation-Date: 2026-08-28 15:03+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -39,7 +39,7 @@ msgstr "夜間不在"
 #: .\kintai\admin\daily_attendance.py:28
 #: .\kintai\admin\monthly_attendance.py:52
 #: .\kintai\models\daily_attendance.py:62
-#: .\kintai\models\monthly_attendence.py:21
+#: .\kintai\models\monthly_attendance.py:22
 msgid "Note"
 msgstr "備考"
 
@@ -48,8 +48,8 @@ msgid "休憩については実際休んだ分だけチェックしてくださ�
 msgstr ""
 
 #: .\kintai\admin\daily_attendance.py:59 .\kintai\models\daily_attendance.py:58
-#: .\kintai\models\monthly_attendence.py:18
-#: .\kintai\models\monthly_attendence.py:45
+#: .\kintai\models\monthly_attendance.py:19
+#: .\kintai\models\monthly_attendance.py:46
 msgid "Work Pattern"
 msgstr "就業パターン"
 
@@ -82,7 +82,7 @@ msgstr "勤務時間が未入力の場合、夜間不在を入力することは
 
 #: .\kintai\admin\monthly_attendance.py:26
 #: .\kintai\admin\monthly_attendance.py:99
-#: .\kintai\models\monthly_attendence.py:19
+#: .\kintai\models\monthly_attendance.py:20
 msgid "Month"
 msgstr "月"
 
@@ -97,79 +97,83 @@ msgid "Belong To"
 msgstr "所属"
 
 #: .\kintai\admin\monthly_attendance.py:109
-#: .\kintai\admin\monthly_attendance.py:208
-#: .\kintai\models\monthly_attendence.py:26
+#: .\kintai\admin\monthly_attendance.py:207
+#: .\kintai\models\monthly_attendance.py:27
 msgid "Days Worked"
 msgstr "出勤日数"
 
 #: .\kintai\admin\monthly_attendance.py:117
-#: .\kintai\admin\monthly_attendance.py:209
+#: .\kintai\admin\monthly_attendance.py:208
 #: .\kintai\models\daily_attendance.py:76
 #: .\kintai\models\daily_attendance.py:92
-#: .\kintai\models\monthly_attendence.py:23
+#: .\kintai\models\monthly_attendance.py:24
 msgid "Actual Working Time"
 msgstr "就業時間"
 
 #: .\kintai\admin\monthly_attendance.py:121
-#: .\kintai\admin\monthly_attendance.py:210
+#: .\kintai\admin\monthly_attendance.py:209
 #: .\kintai\models\daily_attendance.py:77
 #: .\kintai\models\daily_attendance.py:93
-#: .\kintai\models\monthly_attendence.py:24
+#: .\kintai\models\monthly_attendance.py:25
 msgid "Overtime"
 msgstr "残業時間"
 
 #: .\kintai\admin\monthly_attendance.py:125
-#: .\kintai\admin\monthly_attendance.py:211
+#: .\kintai\admin\monthly_attendance.py:210
 #: .\kintai\models\daily_attendance.py:78
 #: .\kintai\models\daily_attendance.py:94
-#: .\kintai\models\monthly_attendence.py:25
+#: .\kintai\models\monthly_attendance.py:26
 msgid "Night Working Time"
 msgstr "深夜残業"
 
 #: .\kintai\admin\monthly_attendance.py:129
-#: .\kintai\admin\monthly_attendance.py:212
-#: .\kintai\models\monthly_attendence.py:27
+#: .\kintai\admin\monthly_attendance.py:211
+#: .\kintai\models\monthly_attendance.py:28
 msgid "Paid Leave Days"
 msgstr "有休取得"
 
 #: .\kintai\admin\monthly_attendance.py:133
-#: .\kintai\admin\monthly_attendance.py:216
-#: .\kintai\models\monthly_attendence.py:32
+#: .\kintai\admin\monthly_attendance.py:215
+#: .\kintai\models\monthly_attendance.py:33
 msgid "Total Absence Time"
 msgstr "欠勤時間"
 
-#: .\kintai\admin\monthly_attendance.py:213
+#: .\kintai\admin\monthly_attendance.py:212
 #: .\kintai\models\daily_attendance.py:97
-#: .\kintai\models\monthly_attendence.py:29
+#: .\kintai\models\monthly_attendance.py:30
 msgid "Absence Days"
 msgstr "欠勤日数"
 
-#: .\kintai\admin\monthly_attendance.py:214
-#: .\kintai\models\monthly_attendence.py:30
+#: .\kintai\admin\monthly_attendance.py:213
+#: .\kintai\models\monthly_attendance.py:31
 msgid "Early Leave Days"
 msgstr "早退回数"
 
-#: .\kintai\admin\monthly_attendance.py:215
-#: .\kintai\models\monthly_attendence.py:31
+#: .\kintai\admin\monthly_attendance.py:214
+#: .\kintai\models\monthly_attendance.py:32
 msgid "Late Days"
 msgstr "遅刻回数"
 
-#: .\kintai\admin\monthly_attendance.py:241
-#: .\kintai\admin\monthly_attendance.py:259
+#: .\kintai\admin\monthly_attendance.py:239
+#: .\kintai\admin\monthly_attendance.py:268
 msgid "Apply"
 msgstr "申請"
 
-#: .\kintai\admin\monthly_attendance.py:244
+#: .\kintai\admin\monthly_attendance.py:255
 msgid "Approve"
 msgstr "承認"
 
-#: .\kintai\admin\monthly_attendance.py:248
+#: .\kintai\admin\monthly_attendance.py:256
+msgid "Approve and Go to Next"
+msgstr ""
+
+#: .\kintai\admin\monthly_attendance.py:262
 msgid "Finalize"
 msgstr "最終確定"
 
-#: .\kintai\admin\monthly_attendance.py:252
-msgid "Reapply"
-msgstr "最申請"
+#: .\kintai\admin\monthly_attendance.py:263
+msgid "Finalize and Go to Next"
+msgstr ""
 
 #: .\kintai\apps.py:7
 msgid "Attendance Management"
@@ -236,7 +240,7 @@ msgid "SP5"
 msgstr "SP5"
 
 #: .\kintai\models\daily_attendance.py:56
-#: .\kintai\models\monthly_attendence.py:36
+#: .\kintai\models\monthly_attendance.py:37
 msgid "Monthly Attendance"
 msgstr "月次勤怠"
 
@@ -294,39 +298,39 @@ msgstr "日次勤怠"
 msgid "Daily Attendances"
 msgstr "日次勤怠一覧"
 
-#: .\kintai\models\monthly_attendence.py:11
+#: .\kintai\models\monthly_attendance.py:8
 msgid "Draft"
 msgstr "入力中"
 
-#: .\kintai\models\monthly_attendence.py:12
+#: .\kintai\models\monthly_attendance.py:9
 msgid "Applied"
 msgstr "申請済"
 
-#: .\kintai\models\monthly_attendence.py:13
+#: .\kintai\models\monthly_attendance.py:10
 msgid "Approved"
 msgstr "承認済"
 
-#: .\kintai\models\monthly_attendence.py:14
+#: .\kintai\models\monthly_attendance.py:11
 msgid "Rejected"
 msgstr "却下"
 
-#: .\kintai\models\monthly_attendence.py:15
+#: .\kintai\models\monthly_attendance.py:12
 msgid "Finalized"
 msgstr "確定済"
 
-#: .\kintai\models\monthly_attendence.py:17
+#: .\kintai\models\monthly_attendance.py:18
 msgid "OrganizationMember"
 msgstr "社員"
 
-#: .\kintai\models\monthly_attendence.py:20
+#: .\kintai\models\monthly_attendance.py:21
 msgid "Approve Status"
 msgstr "承認状態"
 
-#: .\kintai\models\monthly_attendence.py:28
+#: .\kintai\models\monthly_attendance.py:29
 msgid "Standard Working Days"
 msgstr "標準勤務日数"
 
-#: .\kintai\models\monthly_attendence.py:37
+#: .\kintai\models\monthly_attendance.py:38
 msgid "Monthly Attendances"
 msgstr "月次勤怠一覧"
 
@@ -334,6 +338,9 @@ msgstr "月次勤怠一覧"
 #, python-format
 msgid "Add %(name)s"
 msgstr "%(name)s 追加"
+
+#~ msgid "Reapply"
+#~ msgstr "最申請"
 
 #~ msgid "Member"
 #~ msgstr "社員"

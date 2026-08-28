@@ -1,4 +1,13 @@
-from .base import AuthorizedModelMixin, BaseModel, MemberScopedBaseModel
+from .base import (
+    BaseModel,
+    ConcurrencyError,
+    MemberScopedBaseModel,
+    MemberScopedModel,
+    MemberScopedModelMixin,
+    RowScopedBaseModel,
+    RowScopedModel,
+    RowScopedModelMixin,
+)
 from .holiday import Holiday
 from .member import Member
 from .municipality import Municipality
@@ -9,7 +18,12 @@ from .work_pattern import WorkPattern
 
 __all__ = [  # noqa: RUF022
     "BaseModel",
-    "AuthorizedModelMixin",
+    "MemberScopedModelMixin",
+    "ConcurrencyError",
+    "RowScopedModelMixin",
+    "RowScopedModel",
+    "RowScopedBaseModel",
+    "MemberScopedModel",
     "MemberScopedBaseModel",
     "Holiday",
     "Prefecture",

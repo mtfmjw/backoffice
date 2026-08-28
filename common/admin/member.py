@@ -9,7 +9,7 @@ from backoffice.admin import admin_site
 from common.admin.filters import SimpleOrganizationFilter
 from common.models import Member, Organization, WorkPattern
 
-from .base import BaseModelAdminMixin, MemberScopedModelAdminMixin
+from .base import RowScopedBaseModelAdmin
 
 User = get_user_model()
 
@@ -64,12 +64,12 @@ class MemberResource(resources.ModelResource):
 
 
 @admin.register(Member, site=admin_site)
-class MemberAdmin(MemberScopedModelAdminMixin, admin.ModelAdmin):
+class MemberAdmin(RowScopedBaseModelAdmin):
     resource_class = MemberResource
 
-    readonly_fields = ("user", "is_organization_manager") + BaseModelAdminMixin.readonly_fields
-    list_display = ("full_name", "user", "email", "organization", "is_organization_manager", "work_pattern") + BaseModelAdminMixin.list_display
-    list_filter = (SimpleOrganizationFilter,) + BaseModelAdminMixin.list_filter
+    readonly_fields = ("user", "is_organization_manager")
+    list_display = ("full_name", "user", "email", "organization", "is_organization_manager", "work_pattern")
+    list_filter = (SimpleOrganizationFilter,)
     search_fields = (
         "user__username",
         "user__first_name",
@@ -78,14 +78,7 @@ class MemberAdmin(MemberScopedModelAdminMixin, admin.ModelAdmin):
         "organization__name",
     )
     list_select_related = ("user", "organization")
-    fieldsets = (
-        (
-            None,
-            {
-                "fields": (("user", "email"), ("organization", "is_organization_manager"), ("work_pattern",)),
-            },
-        ),
-    )
+    fields = (("user", "email"), ("organization", "is_organization_manager"), ("work_pattern",))
 
     @display(description=_("Full Name"))
     def full_name(self, obj):
@@ -103,13 +96,6 @@ class MemberAdmin(MemberScopedModelAdminMixin, admin.ModelAdmin):
 
     def has_import_permission(self, request):
         return self.has_change_permission(request)
-
-    def get_readonly_fields(self, request, obj=None):
-        """Make all fields read-only for non-system info staff users."""
-        readonly_fields = list(super().get_readonly_fields(request, obj))
-        if obj is not None and obj.is_editable_by(request.user) and obj == request.user.member and "organization" not in readonly_fields:
-            readonly_fields.append("organization")
-        return tuple(readonly_fields)
 
 
 # print Method Resolution Order of MemberAdmin class

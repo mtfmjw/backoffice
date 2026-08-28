@@ -3,11 +3,11 @@ from __future__ import annotations
 from django.db import connection, models
 from django.utils.translation import gettext_lazy as _
 
-from .base import BaseModel
+from .base import MemberScopedBaseModel
 from .work_pattern import WorkPattern
 
 
-class Organization(BaseModel):
+class Organization(MemberScopedBaseModel):
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Organization Code"))
     name = models.CharField(max_length=255, verbose_name=_("Organization Name"))
     work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name=_("Work Pattern"))

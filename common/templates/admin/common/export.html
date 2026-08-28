@@ -1,0 +1,49 @@
+{% extends "admin/import_export/base.html" %}
+{% load i18n admin_urls %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+  {{ form.media }}
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+  &rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  &rsaquo; {% translate 'Export' %}
+</div>
+{% endblock %}
+
+{% block content %}
+{% if fields_list %}
+  <p>{% translate "This exporter will export the following fields:" %}</p>
+  <ul>
+    {% for resource, fields in fields_list %}
+      <li>
+        {% if fields_list|length > 1 %}
+          <strong>{{ resource }}</strong>:
+        {% endif %}
+        {{ fields|join:", " }}
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<form action="" method="post">
+  {% csrf_token %}
+  <div>
+    {{ form.as_p }}
+  </div>
+
+  <div class="submit-row">
+    <input type="submit" class="default" value="{% translate 'Submit' %}">
+    
+    <!-- Return button -->
+    <a href="{% url opts|admin_urlname:'changelist' %}"  class="closelink">
+      {% translate "Close" %}
+    </a>
+  </div>
+</form>
+{% endblock %}
