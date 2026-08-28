@@ -8,7 +8,7 @@ from import_export.widgets import DateWidget
 from backoffice.admin import admin_site
 from common.models import Holiday
 
-from .base import RowPermissionModelAdminAdminMixin
+from .base import MemberScopedAdmin
 
 CALENDAR_START_YEAR = 2020
 
@@ -70,7 +70,7 @@ class HolidayResource(resources.ModelResource):
 
 
 @admin.register(Holiday, site=admin_site)
-class HolidayAdmin(RowPermissionModelAdminAdminMixin, admin.ModelAdmin):
+class HolidayAdmin(MemberScopedAdmin):
     resource_class = HolidayResource
 
     list_display = ("date", "type", "name")

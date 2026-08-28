@@ -1,8 +1,7 @@
-from django.contrib import admin
 from django.db import connection
 from import_export import resources
 
-from common.admin.base import RowPermissionModelAdminAdminMixin
+from common.admin.base import MemberScopedAdmin
 from common.models import PostcodeImport
 
 from .filters import PrefectureFilter
@@ -72,7 +71,7 @@ class PostcodeResource(resources.ModelResource):
 
 
 # @admin.register(Postcode, site=admin_site)
-class PostcodeAdmin(RowPermissionModelAdminAdminMixin, admin.ModelAdmin):
+class PostcodeAdmin(MemberScopedAdmin):
     resource_class = PostcodeResource
     list_display = ("postcode", "municipality", "town_name", "town_name_kana")
     search_fields = ("postcode", "municipality__name", "town_name")

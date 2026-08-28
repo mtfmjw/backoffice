@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-26 20:18+0900\n"
+"POT-Creation-Date: 2026-08-28 15:03+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -123,27 +123,27 @@ msgstr "保存"
 msgid "Save as new"
 msgstr "コピーを新規作成"
 
-#: .\templates\admin\submit_line.html:13
+#: .\templates\admin\submit_line.html:14
 msgid "Save and add another"
 msgstr "保存して次を編集する"
 
-#: .\templates\admin\submit_line.html:14
+#: .\templates\admin\submit_line.html:16
 msgid "Save and continue editing"
 msgstr "保存して編集を続ける"
 
-#: .\templates\admin\submit_line.html:14
+#: .\templates\admin\submit_line.html:16
 msgid "Save and view"
 msgstr "保存して編集を続ける"
 
-#: .\templates\admin\submit_line.html:16
+#: .\templates\admin\submit_line.html:18
 msgid "Reject"
 msgstr "却下"
 
-#: .\templates\admin\submit_line.html:18
+#: .\templates\admin\submit_line.html:22 .\templates\admin\submit_line.html:25
 msgid "Close"
 msgstr "閉じる"
 
-#: .\templates\admin\submit_line.html:21
+#: .\templates\admin\submit_line.html:29
 msgid "Delete"
 msgstr "削除"
 

@@ -1,9 +1,8 @@
-from django.contrib import admin
 from import_export import fields, resources
 from import_export.instance_loaders import CachedInstanceLoader
 from import_export.widgets import ForeignKeyWidget
 
-from common.admin.base import RowPermissionModelAdminAdminMixin
+from common.admin.base import MemberScopedAdmin
 from common.models import Municipality, Prefecture
 
 from .filters import PrefectureFilter
@@ -29,7 +28,7 @@ class MunicipalityResource(resources.ModelResource):
 
 
 # @admin.register(Municipality, site=admin_site)
-class MunicipalityAdmin(RowPermissionModelAdminAdminMixin, admin.ModelAdmin):
+class MunicipalityAdmin(MemberScopedAdmin):
     resource_class = MunicipalityResource
     list_display = ("prefecture", "code", "name")
     search_fields = ("prefecture__name", "code", "name")

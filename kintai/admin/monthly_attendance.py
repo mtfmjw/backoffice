@@ -14,7 +14,7 @@ from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
 
 from backoffice.admin import admin_site
-from common.admin.base import MemberScopedModelAdminMixin
+from common.admin.base import RowScopedBaseModelAdmin
 from common.models import WorkPattern
 from common.utils import minutes2str
 from kintai.models import ApproveStatus, DailyAttendance, MonthlyAttendance
@@ -64,7 +64,7 @@ class MonthlyAttendanceForm(forms.ModelForm):
 
 
 @admin.register(MonthlyAttendance, site=admin_site)
-class MonthlyAttendanceAdmin(MemberScopedModelAdminMixin, admin.ModelAdmin):
+class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
     change_list_template = "kintai/monthlyattendance/change_list.html"
     change_form_template = "kintai/monthlyattendance/change_form.html"
     form = MonthlyAttendanceForm

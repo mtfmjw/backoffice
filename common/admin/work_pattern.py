@@ -12,7 +12,7 @@ from common.models import WorkPattern
 from common.utils import convert2duration, duration2minutes, duration2str
 from common.validation import time_range_validation
 
-from .base import RowPermissionModelAdminAdminMixin
+from .base import MemberScopedAdmin
 
 
 class WorkPatternResource(resources.ModelResource):
@@ -107,7 +107,7 @@ class WorkPatternForm(forms.ModelForm):
 
 
 @admin.register(WorkPattern, site=admin_site)
-class WorkPatternAdmin(RowPermissionModelAdminAdminMixin, admin.ModelAdmin):
+class WorkPatternAdmin(MemberScopedAdmin):
     form = WorkPatternForm
     resource_class = WorkPatternResource
     list_display = (

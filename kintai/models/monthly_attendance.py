@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from common.models import BaseModel, Member, MemberScopedBaseModel, WorkPattern
+from common.models import Member, RowScopedBaseModel, WorkPattern
 
 
 class ApproveStatus(models.IntegerChoices):
@@ -12,7 +12,7 @@ class ApproveStatus(models.IntegerChoices):
     FINALIZED = 4, _("Finalized")  # 確定済
 
 
-class MonthlyAttendance(MemberScopedBaseModel, BaseModel):
+class MonthlyAttendance(RowScopedBaseModel):
     """月次勤怠テーブル（1人1月あたりの確定データ）"""
 
     member = models.ForeignKey(Member, on_delete=models.DO_NOTHING, related_name="attendance_records", verbose_name=_("OrganizationMember"))

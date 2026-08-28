@@ -1,9 +1,8 @@
-from django.contrib import admin
 from import_export import resources
 
 from common.models import Prefecture
 
-from .base import RowPermissionModelAdminAdminMixin
+from .base import MemberScopedAdmin
 
 
 class PrefectureResource(resources.ModelResource):
@@ -17,7 +16,7 @@ class PrefectureResource(resources.ModelResource):
 
 
 # @admin.register(Prefecture, site=admin_site)
-class PrefectureAdmin(RowPermissionModelAdminAdminMixin, admin.ModelAdmin):
+class PrefectureAdmin(MemberScopedAdmin):
     resource_class = PrefectureResource
     list_display = ("name", "code")
     list_display_links = None

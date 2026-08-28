@@ -9,7 +9,7 @@ from backoffice.admin import admin_site
 from common.admin.filters import SimpleOrganizationFilter
 from common.models import Member, Organization, WorkPattern
 
-from .base import MemberScopedModelAdminMixin
+from .base import RowScopedBaseModelAdmin
 
 User = get_user_model()
 
@@ -64,7 +64,7 @@ class MemberResource(resources.ModelResource):
 
 
 @admin.register(Member, site=admin_site)
-class MemberAdmin(MemberScopedModelAdminMixin, admin.ModelAdmin):
+class MemberAdmin(RowScopedBaseModelAdmin):
     resource_class = MemberResource
 
     readonly_fields = ("user", "is_organization_manager")
