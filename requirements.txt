@@ -3,7 +3,7 @@ certifi==2026.1.4
 cffi==2.0.0
 charset-normalizer==3.4.4
 concurrent-log-handler==0.9.29
-cryptography==46.0.4
+cryptography==50.0.0
 diff-match-patch==20241021
 Django==6.0.7
 django-import-export==4.4.1
@@ -14,8 +14,8 @@ google-auth==2.48.0
 google-auth-httplib2==0.3.0
 google-auth-oauthlib==1.2.4
 googleapis-common-protos==1.72.0
-httplib2==0.31.2
-idna==3.11
+httplib2==0.32.0
+idna==3.15
 oauthlib==3.3.1
 podman-compose==1.6.0
 portalocker==4.1.0
@@ -23,7 +23,7 @@ proto-plus==1.27.0
 protobuf==6.33.5
 psycopg==3.2.13
 psycopg-binary==3.2.13
-pyasn1==0.6.2
+pyasn1==0.6.4
 pyasn1_modules==0.4.2
 pycparser==3.0
 pyodbc==5.3.0
@@ -32,13 +32,13 @@ python-dateutil==2.9.0.post0
 python-decouple==3.8
 python-dotenv==1.2.2
 PyYAML==6.0.3
-requests==2.32.5
+requests==2.33.0
 requests-oauthlib==2.0.0
 rsa==4.9.1
 six==1.17.0
-sqlparse==0.5.5
+sqlparse==0.6.0
 tablib==3.10.0
 typing_extensions==4.16.0
 tzdata==2026.3
 uritemplate==4.2.0
-urllib3==2.6.3
+urllib3==2.7.0
