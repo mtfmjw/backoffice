@@ -1,0 +1,11 @@
+/* Equal-width columns: each cell in a multi-field row takes identical share */
+.form-multiline {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 0 2em;
+}
+.form-multiline > div {
+    flex: 1 1 0;
+    min-width: 0;
+}

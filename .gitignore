@@ -52,11 +52,12 @@ coverage.xml
 cover/
 
 # Translations
-*.mo
 *.pot
 
 # Django stuff:
 *.log
+*.log.*
+*.lock
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -157,6 +158,10 @@ ENV/
 env.bak/
 venv.bak/
 
+# Docker / Podman
+compose/pgadmin-data/*
+!compose/pgadmin-data/.gitkeep
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -216,3 +221,5 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+.env

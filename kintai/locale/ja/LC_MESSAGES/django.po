@@ -1,0 +1,346 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-28 15:03+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: .\kintai\admin\daily_attendance.py:20 .\kintai\admin\daily_attendance.py:60
+#: .\kintai\models\daily_attendance.py:64
+msgid "Clock In"
+msgstr "出勤"
+
+#: .\kintai\admin\daily_attendance.py:23 .\kintai\admin\daily_attendance.py:61
+#: .\kintai\models\daily_attendance.py:65
+msgid "Clock Out"
+msgstr "退勤"
+
+#: .\kintai\admin\daily_attendance.py:25 .\kintai\models\daily_attendance.py:72
+msgid "Day Absence"
+msgstr "昼間不在"
+
+#: .\kintai\admin\daily_attendance.py:26 .\kintai\models\daily_attendance.py:73
+msgid "Night Absence"
+msgstr "夜間不在"
+
+#: .\kintai\admin\daily_attendance.py:28
+#: .\kintai\admin\monthly_attendance.py:52
+#: .\kintai\models\daily_attendance.py:62
+#: .\kintai\models\monthly_attendance.py:22
+msgid "Note"
+msgstr "備考"
+
+#: .\kintai\admin\daily_attendance.py:29
+msgid "休憩については実際休んだ分だけチェックしてください。"
+msgstr ""
+
+#: .\kintai\admin\daily_attendance.py:59 .\kintai\models\daily_attendance.py:58
+#: .\kintai\models\monthly_attendance.py:19
+#: .\kintai\models\monthly_attendance.py:46
+msgid "Work Pattern"
+msgstr "就業パターン"
+
+#: .\kintai\admin\daily_attendance.py:66
+msgid "Date Status cannot be set to anything other than Present on a Holiday."
+msgstr "休日の勤務区分を出勤以外に変更することはできません。"
+
+#: .\kintai\admin\daily_attendance.py:75
+msgid "Clock-out time must be before the next day's start time."
+msgstr "退勤時間を翌日の標準就業時間以後に設定することはできません。"
+
+#: .\kintai\admin\daily_attendance.py:86
+msgid "Day Absence must be less than total work minutes."
+msgstr "昼不在の時間が勤務時間を超えることはできません。"
+
+#: .\kintai\admin\daily_attendance.py:93
+msgid "Night Absence must be less than total night work minutes."
+msgstr "夜間不在の時間が夜間勤務時間を超えることはできません。"
+
+#: .\kintai\admin\daily_attendance.py:98
+msgid ""
+"Day Absence cannot be set when clock-in and clock-out times are not provided."
+msgstr "勤務時間が未入力の場合、昼間不在を入力することはできません。"
+
+#: .\kintai\admin\daily_attendance.py:100
+msgid ""
+"Night Absence cannot be set when clock-in and clock-out times are not "
+"provided."
+msgstr "勤務時間が未入力の場合、夜間不在を入力することはできません。"
+
+#: .\kintai\admin\monthly_attendance.py:26
+#: .\kintai\admin\monthly_attendance.py:99
+#: .\kintai\models\monthly_attendance.py:20
+msgid "Month"
+msgstr "月"
+
+#: .\kintai\admin\monthly_attendance.py:55
+msgid ""
+"昼間不在は[05:00~22:00]、夜間不在は[22:00~翌05:00]期間中期間中の標準休憩以外"
+"の不在時間があれば入力してください。"
+msgstr ""
+
+#: .\kintai\admin\monthly_attendance.py:103
+msgid "Belong To"
+msgstr "所属"
+
+#: .\kintai\admin\monthly_attendance.py:109
+#: .\kintai\admin\monthly_attendance.py:207
+#: .\kintai\models\monthly_attendance.py:27
+msgid "Days Worked"
+msgstr "出勤日数"
+
+#: .\kintai\admin\monthly_attendance.py:117
+#: .\kintai\admin\monthly_attendance.py:208
+#: .\kintai\models\daily_attendance.py:76
+#: .\kintai\models\daily_attendance.py:92
+#: .\kintai\models\monthly_attendance.py:24
+msgid "Actual Working Time"
+msgstr "就業時間"
+
+#: .\kintai\admin\monthly_attendance.py:121
+#: .\kintai\admin\monthly_attendance.py:209
+#: .\kintai\models\daily_attendance.py:77
+#: .\kintai\models\daily_attendance.py:93
+#: .\kintai\models\monthly_attendance.py:25
+msgid "Overtime"
+msgstr "残業時間"
+
+#: .\kintai\admin\monthly_attendance.py:125
+#: .\kintai\admin\monthly_attendance.py:210
+#: .\kintai\models\daily_attendance.py:78
+#: .\kintai\models\daily_attendance.py:94
+#: .\kintai\models\monthly_attendance.py:26
+msgid "Night Working Time"
+msgstr "深夜残業"
+
+#: .\kintai\admin\monthly_attendance.py:129
+#: .\kintai\admin\monthly_attendance.py:211
+#: .\kintai\models\monthly_attendance.py:28
+msgid "Paid Leave Days"
+msgstr "有休取得"
+
+#: .\kintai\admin\monthly_attendance.py:133
+#: .\kintai\admin\monthly_attendance.py:215
+#: .\kintai\models\monthly_attendance.py:33
+msgid "Total Absence Time"
+msgstr "欠勤時間"
+
+#: .\kintai\admin\monthly_attendance.py:212
+#: .\kintai\models\daily_attendance.py:97
+#: .\kintai\models\monthly_attendance.py:30
+msgid "Absence Days"
+msgstr "欠勤日数"
+
+#: .\kintai\admin\monthly_attendance.py:213
+#: .\kintai\models\monthly_attendance.py:31
+msgid "Early Leave Days"
+msgstr "早退回数"
+
+#: .\kintai\admin\monthly_attendance.py:214
+#: .\kintai\models\monthly_attendance.py:32
+msgid "Late Days"
+msgstr "遅刻回数"
+
+#: .\kintai\admin\monthly_attendance.py:239
+#: .\kintai\admin\monthly_attendance.py:268
+msgid "Apply"
+msgstr "申請"
+
+#: .\kintai\admin\monthly_attendance.py:255
+msgid "Approve"
+msgstr "承認"
+
+#: .\kintai\admin\monthly_attendance.py:256
+msgid "Approve and Go to Next"
+msgstr ""
+
+#: .\kintai\admin\monthly_attendance.py:262
+msgid "Finalize"
+msgstr "最終確定"
+
+#: .\kintai\admin\monthly_attendance.py:263
+msgid "Finalize and Go to Next"
+msgstr ""
+
+#: .\kintai\apps.py:7
+msgid "Attendance Management"
+msgstr "勤怠管理"
+
+#: .\kintai\apps.py:13
+msgid "Login ID"
+msgstr "ログインID"
+
+#: .\kintai\models\daily_attendance.py:33
+msgid "Work Day"
+msgstr "平日"
+
+#: .\kintai\models\daily_attendance.py:34
+msgid "Scheduled Day Off"
+msgstr "所定休日"
+
+#: .\kintai\models\daily_attendance.py:35
+msgid "Statutory Day Off"
+msgstr "法定休日"
+
+#: .\kintai\models\daily_attendance.py:36
+msgid "National Holiday"
+msgstr "国民の祝日"
+
+#: .\kintai\models\daily_attendance.py:37
+msgid "Transfer Holiday"
+msgstr "振替休日"
+
+#: .\kintai\models\daily_attendance.py:42
+msgid "Present"
+msgstr "出勤"
+
+#: .\kintai\models\daily_attendance.py:43
+msgid "Absence"
+msgstr "欠勤"
+
+#: .\kintai\models\daily_attendance.py:44
+msgid "Morning Half-Day Leave"
+msgstr "午前休"
+
+#: .\kintai\models\daily_attendance.py:45
+msgid "Afternoon Half-Day Leave"
+msgstr "午後休"
+
+#: .\kintai\models\daily_attendance.py:46
+msgid "Paid Leave"
+msgstr "有休"
+
+#: .\kintai\models\daily_attendance.py:48
+msgid "Special Paid Leave"
+msgstr "特別休"
+
+#: .\kintai\models\daily_attendance.py:50
+msgid "Substitute Holiday"
+msgstr "振休"
+
+#: .\kintai\models\daily_attendance.py:52
+msgid "Compensatory Holiday"
+msgstr "代休"
+
+#: .\kintai\models\daily_attendance.py:53
+msgid "SP5"
+msgstr "SP5"
+
+#: .\kintai\models\daily_attendance.py:56
+#: .\kintai\models\monthly_attendance.py:37
+msgid "Monthly Attendance"
+msgstr "月次勤怠"
+
+#: .\kintai\models\daily_attendance.py:59
+msgid "Day"
+msgstr "日付"
+
+#: .\kintai\models\daily_attendance.py:60
+msgid "Date Type"
+msgstr "勤務日分類"
+
+#: .\kintai\models\daily_attendance.py:61
+msgid "Date Status"
+msgstr "勤務区分"
+
+#: .\kintai\models\daily_attendance.py:66
+msgid "Lunch Break"
+msgstr "昼休憩"
+
+#: .\kintai\models\daily_attendance.py:67
+msgid "Break 1"
+msgstr "休憩1"
+
+#: .\kintai\models\daily_attendance.py:68
+msgid "Break 2"
+msgstr "休憩2"
+
+#: .\kintai\models\daily_attendance.py:69
+msgid "Break 3"
+msgstr "休憩3"
+
+#: .\kintai\models\daily_attendance.py:70
+msgid "Break 4"
+msgstr "休憩4"
+
+#: .\kintai\models\daily_attendance.py:71
+msgid "Break 5"
+msgstr "休憩5"
+
+#: .\kintai\models\daily_attendance.py:79
+#: .\kintai\models\daily_attendance.py:95
+msgid "Late"
+msgstr "遅刻"
+
+#: .\kintai\models\daily_attendance.py:80
+#: .\kintai\models\daily_attendance.py:96
+msgid "Early Leave"
+msgstr "早退"
+
+#: .\kintai\models\daily_attendance.py:84
+msgid "Daily Attendance"
+msgstr "日次勤怠"
+
+#: .\kintai\models\daily_attendance.py:85
+msgid "Daily Attendances"
+msgstr "日次勤怠一覧"
+
+#: .\kintai\models\monthly_attendance.py:8
+msgid "Draft"
+msgstr "入力中"
+
+#: .\kintai\models\monthly_attendance.py:9
+msgid "Applied"
+msgstr "申請済"
+
+#: .\kintai\models\monthly_attendance.py:10
+msgid "Approved"
+msgstr "承認済"
+
+#: .\kintai\models\monthly_attendance.py:11
+msgid "Rejected"
+msgstr "却下"
+
+#: .\kintai\models\monthly_attendance.py:12
+msgid "Finalized"
+msgstr "確定済"
+
+#: .\kintai\models\monthly_attendance.py:18
+msgid "OrganizationMember"
+msgstr "社員"
+
+#: .\kintai\models\monthly_attendance.py:21
+msgid "Approve Status"
+msgstr "承認状態"
+
+#: .\kintai\models\monthly_attendance.py:29
+msgid "Standard Working Days"
+msgstr "標準勤務日数"
+
+#: .\kintai\models\monthly_attendance.py:38
+msgid "Monthly Attendances"
+msgstr "月次勤怠一覧"
+
+#: .\kintai\templates\kintai\monthlyattendance\change_list.html:7
+#, python-format
+msgid "Add %(name)s"
+msgstr "%(name)s 追加"
+
+#~ msgid "Reapply"
+#~ msgstr "最申請"
+
+#~ msgid "Member"
+#~ msgstr "社員"

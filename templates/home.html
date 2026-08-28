@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Backoffice</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <div class="card">
+        <h1>Backoffice</h1>
+        {% if user.is_authenticated %}
+            <p>Welcome, {{ user.username }}!</p>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit">Log out</button>
+            </form>
+        {% else %}
+            <p class="small">You are not logged in.</p>
+            <a class="button" href="{% url 'login' %}">Log in</a>
+        {% endif %}
+    </div>
+</body>
+</html>

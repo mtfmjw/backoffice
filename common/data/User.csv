@@ -1,0 +1,10 @@
+username,email,first_name,last_name,is_staff,is_active,groups
+1073,mt.tamaki@leadingsoft.co.jp,基文,玉城,0,1,一般
+9000,9000@leadmingsoft.co.jp,9000,一般,0,1,一般
+9001,9001@leadmingsoft.co.jp,9001,一般,0,1,一般
+9010,9010@leadingsoft.co.jp,9010,テスト部署,0,1,一般
+9100,9100@leadingsoft.co.jp,9100,勤怠管理,0,1,"一般,勤怠管理グループ"
+9200,9200@leadingsoft.co.jp,9200,組織責任者,0,1,"一般,組織責任者グループ"
+9300,9300@leadingsoft.co.jp,9300,経営幹部,0,1,"一般,経営管理グループ"
+9400,9400@leadingsoft.co.jp,9400,情シス,0,1,"一般,情シスグループ"
+admin,backoffice@leadingsoft.co.jp,,,1,1,

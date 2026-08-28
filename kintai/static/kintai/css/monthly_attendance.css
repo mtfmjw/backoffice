@@ -1,0 +1,160 @@
+
+#monthlyattendance_form .module {
+    margin-bottom: 10px;
+}
+fieldset .fieldBox {
+    margin-right: 10px;
+}
+.object-tools {
+    display: none;
+}
+
+/* 備考のラベルを小さくする */
+.form-row.field-note .flex-container{
+    width: 80%;
+    display: flex;
+    justify-content: center;
+    margin: 0px auto;
+}
+label[for="id_note"] {
+    min-width: 30px;
+    width: 10%;
+    font-size: 12px;
+}
+input#id_note {
+    width: 90% !important; /* Overriding the current fixed percentage */
+    font-size: 12px;
+}
+
+
+/* inline 明細のスタイル調整 */
+.inline-group thead th {
+    text-align: center;
+    padding-top: 4px;
+    padding-bottom: 0px;
+}
+.inline-group .tabular tr.has_original td {
+    text-align: center;
+    padding-bottom: 0px;
+}
+.inline-group .tabular td.original p {
+    text-align: left;
+    font-size: 12px;
+}
+
+
+/* Container: Defines 8 equal columns and handles scrolling on narrow screens */
+.summary-grid-container {
+    display: grid;
+    grid-template-columns: repeat(9, minmax(60px, 1fr));
+    gap: 1px;
+    width: 80%;
+    overflow-x: auto;
+    margin: 0px auto;
+}
+
+/* Shared styles for headers and data cells */
+.break-grid-header, .break-grid-cell {
+    padding: 0px 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 12px;
+    white-space: nowrap;
+}
+.break-grid-header {
+    font-weight: bold;
+}
+.apply-button {
+    grid-row: span 2 ; 
+    grid-column: span 2; 
+    
+    /* 中央寄せ設定 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.break-grid-cell.summary {
+    border-bottom: 1px solid #ccc; 
+}
+.break-grid-cell {
+    padding-bottom: 2px;
+}
+
+/* apply to all checkbox styling */
+.apply-break-checkbox {
+    margin-left: 5px;
+    transform: scale(0.8);
+}
+
+
+/* インラインテーブル内の select と text input の余白調整 */
+tr.dynamic-daily_attendances select,
+tr.dynamic-daily_attendances input[type="text"],
+tr.dynamic-daily_attendances .vTimeField {
+    /* マージン上下を削除 */
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    
+    /* パディング上下を2pxに固定 */
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+    
+    /* 高さ計算の崩れを防ぐ */
+    box-sizing: border-box !important;
+    height: auto !important;
+
+    font-size: 12px !important;
+}
+tr.dynamic-daily_attendances .vTimeField {
+    width: 50px !important;
+    max-width: 50px !important;
+}
+td.field-note input[type="text"] {
+    width: 300px;
+    min-width: 300px;
+}
+
+/* 時間入力欄が入っている <p class="time"> の不要な上下余白もクリア */
+tr.dynamic-daily_attendances p.time,
+tr.dynamic-daily_attendances p {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+.inline-group .tabular tr.has_original td[class*="field-"] {
+    padding-top: 1.4em;
+}
+
+/* readonlyの対応 */
+/* Only applies when the container has .is-readonly-form */
+.is-readonly-form input[type="text"]:not(#id_note),
+.is-readonly-form .apply-button button,
+.is-readonly-form select,
+.is-readonly-form input[type="checkbox"] {
+    pointer-events: none !important; /* Prevents clicks, toggles, and selection */
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+    border-color: #dee2e6 !important;
+    box-shadow: none !important;
+    user-select: none !important;
+}
+
+/* Visually mute checkboxes and remove point cursor */
+.is-readonly-form input[type="checkbox"] {
+    opacity: 0.6;
+    cursor: not-allowed !important;
+}
+
+/* Hide clock/calendar time-picker icon buttons inside inline rows */
+.is-readonly-form .datetimeshortcuts {
+    display: none !important;
+}
+
+/* Hide placeholder text when .is-readonly-form is active */
+.is-readonly-form input:not(#id_note)::placeholder {
+    color: transparent !important; /* Makes placeholder text invisible */
+    opacity: 0 !important;
+}

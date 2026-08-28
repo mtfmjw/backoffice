@@ -1,0 +1,66 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static %}
+
+{% block object-tools-items %}
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static 'kintai/js/monthly_attendance.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'kintai/css/monthly_attendance.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="{{ adminform_class }}">
+        {{ block.super }}
+    </div>
+{% endblock %}
+
+{% block after_field_sets %}
+    <div class="summary-grid-container">
+        <!-- 月次集計結果 Headers -->
+        <div class="break-grid-header summary">{{ worked_days_label }}</div>
+        <div class="break-grid-header summary">{{ actual_working_time_label }}</div>
+        <div class="break-grid-header summary">{{ overtime_label }}</div>
+        <div class="break-grid-header summary">{{ night_working_time_label }}</div>
+        <div class="break-grid-header summary">{{ paid_leave_days_label }}</div>
+        <div class="break-grid-header summary">{{ absence_days_label }}</div>
+        <div class="break-grid-header summary">{{ early_leave_days_label }}</div>
+        <div class="break-grid-header summary">{{ late_days_label }}</div>
+        <div class="break-grid-header summary">{{ total_absence_time_label }}</div>
+
+        <!-- 月次集計結果 -->
+        <div class="break-grid-cell summary">{{ worked_days }}</div>
+        <div class="break-grid-cell summary">{{ actual_working_time }}</div>
+        <div class="break-grid-cell summary">{{ overtime }}</div>
+        <div class="break-grid-cell summary">{{ night_working_time }}</div>
+        <div class="break-grid-cell summary">{{ paid_leave_days }}</div>
+        <div class="break-grid-cell summary">{{ absence_days }}</div>
+        <div class="break-grid-cell summary">{{ early_leave_days }}</div>
+        <div class="break-grid-cell summary">{{ late_days }}</div>
+        <div class="break-grid-cell summary">{{ total_absence_time }}</div>
+
+        <!-- WorkPattern Headers -->
+        <div class="break-grid-header work-pattern">勤務時間</div>
+        <div class="break-grid-header work-pattern">昼休憩<input type="checkbox" name="apply_lunch_break" id="id_apply_lunch_break" class="apply-break-checkbox"></div>
+        <div class="break-grid-header work-pattern">休憩1<input type="checkbox" name="apply_break1" id="id_apply_break1" class="apply-break-checkbox"></div>
+        <div class="break-grid-header work-pattern">休憩2<input type="checkbox" name="apply_break2" id="id_apply_break2" class="apply-break-checkbox"></div>
+        <div class="break-grid-header work-pattern">休憩3<input type="checkbox" name="apply_break3" id="id_apply_break3" class="apply-break-checkbox"></div>
+        <div class="break-grid-header work-pattern">休憩4<input type="checkbox" name="apply_break4" id="id_apply_break4" class="apply-break-checkbox"></div>
+        <div class="break-grid-header work-pattern">休憩5<input type="checkbox" name="apply_break5" id="id_apply_break5" class="apply-break-checkbox"></div>
+        <!-- 結合する最終列のセル（8番目の要素） -->
+        <div class="break-grid-cell work-pattern apply-button">
+            <button type="button" class="button" onclick="applyToAll(this)">休憩パターン適用</button>
+        </div>
+
+        <!-- WorkPattern Values -->
+        <div class="break-grid-cell work-pattern">{{ work_duration }}</div>
+        <div class="break-grid-cell work-pattern">{{ lunch_break_duration }}</div>
+        <div class="break-grid-cell work-pattern">{{ break1_duration }}</div>
+        <div class="break-grid-cell work-pattern">{{ break2_duration }}</div>
+        <div class="break-grid-cell work-pattern">{{ break3_duration }}</div>
+        <div class="break-grid-cell work-pattern">{{ break4_duration }}</div>
+        <div class="break-grid-cell work-pattern">{{ break5_duration }}</div>
+    </div>
+
+{% endblock %}

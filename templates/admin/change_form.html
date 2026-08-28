@@ -1,0 +1,27 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const validFlag = {% if original and original.valid_flag is not None %}{{ original.valid_flag|lower }}{% else %}true{% endif %};
+      const deleteButton = document.querySelector('a[href$="/delete/"]');
+      if (deleteButton && !validFlag) {
+        deleteButton.textContent = '{% trans "Restore" %}';
+      }
+    });
+  </script>
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <style>
+      .readonly a {
+          pointer-events: none !important;
+          cursor: default;
+          color: inherit;
+          text-decoration: none !important;
+      }
+    </style>
+{% endblock %}

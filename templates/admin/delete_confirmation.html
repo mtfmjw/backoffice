@@ -1,0 +1,42 @@
+{% extends "admin/delete_confirmation.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main">
+  {% if perms_lacking %}
+    <p>{% blocktrans %}Deleting the {{ object_name }} '{{ object }}' would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:{% endblocktrans %}</p>
+    <ul>
+    {% for obj in perms_lacking %}
+      <li>{{ obj }}</li>
+    {% endfor %}
+    </ul>
+  {% elif protected_objects %}
+    <p>{% blocktrans %}Deleting the {{ object_name }} '{{ object }}' would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:{% endblocktrans %}</p>
+    <ul>
+    {% for obj in protected_objects %}
+      <li>{{ obj }}</li>
+    {% endfor %}
+    </ul>
+  {% else %}
+    {% if object.valid_flag is not False %}
+      <p>{% blocktrans %}Are you sure you want to delete the {{ object_name }} "{{ object }}"? All of the following related items will be deleted:{% endblocktrans %}</p>
+    {% else %}
+      <p>{% blocktrans %}Are you sure you want to restore the {{ object_name }} "{{ object }}"?{% endblocktrans %}</p>
+    {% endif %}
+    {% include "admin/includes/object_delete_summary.html" %}
+  {% endif %}
+
+  <form method="post" style="display:inline;">
+    {% csrf_token %}
+    {% if post_deleted_redirect_url %}
+      <input type="hidden" name="post_url_continue" value="{{ post_deleted_redirect_url }}">
+    {% endif %}
+    {% if object.valid_flag is not False %}
+      <input type="submit" value="{% trans 'Yes, delete' %}" class="button danger" style="margin-right: 10px;">
+    {% else %}
+      <input type="submit" value="{% trans 'Yes, restore' %}" class="button" style="margin-right: 10px;">
+    {% endif %}
+    <a href="{{ object_history_url }}" class="button cancel-link">{% trans "No, take me back" %}</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:18
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-P09olp09ol}
+    network_mode: pasta
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:
+

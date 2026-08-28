@@ -1,0 +1,5 @@
+code,name,parent_code,work_pattern_name,valid_flag,created_at,created_by,updated_at,updated_by
+91,テスト部署,,シフト２,1,2026-08-17 07:56,9400,2026-08-17 07:57,9400
+90,情シス,,所定,1,2026-08-17 07:35,admin,2026-08-17 07:35,admin
+60,CSE事業部,,シフト１,1,2026-08-17 05:45,admin,2026-08-17 05:45,admin
+61,サブ組織,60,所定,1,2026-08-17 05:45,admin,2026-08-17 05:45,admin
