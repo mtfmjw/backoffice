@@ -37,20 +37,14 @@ class OrganizationResource(resources.ModelResource):
 class OrganizationAdmin(BaseModelAdminMixin, admin.ModelAdmin):
     resource_class = OrganizationResource
 
-    list_display = ("code", "name", "parent", "work_pattern") + BaseModelAdminMixin.list_display
-    list_filter = (SimpleOrganizationFilter,) + BaseModelAdminMixin.list_filter
+    list_display = ("code", "name", "parent", "work_pattern")
+    list_filter = (SimpleOrganizationFilter,)
     search_fields = ("code", "name")
     list_select_related = ("parent",)
-    fieldsets = (
-        (
-            None,
-            {
-                "fields": (("code", "name", "parent"), "work_pattern"),
-            },
-        ),
-    )
+    fields = (("code", "name", "parent"), "work_pattern")
 
     def get_export_queryset(self, queryset=None):
+        """Get the queryset for exporting data, ordering by the hierarchy of descendant organizations."""
         descendants = self.model.get_descendant_organizations()
         ordered_ids = [item[0] for item in descendants]
         if not ordered_ids:

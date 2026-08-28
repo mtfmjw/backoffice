@@ -1,10 +1,12 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from common.middleware import get_current_user
+
+class ConcurrencyError(Exception):
+    """Raised when a record has been updated by another user."""
 
 
-class AuthorizedModelMixin:
+class RowPermissionModelAdminMixin:
     """This mixin provides methods to check if a user is authorized to perform actions on a model instance."""
 
     @classmethod
@@ -21,27 +23,43 @@ class AuthorizedModelMixin:
         return self.is_editable_by(login_user)
 
 
-class BaseModel(AuthorizedModelMixin, models.Model):
+class BaseModel(RowPermissionModelAdminMixin, models.Model):
     valid_flag = models.BooleanField(default=True, verbose_name=_("Valid"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created at"))
     created_by = models.CharField(max_length=150, verbose_name=_("Created by"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated at"))
     updated_by = models.CharField(max_length=150, verbose_name=_("Updated by"))
+    version = models.IntegerField(default=0, editable=False)
 
     class Meta:
         abstract = True
 
     def save(self, *args, **kwargs):
-        user = get_current_user()
-        if user and user.is_authenticated:
-            if not self.pk:
-                self.created_by = user.get_username()
-            self.updated_by = user.get_username()
-        super().save(*args, **kwargs)
+        if not self.pk:
+            super().save(*args, **kwargs)
+            return
 
-    def delete(self, *args, **kwargs):
-        self.valid_flag = False
-        self.save()
+        old_version = self.version
+        self.version += 1
+
+        # Build update dictionary for concrete fields
+        update_fields = kwargs.get("update_fields")
+        if update_fields:
+            fields_to_check = [self._meta.get_field(f) for f in set(update_fields) | {"version"}]
+        else:
+            fields_to_check = [f for f in self._meta.concrete_fields if not f.primary_key]
+
+        field_dict = {}
+        for field in fields_to_check:
+            field.pre_save(self, add=False)  # Handles auto_now updates
+            field_dict[field.attname] = getattr(self, field.attname)
+
+        # Perform atomic update matching ID AND original version
+        rows_updated = type(self).objects.filter(pk=self.pk, version=old_version).update(**field_dict)
+
+        if rows_updated == 0:
+            self.version = old_version  # Revert local instance version
+            raise ConcurrencyError("This record was modified by another user.")
 
 
 class MemberScopedBaseModel(BaseModel):

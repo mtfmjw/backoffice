@@ -1,6 +1,9 @@
 from typing import ClassVar
 
+from django import forms
+from django.contrib import messages
 from django.contrib.admin import display
+from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
 from import_export.admin import ImportExportMixin
 from import_export.formats.base_formats import CSV
@@ -8,10 +11,11 @@ from import_export.forms import ExportForm
 
 from common.admin.filters import OrganizationFilter
 from common.models import Organization
+from common.models.base import ConcurrencyError
 from common.utils import convert2localtime
 
 
-class AuthorizedModelAdminMixin(ImportExportMixin):
+class RowPermissionModelAdminAdminMixin(ImportExportMixin):
     """This mixin provides methods to check if a user is authorized to perform import/export actions in the Django admin interface."""
 
     class DirectExportForm(ExportForm):
@@ -61,7 +65,8 @@ class AuthorizedModelAdminMixin(ImportExportMixin):
 
     def has_view_permission(self, request, obj=None):
         """Override to check if the user has permission to view the object."""
-        return super().has_view_permission(request, obj) and self.model.is_authorized(request.user)
+        permission = super().has_view_permission(request, obj) and self.model.is_authorized(request.user)
+        return permission
 
     def has_add_permission(self, request):
         """Override to check if the user has permission to add a new object."""
@@ -84,7 +89,8 @@ class AuthorizedModelAdminMixin(ImportExportMixin):
         return obj.is_deletable_by(request.user)
 
     def has_import_permission(self, request):
-        return self.has_add_permission(request) and self.has_change_permission(request)
+        permission = self.has_add_permission(request) and self.has_change_permission(request)
+        return permission
 
     def has_export_permission(self, request):
         """Override to check if the user has permission to export data."""
@@ -93,15 +99,12 @@ class AuthorizedModelAdminMixin(ImportExportMixin):
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         extra_context = extra_context or {}
         extra_context["show_return"] = True
+        extra_context["show_save_and_add_another"] = False
         return super().changeform_view(request, object_id, form_url, extra_context=extra_context)
 
 
-class BaseModelAdminMixin(AuthorizedModelAdminMixin):
+class BaseModelAdminMixin(RowPermissionModelAdminAdminMixin):
     """Base ModelAdmin for common models with soft delete and audit fields"""
-
-    readonly_fields = ("valid_flag", "created_by", "created_at", "updated_by", "updated_at")
-    list_display = ("valid_flag", "updated_by", "display_updated_at")
-    list_filter = ("valid_flag",)
 
     class Media:
         css: ClassVar[dict[str, tuple[str, ...]]] = {"all": ("admin/css/admin_extra.css",)}
@@ -111,54 +114,88 @@ class BaseModelAdminMixin(AuthorizedModelAdminMixin):
         updated_at = convert2localtime(obj.updated_at)
         return updated_at.strftime("%Y/%m/%d %H:%M:%S")
 
-    def delete_model(self, request, obj):
-        if not obj.valid_flag:
-            obj.valid_flag = True
-            obj.save(update_fields=["valid_flag", "updated_by", "updated_at"])
-        else:
-            obj.delete()
-
-    def delete_queryset(self, request, queryset):
-        for obj in queryset:
-            if not obj.valid_flag:
-                obj.valid_flag = True
-                obj.save(update_fields=["valid_flag", "updated_by", "updated_at"])
-            else:
-                obj.delete()
-
     def get_readonly_fields(self, request, obj=None):
-        # 1. Fetch base/parent readonly fields safely
-        parent_readonly = super().get_readonly_fields(request, obj)
+        """Add audit fields to readonly_fields for all descendants."""
 
-        # 2. Define audit fields required for your custom fieldset
-        audit_readonly = ("valid_flag", "created_by", "created_at", "updated_by", "updated_at")
+        readonly_fields = list(super().get_readonly_fields(request, obj))
+        for f in ["valid_flag", "created_by", "created_at", "updated_by", "updated_at"]:
+            if f not in readonly_fields:
+                readonly_fields.append(f)
+        return readonly_fields
 
-        # 3. Merge without creating duplicates
-        return tuple(set(parent_readonly) | set(audit_readonly))
+    def get_list_display(self, request):
+        """Add audit fields to list_display for all descendants."""
+        list_display = list(super().get_list_display(request))
+        for f in ["valid_flag", "updated_by", "display_updated_at"]:
+            if f not in list_display:
+                list_display.append(f)
+        return tuple(list_display)
+
+    def get_list_filter(self, request):
+        """Add valid_flag to list_filter for all descendants."""
+        list_filter = list(super().get_list_filter(request))
+        for f in ["valid_flag"]:
+            if f not in list_filter:
+                list_filter.append(f)
+        return tuple(list_filter)
+
+    def get_fields(self, request, obj=None):
+        fields = list(super().get_fields(request, obj))
+        if "version" not in fields:
+            fields.append("version")
+        return fields
 
     def get_fieldsets(self, request, obj=None):
-        fieldsets = super().get_fieldsets(request, obj)
-        audit_section = (
-            None,
-            {
-                "fields": ("valid_flag", ("created_by", "created_at"), ("updated_by", "updated_at")),
-            },
-        )
-        fieldsets = list(fieldsets)
-        fieldsets.append(audit_section)
+        fieldsets = list(super().get_fieldsets(request, obj))
+        if fieldsets and not any("version" in opts.get("fields", []) for _, opts in fieldsets):
+            name, opts = fieldsets[0]
+            updated_fields = tuple(list(opts.get("fields", [])) + ["version"])
+            fieldsets[0] = (name, {**opts, "fields": updated_fields})
         return fieldsets
 
     def get_form(self, request, obj=None, **kwargs):
-        fieldsets = self.get_fieldsets(request, obj)
-        all_fields = []
-        for name, opts in fieldsets:
-            for f in opts.get("fields", []):
-                if isinstance(f, (list, tuple)):
-                    all_fields.extend(f)
-                else:
-                    all_fields.append(f)
-        kwargs["fields"] = all_fields
-        return super().get_form(request, obj, **kwargs)
+        form = super().get_form(request, obj, **kwargs)
+        if "version" in form.base_fields:
+            form.base_fields["version"].widget = forms.HiddenInput()
+        return form
+
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        try:
+            return super().changeform_view(request, object_id, form_url, extra_context)
+        except ConcurrencyError:
+            self.message_user(
+                request, _("This record was modified by another user while you were editing it. Your changes were not saved."), level=messages.ERROR
+            )
+            return HttpResponseRedirect(request.path)
+
+    def save_model(self, request, obj, form, change):
+        """Override to set created_by and updated_by fields based on the current user."""
+        if not obj.pk:
+            obj.created_by = request.user
+
+        obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
+
+    def delete_model(self, request, obj):
+        """Override to perform a soft delete by toggling the valid_flag instead of deleting the record."""
+        if obj.valid_flag:
+            obj.valid_flag = False
+        else:
+            obj.valid_flag = True
+
+        obj.updated_by = request.user.username
+        obj.save(update_fields=["valid_flag", "updated_by"])
+
+    def delete_queryset(self, request, queryset):
+        """Override to perform a soft delete on a queryset by toggling the valid_flag instead of deleting the records."""
+        for obj in queryset:
+            if obj.valid_flag:
+                obj.valid_flag = False
+            else:
+                obj.valid_flag = True
+
+            obj.updated_by = request.user.username
+            obj.save(update_fields=["valid_flag", "updated_by"])
 
 
 class MemberScopedModelAdminMixin(BaseModelAdminMixin):

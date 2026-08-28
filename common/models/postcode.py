@@ -1,11 +1,11 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from .base import AuthorizedModelMixin
+from .base import RowPermissionModelAdminMixin
 from .municipality import Municipality
 
 
-class Postcode(AuthorizedModelMixin, models.Model):
+class Postcode(RowPermissionModelAdminMixin, models.Model):
     """郵便番号マスタ"""
 
     postcode = models.CharField(_("Postcode"), max_length=7, null=False, blank=False)  # 郵便番号

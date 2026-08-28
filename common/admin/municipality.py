@@ -3,7 +3,7 @@ from import_export import fields, resources
 from import_export.instance_loaders import CachedInstanceLoader
 from import_export.widgets import ForeignKeyWidget
 
-from common.admin.base import AuthorizedModelAdminMixin
+from common.admin.base import RowPermissionModelAdminAdminMixin
 from common.models import Municipality, Prefecture
 
 from .filters import PrefectureFilter
@@ -29,7 +29,7 @@ class MunicipalityResource(resources.ModelResource):
 
 
 # @admin.register(Municipality, site=admin_site)
-class MunicipalityAdmin(AuthorizedModelAdminMixin, admin.ModelAdmin):
+class MunicipalityAdmin(RowPermissionModelAdminAdminMixin, admin.ModelAdmin):
     resource_class = MunicipalityResource
     list_display = ("prefecture", "code", "name")
     search_fields = ("prefecture__name", "code", "name")
@@ -43,8 +43,8 @@ class MunicipalityAdmin(AuthorizedModelAdminMixin, admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    def has_change_permission(self, request, obj=None):
-        return False
+    def has_import_permission(self, request):
+        return self.has_change_permission(request)
 
     def has_export_permission(self, request):
         return False

@@ -1,13 +1,13 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from .base import AuthorizedModelMixin
+from .base import RowPermissionModelAdminMixin
 
 # 2020年からのカレンダーを表示する
 CALENDAR_START_YEAR = 2020
 
 
-class Holiday(AuthorizedModelMixin, models.Model):
+class Holiday(RowPermissionModelAdminMixin, models.Model):
     """
     祝日・休日マスタ（国民の祝日、会社制定休日、法定休日、法定外休日、振替出勤日など）
     """

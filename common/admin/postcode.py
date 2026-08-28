@@ -1,8 +1,8 @@
+from django.contrib import admin
 from django.db import connection
 from import_export import resources
 
-from backoffice.admin import admin
-from common.admin.base import AuthorizedModelAdminMixin
+from common.admin.base import RowPermissionModelAdminAdminMixin
 from common.models import PostcodeImport
 
 from .filters import PrefectureFilter
@@ -72,7 +72,7 @@ class PostcodeResource(resources.ModelResource):
 
 
 # @admin.register(Postcode, site=admin_site)
-class PostcodeAdmin(AuthorizedModelAdminMixin, admin.ModelAdmin):
+class PostcodeAdmin(RowPermissionModelAdminAdminMixin, admin.ModelAdmin):
     resource_class = PostcodeResource
     list_display = ("postcode", "municipality", "town_name", "town_name_kana")
     search_fields = ("postcode", "municipality__name", "town_name")
@@ -86,8 +86,8 @@ class PostcodeAdmin(AuthorizedModelAdminMixin, admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    def has_change_permission(self, request, obj=None):
-        return False
+    def has_import_permission(self, request):
+        return self.has_change_permission(request)
 
     def has_export_permission(self, request):
         return False

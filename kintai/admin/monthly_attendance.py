@@ -14,7 +14,7 @@ from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
 
 from backoffice.admin import admin_site
-from common.admin.base import BaseModelAdminMixin, MemberScopedModelAdminMixin
+from common.admin.base import MemberScopedModelAdminMixin
 from common.models import WorkPattern
 from common.utils import minutes2str
 from kintai.models import ApproveStatus, DailyAttendance, MonthlyAttendance
@@ -83,10 +83,10 @@ class MonthlyAttendanceAdmin(MemberScopedModelAdminMixin, admin.ModelAdmin):
         "early_leave_days",
         "late_days",
         "display_total_absence_minutes",
-    ) + BaseModelAdminMixin.list_display
+    )
     search_fields = ("member__user__username", "member__user__last_name", "member__user__first_name", "member__organization__name")
     list_select_related = ("member", "work_pattern")
-    list_filter = (MonthFilter, "approve_status") + BaseModelAdminMixin.list_filter
+    list_filter = (MonthFilter, "approve_status")
     readonly_fields = (
         "display_worked_days",
         "display_working_time",

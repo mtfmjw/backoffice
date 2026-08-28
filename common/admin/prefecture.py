@@ -3,7 +3,7 @@ from import_export import resources
 
 from common.models import Prefecture
 
-from .base import AuthorizedModelAdminMixin
+from .base import RowPermissionModelAdminAdminMixin
 
 
 class PrefectureResource(resources.ModelResource):
@@ -17,7 +17,7 @@ class PrefectureResource(resources.ModelResource):
 
 
 # @admin.register(Prefecture, site=admin_site)
-class PrefectureAdmin(AuthorizedModelAdminMixin, admin.ModelAdmin):
+class PrefectureAdmin(RowPermissionModelAdminAdminMixin, admin.ModelAdmin):
     resource_class = PrefectureResource
     list_display = ("name", "code")
     list_display_links = None
@@ -29,8 +29,14 @@ class PrefectureAdmin(AuthorizedModelAdminMixin, admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    def has_change_permission(self, request, obj=None):
-        return False
+    def has_import_permission(self, request):
+        return self.has_change_permission(request)
 
     def has_export_permission(self, request):
         return False
+
+
+# print Method Resolution Order of Prefecture class
+# print([cls.__name__ for cls in PrefectureAdmin.__mro__])
+# Find which class in the MRO actually owns the active has_add_permission implementation
+# print(PrefectureAdmin.has_change_permission.__qualname__)

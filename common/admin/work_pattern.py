@@ -12,7 +12,7 @@ from common.models import WorkPattern
 from common.utils import convert2duration, duration2minutes, duration2str
 from common.validation import time_range_validation
 
-from .base import AuthorizedModelAdminMixin
+from .base import RowPermissionModelAdminAdminMixin
 
 
 class WorkPatternResource(resources.ModelResource):
@@ -107,7 +107,7 @@ class WorkPatternForm(forms.ModelForm):
 
 
 @admin.register(WorkPattern, site=admin_site)
-class WorkPatternAdmin(AuthorizedModelAdminMixin, admin.ModelAdmin):
+class WorkPatternAdmin(RowPermissionModelAdminAdminMixin, admin.ModelAdmin):
     form = WorkPatternForm
     resource_class = WorkPatternResource
     list_display = (
@@ -123,22 +123,15 @@ class WorkPatternAdmin(AuthorizedModelAdminMixin, admin.ModelAdmin):
         "break5_duration",
     )
     search_fields = ("name",)
-    fieldsets = (
-        (
-            None,
-            {
-                "fields": (
-                    "name",
-                    ("start_time", "end_time", "standard_work_time"),
-                    ("lunch_break_start_time", "lunch_break_end_time", "half_day_time"),
-                    ("break1_start_time", "break1_end_time"),
-                    ("break2_start_time", "break2_end_time"),
-                    ("break3_start_time", "break3_end_time"),
-                    ("break4_start_time", "break4_end_time"),
-                    ("break5_start_time", "break5_end_time"),
-                ),
-            },
-        ),
+    fields = (
+        "name",
+        ("start_time", "end_time", "standard_work_time"),
+        ("lunch_break_start_time", "lunch_break_end_time", "half_day_time"),
+        ("break1_start_time", "break1_end_time"),
+        ("break2_start_time", "break2_end_time"),
+        ("break3_start_time", "break3_end_time"),
+        ("break4_start_time", "break4_end_time"),
+        ("break5_start_time", "break5_end_time"),
     )
 
     class Media:
