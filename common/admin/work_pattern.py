@@ -12,10 +12,10 @@ from common.models import WorkPattern
 from common.utils import convert2duration, duration2minutes, duration2str
 from common.validation import time_range_validation
 
-from .base import MemberScopedAdmin
+from .base import ImportBaseModelResourceMixin, MemberScopedBaseModelAdmin
 
 
-class WorkPatternResource(resources.ModelResource):
+class WorkPatternResource(ImportBaseModelResourceMixin, resources.ModelResource):
     class Meta:
         skip_unchanged = True
         report_skipped = True
@@ -41,6 +41,11 @@ class WorkPatternResource(resources.ModelResource):
             "break4_end_time",
             "break5_start_time",
             "break5_end_time",
+            "created_by",
+            "created_at",
+            "updated_by",
+            "updated_at",
+            "valid_flag",
         )
         import_id_fields = ("name",)
 
@@ -107,7 +112,7 @@ class WorkPatternForm(forms.ModelForm):
 
 
 @admin.register(WorkPattern, site=admin_site)
-class WorkPatternAdmin(MemberScopedAdmin):
+class WorkPatternAdmin(MemberScopedBaseModelAdmin):
     form = WorkPatternForm
     resource_class = WorkPatternResource
     list_display = (

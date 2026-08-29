@@ -3,12 +3,12 @@ from datetime import time
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from .base import MemberScopedModel
+from .base import MemberScopedBaseModel
 
 DEFAULT_WORK_PATTERN_NAME = "所定"
 
 
-class WorkPattern(MemberScopedModel):
+class WorkPattern(MemberScopedBaseModel):
     """就業パターンマスタ（通常・シフト・フレックスなど）"""
 
     name = models.CharField(_("Work Pattern Name"), max_length=100, unique=True)

@@ -13,44 +13,13 @@ from common.utils import (
     get_overlap_minutes,
     minutes2str,
 )
+from kintai.const import HALF_DAY_MINUTES, NIGHT_END_TIME, NIGHT_START_TIME, TIME_UNIT, WEEKDAYS, DateStatus, DateType
 
 from .monthly_attendance import MonthlyAttendance
-
-NIGHT_START_TIME = time(22, 0)
-NIGHT_END_TIME = time(5, 0)
-HALF_DAY_MINUTES = 180  # 半日休暇の時間（分）
-TIME_UNIT = 15  # 勤怠計算の時間単位（分）、当該単位で切り捨てて計算する。15分単位で計算する場合は15、30分単位で計算する場合は30を設定する。
-
-WEEKDAYS = ["月", "火", "水", "木", "金", "土", "日"]
 
 
 class DailyAttendance(models.Model):
     """日次勤怠テーブル（1人1日あたりの確定データ）"""
-
-    class DateType(models.IntegerChoices):
-        """勤務日分類"""
-
-        WORK_DAY = 0, _("Work Day")  # 平日
-        SCHEDULED_DAY_OFF = 1, _("Scheduled Day Off")  # 所定休日(週休2日制の土曜日、年末年始など)
-        STATUTORY_DAY_OFF = 2, _("Statutory Day Off")  # 法定休日（法律で定められた月4回の休日、日曜日など）
-        NATIONAL_HOLIDAY = 3, _("National Holiday")  # 国民の祝日
-        TRANSFER_HOLIDAY = 4, _("Transfer Holiday")  # 振替休日、祝日が土日と重なった場合に、翌日を振替休日（法定休日）とする
-
-    class DateStatus(models.IntegerChoices):
-        """就業区分"""
-
-        PRESENT = 0, _("Present")  # 出勤
-        ABSENCE = 1, _("Absence")  # 欠勤
-        MORNING_PAID_LEAVE = 2, _("Morning Half-Day Leave")  # 午前半休
-        AFTERNOON_PAID_LEAVE = 3, _("Afternoon Half-Day Leave")  # 午後半休
-        PAID_LEAVE = 4, _("Paid Leave")  # 有給休暇
-        # 特別休暇：結婚、忌引、出産、育児、介護などの理由で取得する休暇。会社の規定に基づき、特別な理由で取得する休暇であり、通常の有給休暇とは異なる。
-        SPECIAL_PAID_LEAVE = 5, _("Special Paid Leave")  # 特別休暇
-        # 振替休日：出勤する前に、あらかじめ休日と入れ替えた日。休日と労働日を交換したため、出勤日（元の休日）は通常の労働日となる。
-        SUBSTITUTE_HOLIDAY = 6, _("Substitute Holiday")  # 振替休日
-        # 代休日：休日に出勤して、後日休んだ日。休日に出勤したため、出勤日（元の休日）は休日出勤となる。
-        COMPENSATORY_HOLIDAY = 7, _("Compensatory Holiday")  # 代休
-        SP5 = 8, _("SP5")  # 4-5月：ゴールデンウイーク2日、7-9月：夏季休暇3日、12/29-1/3：年末年始休暇6日
 
     monthly_attendance = models.ForeignKey(
         MonthlyAttendance, on_delete=models.CASCADE, related_name="daily_attendances", verbose_name=_("Monthly Attendance")
@@ -73,11 +42,11 @@ class DailyAttendance(models.Model):
     night_absence = models.TimeField(_("Night Absence"), null=True, blank=True)  # 夜間不在時間
 
     # 日次算出結果を保存するフィールド
-    actual_work_minutes = models.PositiveIntegerField(_("Actual Working Time"), null=True, blank=True)  # 実稼働時間（分）
-    overtime_minutes = models.PositiveIntegerField(_("Overtime"), null=True, blank=True)  # 残業時間（分）
-    night_work_minutes = models.PositiveIntegerField(_("Night Working Time"), null=True, blank=True)  # 深夜残業時間（分）
-    late_minutes = models.PositiveIntegerField(_("Late"), null=True, blank=True)  # 遅刻時間（分）
-    early_leave_minutes = models.PositiveIntegerField(_("Early Leave"), null=True, blank=True)  # 早退時間（分）
+    actual_work_minutes = models.PositiveIntegerField(_("Actual Working Time"), default=0, null=True, blank=True)  # 実稼働時間（分）
+    overtime_minutes = models.PositiveIntegerField(_("Overtime"), default=0, null=True, blank=True)  # 残業時間（分）
+    night_work_minutes = models.PositiveIntegerField(_("Night Working Time"), default=0, null=True, blank=True)  # 深夜残業時間（分）
+    late_minutes = models.PositiveIntegerField(_("Late"), default=0, null=True, blank=True)  # 遅刻時間（分）
+    early_leave_minutes = models.PositiveIntegerField(_("Early Leave"), default=0, null=True, blank=True)  # 早退時間（分）
 
     class Meta:
         db_table = "attendance_daily"
@@ -94,27 +63,38 @@ class DailyAttendance(models.Model):
             night_work_time = f"{_('Night Working Time')}：{minutes2str(self.night_work_minutes)}" if self.night_work_minutes is not None else ""
             is_late = f"{_('Late')}：{minutes2str(self.late_minutes)}" if self.late_minutes else ""
             is_early_leave = f"{_('Early Leave')}：{minutes2str(self.early_leave_minutes)}" if self.early_leave_minutes else ""
-            absence_days = f"{_('Absence Days')}：1" if self.date_status == self.DateStatus.ABSENCE else ""
+            absence_days = f"{_('Absence Days')}：1" if self.date_status == DateStatus.ABSENCE else ""
             return f"{default_message}　{working_time}　{overtime}　{night_work_time}　{is_late}　{is_early_leave} {absence_days}"
         else:
             return default_message
 
     def is_work_day(self):
         """勤務日かどうかを返す"""
-        return self.date_type == self.DateType.WORK_DAY
+        return self.date_type == DateType.WORK_DAY
 
     def is_present(self):
         """就業状態かどうかを返す"""
         return (
             (
-                self.date_status == self.DateStatus.PRESENT
-                or self.date_status == self.DateStatus.MORNING_PAID_LEAVE
-                or self.date_status == self.DateStatus.AFTERNOON_PAID_LEAVE
+                self.date_status == DateStatus.PRESENT
+                or self.date_status == DateStatus.MORNING_PAID_LEAVE
+                or self.date_status == DateStatus.AFTERNOON_PAID_LEAVE
             )
             and self.work_pattern is not None
             and self.clock_in_time is not None
             and self.clock_out_time is not None
         )
+
+    def get_worked_days(self) -> float:
+        """就業日数を返す"""
+        if not self.is_present():
+            return 0
+        if self.date_status == DateStatus.PRESENT:
+            return 1
+        elif self.date_status in [DateStatus.MORNING_PAID_LEAVE, DateStatus.AFTERNOON_PAID_LEAVE]:
+            return 0.5
+        else:
+            return 0
 
     def get_adjusted_work_duration(self) -> tuple[datetime, datetime]:
         """勤怠計算用勤務時間を返す（半休などを考慮して計算）"""
@@ -135,13 +115,13 @@ class DailyAttendance(models.Model):
             return None, None
 
         start_time, end_time = convert2duration(self.day, self.work_pattern.start_time, self.work_pattern.end_time)
-        if self.date_status == self.DateStatus.MORNING_PAID_LEAVE:
+        if self.date_status == DateStatus.MORNING_PAID_LEAVE:
             # 午前半休後の勤務開始時刻を設定
             if self.work_pattern.half_day_time is not None:
                 start_time = convert2datetime(self.day, self.work_pattern.half_day_time)
             else:
                 start_time += timedelta(minutes=HALF_DAY_MINUTES)
-        elif self.date_status == self.DateStatus.AFTERNOON_PAID_LEAVE:
+        elif self.date_status == DateStatus.AFTERNOON_PAID_LEAVE:
             # 午後半休前の勤務終了時刻を設定
             if self.work_pattern.half_day_time is not None:
                 end_time = convert2datetime(self.day, self.work_pattern.half_day_time)
@@ -248,18 +228,22 @@ class DailyAttendance(models.Model):
 
     def get_paid_leave_days(self) -> float:
         """有給休暇取得日数を返す"""
-        if self.date_status == self.DateStatus.PAID_LEAVE:
+        if self.date_status == DateStatus.PAID_LEAVE:
             return 1
-        elif self.date_status in [self.DateStatus.MORNING_PAID_LEAVE, self.DateStatus.AFTERNOON_PAID_LEAVE]:
+        elif self.date_status in [DateStatus.MORNING_PAID_LEAVE, DateStatus.AFTERNOON_PAID_LEAVE]:
             return 0.5
         return 0
 
-    def save(self, *args, **kwargs):
-        """日次勤怠を保存する際に、月次勤怠の実労働時間、残業時間、深夜労働時間を更新する"""
-
+    def update_derived_fields(self):
+        """日次勤怠の派生フィールドを設定する"""
         self.actual_work_minutes = self.get_actual_work_minutes() if self.is_present() else 0
         self.overtime_minutes = self.get_overtime_minutes() if self.is_present() else 0
         self.night_work_minutes = self.get_night_work_minutes() if self.is_present() else 0
         self.late_minutes = self.get_late_minutes() if self.is_present() else 0
         self.early_leave_minutes = self.get_early_leave_minutes() if self.is_present() else 0
+
+    def save(self, *args, **kwargs):
+        """日次勤怠を保存する際に、月次勤怠の実労働時間、残業時間、深夜労働時間を更新する"""
+
+        self.update_derived_fields()  # 派生フィールドを設定する
         super().save(*args, **kwargs)

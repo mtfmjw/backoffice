@@ -1,6 +1,7 @@
 from .base import (
     BaseModelAdminMixin,
     CommonImportExportMixin,
+    ImportBaseModelResourceMixin,
     MemberScopedAdmin,
     MemberScopedAdminMixin,
     MemberScopedBaseModelAdmin,
@@ -19,6 +20,7 @@ from .work_pattern import WorkPatternAdmin
 
 __all__ = [  # noqa: RUF022
     "CommonImportExportMixin",
+    "ImportBaseModelResourceMixin",
     "MemberScopedAdminMixin",
     "MemberScopedAdmin",
     "MemberScopedBaseModelAdmin",

@@ -41,6 +41,7 @@
         <div class="break-grid-cell summary">{{ total_absence_time }}</div>
 
         <!-- WorkPattern Headers -->
+        <div class="break-grid-header work-pattern">{{ standard_working_days_label }}</div>
         <div class="break-grid-header work-pattern">勤務時間</div>
         <div class="break-grid-header work-pattern">昼休憩<input type="checkbox" name="apply_lunch_break" id="id_apply_lunch_break" class="apply-break-checkbox"></div>
         <div class="break-grid-header work-pattern">休憩1<input type="checkbox" name="apply_break1" id="id_apply_break1" class="apply-break-checkbox"></div>
@@ -48,12 +49,13 @@
         <div class="break-grid-header work-pattern">休憩3<input type="checkbox" name="apply_break3" id="id_apply_break3" class="apply-break-checkbox"></div>
         <div class="break-grid-header work-pattern">休憩4<input type="checkbox" name="apply_break4" id="id_apply_break4" class="apply-break-checkbox"></div>
         <div class="break-grid-header work-pattern">休憩5<input type="checkbox" name="apply_break5" id="id_apply_break5" class="apply-break-checkbox"></div>
-        <!-- 結合する最終列のセル（8番目の要素） -->
-        <div class="break-grid-cell work-pattern apply-button">
+        <!-- 結合する最終列のセル -->
+        <div class="break-grid-header work-pattern apply-button">
             <button type="button" class="button" onclick="applyToAll(this)">休憩パターン適用</button>
         </div>
 
         <!-- WorkPattern Values -->
+        <div class="break-grid-cell work-pattern">{{ standard_working_days }}</div>
         <div class="break-grid-cell work-pattern">{{ work_duration }}</div>
         <div class="break-grid-cell work-pattern">{{ lunch_break_duration }}</div>
         <div class="break-grid-cell work-pattern">{{ break1_duration }}</div>

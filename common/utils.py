@@ -5,8 +5,8 @@ from django.utils.timezone import datetime, is_naive, localtime, make_aware
 from django.utils.translation import gettext_lazy as _
 
 
-def convert2localtime(original_datetime) -> datetime:
-    """Convert a datetime object to local time."""
+def convert2localtime(original_datetime: datetime) -> datetime:
+    """Convert a naive datetime to an aware datetime in the local timezone."""
     if original_datetime is None:
         return None
     if is_naive(original_datetime):
@@ -14,7 +14,15 @@ def convert2localtime(original_datetime) -> datetime:
     return localtime(original_datetime)
 
 
+def convert2str(original_datetime: datetime, format: str = "%Y/%m/%d %H:%M:%S") -> str:
+    """Convert a datetime to a string in the specified format."""
+    if original_datetime is None:
+        return "-"
+    return convert2localtime(original_datetime).strftime(format)
+
+
 def convert2datetime(base_date: date, time: time) -> datetime:
+    """Convert a date and time to a timezone-aware datetime object."""
     if base_date is None or time is None:
         return None
 
@@ -22,6 +30,7 @@ def convert2datetime(base_date: date, time: time) -> datetime:
 
 
 def convert2duration(base_date: date, start_time: time, end_time: time) -> tuple[datetime, datetime]:
+    """Convert a date and start/end times to a tuple of timezone-aware datetime objects."""
     if start_time is None or end_time is None:
         return None, None
 
@@ -33,6 +42,7 @@ def convert2duration(base_date: date, start_time: time, end_time: time) -> tuple
 
 
 def duration2minutes(duration: tuple[datetime, datetime]) -> int:
+    """Return the duration in minutes."""
     start_time, end_time = duration
     if start_time and end_time:
         if start_time <= end_time:
@@ -73,7 +83,7 @@ def get_overlap_duration(duration1: tuple[datetime, datetime], duration2: tuple[
 
 
 def get_overlap_minutes(duration1: tuple[datetime, datetime], duration2: tuple[datetime, datetime]) -> int:
-    """指定された時間帯と勤務時間の重複時間を分単位で返す"""
+    """Return the overlapping duration in minutes."""
     overlap_start, overlap_end = get_overlap_duration(duration1, duration2)
 
     if overlap_start and overlap_end:
@@ -82,8 +92,10 @@ def get_overlap_minutes(duration1: tuple[datetime, datetime], duration2: tuple[d
 
 
 def minutes2str(minutes: int) -> str:
-    return f"{int(minutes // 60):02d}:{int(minutes % 60):02d}" if minutes is not None else ""
+    """Return the duration in HH:MM format."""
+    return f"{int(minutes // 60):02d}:{int(minutes % 60):02d}" if minutes is not None else "-"
 
 
 def minutes2str_ja(minutes: int) -> str:
-    return f"{int(minutes // 60):02d}時間{int(minutes % 60):02d}分" if minutes is not None else ""
+    """Return the duration in Japanese HH時間MM分 format."""
+    return f"{int(minutes // 60):02d}時間{int(minutes % 60):02d}分" if minutes is not None else "-"
