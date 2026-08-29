@@ -1,25 +1,31 @@
-import datetime
+from datetime import datetime
+from urllib.parse import urlencode
 
 from dateutil.relativedelta import relativedelta
 from django import forms
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter, display
+from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.db import connection, transaction
 from django.db.models import Q
 from django.forms import TextInput
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.utils.timezone import localdate
+from django.utils.timezone import localdate, localtime
 from django.utils.translation import gettext_lazy as _
 
 from backoffice.admin import admin_site
 from common.admin.base import RowScopedBaseModelAdmin
 from common.models import WorkPattern
-from common.utils import minutes2str
-from kintai.models import ApproveStatus, DailyAttendance, MonthlyAttendance
+from common.models.member import get_user_full_name
+from common.utils import convert2str, minutes2str
+from kintai.const import ApproveStatus
+from kintai.models import MonthlyAttendance
 
 from .daily_attendance import DailyAttendanceInline
+
+User = get_user_model()
 
 
 class MonthFilter(SimpleListFilter):
@@ -75,6 +81,7 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
         "belong",
         "approve_status",
         "display_worked_days",
+        "display_standard_working_days",
         "display_working_time",
         "display_overtime",
         "display_night_working_time",
@@ -87,12 +94,17 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
     search_fields = ("member__user__username", "member__user__last_name", "member__user__first_name", "member__organization__name")
     list_select_related = ("member", "work_pattern")
     list_filter = (MonthFilter, "approve_status")
+    fields = ("note",)
     readonly_fields = (
         "display_worked_days",
+        "display_standard_working_days",
         "display_working_time",
         "display_overtime",
         "display_night_working_time",
         "display_paid_leave_days",
+        "absence_days",
+        "early_leave_days",
+        "late_days",
     )
     inlines = (DailyAttendanceInline,)
 
@@ -108,11 +120,11 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
 
     @display(description=_("Days Worked"))
     def display_worked_days(self, obj) -> str:
-        if not obj or not obj.month:
-            return ""
+        return f"{obj.worked_days:.1f}日"
 
-        worked_days_val = obj.worked_days or 0
-        return f"{worked_days_val}/{obj.standard_working_days}日" if obj.standard_working_days is not None else ""
+    @display(description=_("Standard Working Days"))
+    def display_standard_working_days(self, obj) -> str:
+        return f"{obj.standard_working_days}日"
 
     @display(description=_("Actual Working Time"))
     def display_working_time(self, obj) -> str:
@@ -134,12 +146,41 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
     def display_total_absence_minutes(self, obj) -> str:
         return minutes2str(obj.total_absence_minutes)
 
+    @display(description=_("Audit Info"))
+    def audit_info(self, obj):
+        """Display audit information for the object, including created_by, created_at, updated_by, and updated_at."""
+
+        if obj is None:
+            return ""
+
+        if obj.applied_at is None:
+            return super().audit_info(obj)
+
+        # 申請者情報
+        applied_by = get_user_full_name(obj.applied_by) or "-"
+        applied_at = convert2str(obj.applied_at)
+        audit_info = f"{_('Applied by')}：{applied_by}　{_('Applied at')}：{applied_at}　"
+        # 承認者情報
+        approved_by = get_user_full_name(obj.approved_by) or "-"
+        approved_at = convert2str(obj.approved_at)
+        audit_info += f"　{_('Approved by')}：{approved_by}　{_('Approved at')}：{approved_at}　"
+        # 確定者情報
+        confirmed_by = get_user_full_name(obj.confirmed_by) or "-"
+        confirmed_at = convert2str(obj.confirmed_at)
+        audit_info += f"　{_('Confirmed by')}：{confirmed_by}　{_('Confirmed at')}：{confirmed_at}"
+        return audit_info
+
     def has_add_permission(self, request):
         return request.user.is_authenticated and hasattr(request.user, "member")
 
     def has_change_permission(self, request, obj=None):
         # self.model.is_editable_by()によりCSSで編集可不可を制御するため、常にTrueを返す
         return self.model.is_authorized(request.user)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj is None:
+            return False  # 月次勤怠は一覧画面から削除不可
+        return super().has_delete_permission(request, obj)
 
     def is_all_organizations_accessible(self, request):
         return super().is_all_organizations_accessible(request) or (
@@ -174,37 +215,48 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
 
         return super().get_changeform_initial_data(request)
 
-    def get_fieldsets(self, request, obj=None):
-        return (
-            (
-                None,
-                {
-                    "fields": ("note",),
-                },
-            ),
-        )
-
     def add_view(self, request, form_url="", extra_context=None):
         if not request.user.is_authenticated or not hasattr(request.user, "member"):
             raise PermissionDenied
 
         member = request.user.member
         month_str = request.GET.get("month", localdate().strftime("%Y-%m"))
-        first_day = datetime.datetime.strptime(month_str, "%Y-%m").date()  # noqa: DTZ007
+        first_day = datetime.strptime(month_str, "%Y-%m").date()  # noqa: DTZ007
         attendance = MonthlyAttendance.objects.filter(member=member, month=first_day).first()
-        if attendance:
+        if attendance is not None and attendance.valid_flag:
             attendance_id = attendance.id
         else:
+            if attendance is not None and not attendance.valid_flag:
+                attendance.delete()
             with transaction.atomic(), connection.cursor() as cursor:
                 cursor.execute("""CALL create_monthly_attendance(%s, %s, %s, %s);""", [member.id, first_day, request.user.username, 0])
                 attendance_id = cursor.fetchone()[0]
+                monthly_attendance = MonthlyAttendance.objects.get(id=attendance_id)
+                for daily_attendance in monthly_attendance.daily_attendances.all():
+                    daily_attendance.update_derived_fields()  # DailyAttendance instance
+                    daily_attendance.save()
+                monthly_attendance.update_derived_fields()  # MonthlyAttendance instance
 
-        return redirect(reverse("admin:kintai_monthlyattendance_change", args=(attendance_id,)))
+        # 1. Get the current request's GET query string (e.g., "status=1&month=2026-08")
+        # Or get it from request.META.get('HTTP_REFERER') if coming from a different view
+        preserved_filters = request.GET.urlencode()
+
+        # 2. Reverse the change form URL
+        base_url = reverse("admin:kintai_monthlyattendance_change", args=(attendance_id,))
+
+        # 3. Append _changelist_filters if filter parameters exist
+        if preserved_filters:
+            redirect_url = f"{base_url}?{urlencode({'_changelist_filters': preserved_filters})}"
+        else:
+            redirect_url = base_url
+
+        return redirect(redirect_url)
 
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         extra_context = extra_context or {}
 
         extra_context["worked_days_label"] = _("Days Worked")
+        extra_context["standard_working_days_label"] = _("Standard Working Days")
         extra_context["actual_working_time_label"] = _("Actual Working Time")
         extra_context["overtime_label"] = _("Overtime")
         extra_context["night_working_time_label"] = _("Night Working Time")
@@ -217,6 +269,7 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
         if object_id is not None:
             obj = self.get_object(request, object_id)
             extra_context["worked_days"] = self.display_worked_days(obj)
+            extra_context["standard_working_days"] = self.display_standard_working_days(obj)
             extra_context["actual_working_time"] = self.display_working_time(obj)
             extra_context["overtime"] = self.display_overtime(obj)
             extra_context["night_working_time"] = self.display_night_working_time(obj)
@@ -243,7 +296,7 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
                 extra_context["show_save"] = False
                 extra_context["show_save_and_continue"] = False
                 extra_context["next"] = True
-                if obj.approve_status in [ApproveStatus.REJECTED, ApproveStatus.FINALIZED]:
+                if obj.approve_status in [ApproveStatus.REJECTED, ApproveStatus.CONFIRMED]:
                     extra_context["show_apply_button"] = False
                     extra_context["show_reject_button"] = False
                 else:
@@ -255,12 +308,12 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
                         extra_context["apply_button_label"] = _("Approve")
                         extra_context["save_and_add_label"] = _("Approve and Go to Next")
                     elif obj.approve_status == ApproveStatus.APPROVED:
-                        extra_context["show_apply_button"] = obj.is_finalizable_by(login_user)
-                        extra_context["show_reject_button"] = obj.is_finalizable_by(login_user)
+                        extra_context["show_apply_button"] = obj.is_confirmable_by(login_user)
+                        extra_context["show_reject_button"] = obj.is_confirmable_by(login_user)
                         extra_context["show_reject_button"] = True
-                        extra_context["apply_button_name"] = "_finalize"
-                        extra_context["apply_button_label"] = _("Finalize")
-                        extra_context["save_and_add_label"] = _("Finalize and Go to Next")
+                        extra_context["apply_button_name"] = "_confirm"
+                        extra_context["apply_button_label"] = _("Confirm")
+                        extra_context["save_and_add_label"] = _("Confirm and Go to Next")
         else:
             work_pattern = WorkPattern.get_work_pattern(request.user.member)
             extra_context["show_apply_button"] = True
@@ -280,19 +333,27 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
     def save_model(self, request, obj, form, change):
         if "_apply" in request.POST:
             obj.approve_status = ApproveStatus.APPLIED
+            obj.applied_by = request.user.username
+            obj.applied_at = localtime()
         elif "_approve" in request.POST:
             obj.approve_status = ApproveStatus.APPROVED
-        elif "_finalize" in request.POST:
-            obj.approve_status = ApproveStatus.FINALIZED
+            obj.approved_by = request.user.username
+            obj.approved_at = localtime()
+        elif "_confirm" in request.POST:
+            obj.approve_status = ApproveStatus.CONFIRMED
+            obj.confirmed_by = request.user.username
+            obj.confirmed_at = localtime()
         elif "_reject" in request.POST:
             obj.approve_status = ApproveStatus.REJECTED
         elif "_reapply" in request.POST:
             obj.approve_status = ApproveStatus.APPLIED
+            obj.applied_by = request.user.username
+            obj.applied_at = localtime()
 
         super().save_model(request, obj, form, change)
 
     def save_formset(self, request, form, formset, change):
-        # 1. Save the inline formset instances first
+        # Save the inline formset instances first
         instances = formset.save(commit=False)
         for instance in instances:
             instance.save()
@@ -302,42 +363,4 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
         for obj in formset.deleted_objects:
             obj.delete()
 
-        # 2. Sum model instance methods for DailyAttendance
-        if formset.model == DailyAttendance:
-            parent_instance = form.instance  # MonthlyAttendance instance
-
-            # Fetch fresh inline records from DB (or evaluate in-memory saved instances)
-            daily_records = parent_instance.daily_attendances.all()
-
-            # Sum the return value of actual_work_minutes() for each record
-            parent_instance.actual_work_minutes = sum(record.actual_work_minutes or 0 for record in daily_records)
-            parent_instance.overtime_minutes = sum(record.overtime_minutes or 0 for record in daily_records)
-            parent_instance.night_work_minutes = sum(record.night_work_minutes or 0 for record in daily_records)
-            parent_instance.worked_days = sum(1 if record.is_present() else 0 for record in daily_records)
-            parent_instance.paid_leave_days = sum(record.get_paid_leave_days() or 0 for record in daily_records)
-            parent_instance.standard_working_days = sum(1 if record.is_work_day() else 0 for record in daily_records)
-            parent_instance.absence_days = sum(1 if record.date_status == DailyAttendance.DateStatus.ABSENCE else 0 for record in daily_records)
-            parent_instance.early_leave_days = sum(1 if (record.early_leave_minutes or 0) > 0 else 0 for record in daily_records)
-            parent_instance.late_days = sum(1 if (record.late_minutes or 0) > 0 else 0 for record in daily_records)
-            parent_instance.total_absence_minutes = sum(
-                (record.early_leave_minutes or 0)
-                + (record.late_minutes or 0)
-                + (record.work_pattern.get_standard_work_minutes() if record.date_status == DailyAttendance.DateStatus.ABSENCE else 0)
-                for record in daily_records
-            )
-
-            # 3. Update the parent instance
-            parent_instance.save(
-                update_fields=[
-                    "actual_work_minutes",
-                    "overtime_minutes",
-                    "night_work_minutes",
-                    "worked_days",
-                    "paid_leave_days",
-                    "standard_working_days",
-                    "absence_days",
-                    "early_leave_days",
-                    "late_days",
-                    "total_absence_minutes",
-                ]
-            )
+        form.instance.update_derived_fields()  # MonthlyAttendance instance

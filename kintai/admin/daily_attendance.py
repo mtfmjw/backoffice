@@ -11,8 +11,8 @@ from django.utils.translation import gettext_lazy as _
 
 from common.utils import convert2datetime, convert2duration, duration2minutes, get_overlap_minutes
 from common.validation import mandatory_validation
+from kintai.const import NIGHT_END_TIME, NIGHT_START_TIME, DateStatus, DateType
 from kintai.models import DailyAttendance
-from kintai.models.daily_attendance import NIGHT_END_TIME, NIGHT_START_TIME
 
 
 class DailyAttendanceInlineForm(forms.ModelForm):
@@ -52,9 +52,9 @@ class DailyAttendanceInlineForm(forms.ModelForm):
 
         date_status = cleaned_data.get("date_status")
         if date_status in (
-            DailyAttendance.DateStatus.PRESENT,
-            DailyAttendance.DateStatus.MORNING_PAID_LEAVE,
-            DailyAttendance.DateStatus.AFTERNOON_PAID_LEAVE,
+            DateStatus.PRESENT,
+            DateStatus.MORNING_PAID_LEAVE,
+            DateStatus.AFTERNOON_PAID_LEAVE,
         ):
             mandatory_validation(self, cleaned_data, "work_pattern", _("Work Pattern"))
             mandatory_validation(self, cleaned_data, "clock_in_time_only", _("Clock In"))
@@ -62,7 +62,7 @@ class DailyAttendanceInlineForm(forms.ModelForm):
 
         date_type = cleaned_data.get("date_type")
         # 休日の場合、日次ステータスは空白にするか、「出勤」のみ許可する
-        if date_type != DailyAttendance.DateType.WORK_DAY and date_status is not None and date_status != DailyAttendance.DateStatus.PRESENT:
+        if date_type != DateType.WORK_DAY and date_status is not None and date_status != DateStatus.PRESENT:
             self.add_error("date_status", _("Date Status cannot be set to anything other than Present on a Holiday."))
 
         clock_in_time = cleaned_data.get("clock_in_time_only")

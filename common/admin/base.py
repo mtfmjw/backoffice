@@ -3,6 +3,7 @@ from typing import ClassVar
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin import display
+from django.contrib.auth import get_user_model
 from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
 from import_export.admin import ImportExportMixin
@@ -12,7 +13,10 @@ from import_export.forms import ExportForm
 from common.admin.filters import OrganizationFilter
 from common.models import Organization
 from common.models.base import ConcurrencyError
-from common.utils import convert2localtime
+from common.models.member import get_user_full_name
+from common.utils import convert2str
+
+User = get_user_model()
 
 
 class CommonImportExportMixin(ImportExportMixin):
@@ -31,7 +35,8 @@ class CommonImportExportMixin(ImportExportMixin):
     import_formats = (CSV,)
     export_formats = (CSV,)
     export_form_class = DirectExportForm
-    # export_template_name = "admin/common/export.html"
+    export_template_name = "admin/common/export.html"
+    import_template_name = "admin/common/import.html"
 
     def has_import_permission(self, request):
         permission = self.has_add_permission(request) and self.has_change_permission(request)
@@ -40,6 +45,18 @@ class CommonImportExportMixin(ImportExportMixin):
     def has_export_permission(self, request):
         """Override to check if the user has permission to export data."""
         return self.has_view_permission(request)
+
+    def get_changelist_url(self, request):
+        """
+        直前に適用されていたフィルター（クエリパラメータ）を取得して復元したURLを返します。
+        """
+        # 直前のチェンジリストのフィルター情報を取得
+        preserved_filters = request.GET.get("_changelist_filters")
+        changelist_url = super().get_changelist_url(request)
+
+        if preserved_filters:
+            return f"{changelist_url}?{preserved_filters}"
+        return changelist_url
 
 
 class MemberScopedAdminMixin:
@@ -156,10 +173,31 @@ class BaseModelAdminMixin:
     class Media:
         css: ClassVar[dict[str, tuple[str, ...]]] = {"all": ("admin/css/admin_extra.css",)}
 
-    @display(description=_("Update Time"))
+    @display(description=_("Updated by"))
+    def display_updated_by(self, obj):
+        return get_user_full_name(obj.updated_by) if obj.updated_by else "-"
+
+    @display(description=_("Updated at"))
     def display_updated_at(self, obj):
-        updated_at = convert2localtime(obj.updated_at)
-        return updated_at.strftime("%Y/%m/%d %H:%M:%S")
+        return convert2str(obj.updated_at) if obj.updated_at else "-"
+
+    @display(description=_("Audit Info"))
+    def audit_info(self, obj):
+        """Display audit information for the object, including created_by, created_at, updated_by, and updated_at."""
+
+        if obj is None:
+            return ""
+
+        # 作成者情報
+        created_by = get_user_full_name(obj.created_by)
+        created_at = convert2str(obj.created_at)
+        audit_info = f"{_('Created by')}：{created_by}　{_('Created at')}：{created_at}　"
+
+        # 更新者情報
+        updated_by = get_user_full_name(obj.updated_by)
+        updated_at = convert2str(obj.updated_at)
+        audit_info += f"　{_('Updated by')}：{updated_by}　{_('Updated at')}：{updated_at}"
+        return audit_info
 
     def get_list_display(self, request):
         """Add audit fields to list_display for all descendants."""
@@ -181,6 +219,10 @@ class BaseModelAdminMixin:
         """Add audit fields to readonly_fields for all descendants."""
 
         readonly_fields = list(super().get_readonly_fields(request, obj))
+
+        if "audit_info" not in readonly_fields:
+            readonly_fields.append("audit_info")
+
         if "version" in readonly_fields:
             readonly_fields.remove("version")  # Must not be read-only for HiddenInput to render
 
@@ -190,26 +232,40 @@ class BaseModelAdminMixin:
         return readonly_fields
 
     def get_fields(self, request, obj=None):
+        """Add version andaudit fields to fields for all descendants."""
         fields = list(super().get_fields(request, obj))
-        if self.has_change_permission(request, obj) and "version" not in fields:
+
+        if self.has_change_permission(request, obj) and fields and "version" not in fields:
             fields.append("version")
+
+        if fields and "audit_info" not in fields:
+            fields.append("audit_info")
         return fields
 
     def get_fieldsets(self, request, obj=None):
+        """Add version and audit fields to fieldsets for all descendants."""
         fieldsets = list(super().get_fieldsets(request, obj))
+
         if self.has_change_permission(request, obj) and fieldsets and not any("version" in opts.get("fields", []) for _, opts in fieldsets):
             name, opts = fieldsets[0]
             updated_fields = tuple(list(opts.get("fields", [])) + ["version"])
             fieldsets[0] = (name, {**opts, "fields": updated_fields})
+
+        if fieldsets and not any("audit_info" in opts.get("fields", []) for _, opts in fieldsets):
+            fieldsets.append((None, {"fields": ("audit_info",)}))
         return fieldsets
 
     def get_form(self, request, obj=None, **kwargs):
+        """Override to hide the version field in the form for all descendants."""
+
         form = super().get_form(request, obj, **kwargs)
         if "version" in form.base_fields:
             form.base_fields["version"].widget = forms.HiddenInput()
         return form
 
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        """Override to handle ConcurrencyError and display a user-friendly message."""
+
         try:
             return super().changeform_view(request, object_id, form_url, extra_context)
         except ConcurrencyError:
@@ -246,6 +302,45 @@ class BaseModelAdminMixin:
 
             obj.updated_by = request.user.username
             obj.save(update_fields=["valid_flag", "updated_by"])
+
+
+class ImportBaseModelResourceMixin:
+    """Mixin to add import functionality to a ModelAdmin using django-import-export."""
+
+    def before_import_row(self, row, **kwargs):
+        """Set created_by and updated_by fields based on the current user."""
+        if "created_by" not in row or not row["created_by"]:
+            row["created_by"] = kwargs.get("user").username
+        if "updated_by" not in row or not row["updated_by"]:
+            row["updated_by"] = kwargs.get("user").username
+        if "valid_flag" not in row or not row["valid_flag"]:
+            row["valid_flag"] = True
+        super().before_import_row(row, **kwargs)
+
+    def skip_row(self, instance, original, row, import_validation_errors=None):
+        """
+        Skip processing this row if the existing record's valid_flag
+        matches the incoming row's valid_flag.
+        """
+        # If no existing record was found in the DB (new row), don't skip
+        if not original.pk:
+            return False
+
+        # Convert incoming row value to boolean/datatype if necessary
+        # (Note: raw row data values are strings)
+        raw_valid_flag = row.get("valid_flag")
+
+        # Helper to parse boolean values from raw CSV strings if valid_flag is a BooleanField
+        if isinstance(raw_valid_flag, str):
+            incoming_flag = raw_valid_flag.strip().lower() in ("true", "1", "t", "y", "yes")
+        else:
+            incoming_flag = bool(raw_valid_flag)
+
+        # If existing record's flag is identical to incoming row's flag, skip
+        if original.valid_flag == incoming_flag:
+            return True
+
+        return super().skip_row(instance, original, row, import_validation_errors)
 
 
 class MemberScopedBaseModelAdmin(CommonImportExportMixin, MemberScopedAdminMixin, BaseModelAdminMixin, admin.ModelAdmin):
