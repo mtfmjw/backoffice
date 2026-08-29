@@ -65,3 +65,16 @@ class Member(RowScopedBaseModel):
     @classmethod
     def is_all_organizations_accessible(cls, login_user):
         return True
+
+
+@staticmethod
+def get_user_full_name(username: str) -> str:
+    """Return the full name of the member."""
+    if username is None:
+        return ""
+    member = Member.objects.filter(user__username=username).first()
+    if member is None:
+        return username
+    if member.user.first_name is None or member.user.last_name is None:
+        return username
+    return f"{member.user.last_name} {member.user.first_name}"

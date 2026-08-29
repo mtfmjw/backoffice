@@ -1,0 +1,28 @@
+{% extends "admin/import_export/import.html" %}
+{% load i18n admin_urls %}
+
+{% block confirm_import_form %}
+    <form action="{% url opts|admin_urlname:"process_import" %}" method="POST">
+        {% csrf_token %}
+        {{ confirm_form.as_p }}
+        <p>
+        {% translate "Below is a preview of data to be imported. If you are satisfied with the results, click 'Confirm import'" %}
+        </p>
+        <div class="submit-row">
+            <input type="submit" class="default" name="confirm" value="{% translate "Confirm import" %}">
+            <a href="{% url opts|admin_urlname:'changelist' %}"  class="closelink">
+                {% translate "Cancel" %}
+            </a>
+        </div>
+    </form>
+{% endblock %}
+
+
+{% block form_submit_button %}
+    <div class="submit-row">
+        <input type="submit" class="default" value="{% translate "Submit" %}">
+        <a href="{% url opts|admin_urlname:'changelist' %}"  class="closelink">
+            {% translate "Cancel" %}
+        </a>
+    </div>
+{% endblock %}

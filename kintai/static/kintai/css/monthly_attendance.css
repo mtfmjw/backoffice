@@ -9,21 +9,9 @@ fieldset .fieldBox {
     display: none;
 }
 
-/* 備考のラベルを小さくする */
-.form-row.field-note .flex-container{
-    width: 80%;
-    display: flex;
-    justify-content: center;
-    margin: 0px auto;
-}
-label[for="id_note"] {
-    min-width: 30px;
-    width: 10%;
-    font-size: 12px;
-}
+/* 月次備考欄 */
 input#id_note {
-    width: 90% !important; /* Overriding the current fixed percentage */
-    font-size: 12px;
+    width: 80% !important; /* Overriding the current fixed percentage */
 }
 
 
@@ -67,8 +55,8 @@ input#id_note {
     font-weight: bold;
 }
 .apply-button {
-    grid-row: span 2 ; 
-    grid-column: span 2; 
+    grid-row: span 2; 
+    grid-column: span 1; 
     
     /* 中央寄せ設定 */
     display: flex;

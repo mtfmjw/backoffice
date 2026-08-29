@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-28 15:03+0900\n"
+"POT-Creation-Date: 2026-08-29 10:36+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,15 +18,35 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: .\common\admin\base.py:158
-msgid "Update Time"
+#: .\common\admin\base.py:165 .\common\admin\base.py:188
+#: .\common\models\base.py:81
+msgid "Updated by"
+msgstr "更新者"
+
+#: .\common\admin\base.py:169 .\common\admin\base.py:188
+#: .\common\models\base.py:80
+msgid "Updated at"
 msgstr "更新日時"
 
-#: .\common\admin\base.py:216
+#: .\common\admin\base.py:173
+msgid "Audit Info"
+msgstr "作成・更新履歴"
+
+#: .\common\admin\base.py:183 .\common\models\base.py:79
+msgid "Created by"
+msgstr "作成者"
+
+#: .\common\admin\base.py:183 .\common\models\base.py:78
+msgid "Created at"
+msgstr "作成日時"
+
+#: .\common\admin\base.py:262
 msgid ""
 "This record was modified by another user while you were editing it. Your "
 "changes were not saved."
-msgstr "編集中に他のユーザーより内容が変更されましたので保存できません。もう一度読み込んでください。"
+msgstr ""
+"編集中に他のユーザーより内容が変更されましたので保存できません。もう一度読み"
+"込んでください。"
 
 #: .\common\admin\filters.py:22 .\common\admin\filters.py:45
 #: .\common\models\organization.py:20
@@ -45,45 +65,45 @@ msgstr "名前"
 msgid "Is Organization Manager"
 msgstr "組織長"
 
-#: .\common\admin\work_pattern.py:58 .\common\models\work_pattern.py:15
+#: .\common\admin\work_pattern.py:63 .\common\models\work_pattern.py:15
 msgid "Standard Start Time"
 msgstr "標準就業時刻"
 
-#: .\common\admin\work_pattern.py:58 .\common\models\work_pattern.py:16
+#: .\common\admin\work_pattern.py:63 .\common\models\work_pattern.py:16
 msgid "Standard End Time"
 msgstr "標準終了時刻"
 
-#: .\common\admin\work_pattern.py:62 .\common\admin\work_pattern.py:63
-#: .\common\admin\work_pattern.py:64
+#: .\common\admin\work_pattern.py:67 .\common\admin\work_pattern.py:68
+#: .\common\admin\work_pattern.py:69
 msgid "Either start time and end time or standard work time must be provided."
 msgstr ""
 "標準勤務開始時刻と終了時刻を入力するか、標準勤務時間を入力してください。"
 
-#: .\common\admin\work_pattern.py:73 .\common\admin\work_pattern.py:76
+#: .\common\admin\work_pattern.py:78 .\common\admin\work_pattern.py:81
 msgid ""
 "Lunch break start time and end time must be provided for work durations "
 "exceeding 6 hours."
 msgstr "標準勤務時間が6時間を超える場合は、昼休憩を設ける必要があります。"
 
-#: .\common\admin\work_pattern.py:82 .\common\admin\work_pattern.py:85
+#: .\common\admin\work_pattern.py:87 .\common\admin\work_pattern.py:90
 msgid ""
 "Lunch break duration must be at least 45 minutes for work durations "
 "exceeding 6 hours."
 msgstr ""
 "標準勤務時間が6時間を超える場合は、昼休憩時間は45分以上設けてください。"
 
-#: .\common\admin\work_pattern.py:89 .\common\admin\work_pattern.py:92
+#: .\common\admin\work_pattern.py:94 .\common\admin\work_pattern.py:97
 msgid ""
 "Lunch break duration must be at least 60 minutes for work durations "
 "exceeding 8 hours."
 msgstr ""
 "標準勤務時間が8時間を超える場合は、昼休憩時間を60分以上設けてください。"
 
-#: .\common\admin\work_pattern.py:96 .\common\models\work_pattern.py:21
+#: .\common\admin\work_pattern.py:101 .\common\models\work_pattern.py:21
 msgid "Lunch Break Start Time"
 msgstr "昼休開始時刻"
 
-#: .\common\admin\work_pattern.py:96 .\common\models\work_pattern.py:22
+#: .\common\admin\work_pattern.py:101 .\common\models\work_pattern.py:22
 msgid "Lunch Break End Time"
 msgstr "昼休終了時刻"
 
@@ -94,22 +114,6 @@ msgstr "共通マスタ"
 #: .\common\models\base.py:77
 msgid "Valid"
 msgstr "有効"
-
-#: .\common\models\base.py:78
-msgid "Created at"
-msgstr "作成日時"
-
-#: .\common\models\base.py:79
-msgid "Created by"
-msgstr "作成者"
-
-#: .\common\models\base.py:80
-msgid "Updated at"
-msgstr "更新日時"
-
-#: .\common\models\base.py:81
-msgid "Updated by"
-msgstr "更新者"
 
 #: .\common\models\holiday.py:16
 msgid "National Holiday"
@@ -293,7 +297,47 @@ msgstr "休憩5終了時刻"
 msgid "Work Patterns"
 msgstr "就業パターン一覧"
 
-#: .\common\utils.py:41 .\common\utils.py:54
+#: .\common\templates\admin\common\confirm_import.html:10
+msgid "Return to List"
+msgstr ""
+
+#: .\common\templates\admin\common\export.html:12
+msgid "Home"
+msgstr "ホーム"
+
+#: .\common\templates\admin\common\export.html:15
+msgid "Export"
+msgstr "エクスポート"
+
+#: .\common\templates\admin\common\export.html:21
+msgid "This exporter will export the following fields:"
+msgstr "エクスポートする項目："
+
+#: .\common\templates\admin\common\export.html:41
+#: .\common\templates\admin\common\import.html:23
+msgid "Submit"
+msgstr "確定"
+
+#: .\common\templates\admin\common\export.html:45
+msgid "Close"
+msgstr "閉じる"
+
+#: .\common\templates\admin\common\import.html:9
+msgid ""
+"Below is a preview of data to be imported. If you are satisfied with the "
+"results, click 'Confirm import'"
+msgstr "インポートされるデータのプレビューを表示しています。この内容で問題なければ「インポート確定」をクリックしてください。"
+
+#: .\common\templates\admin\common\import.html:12
+msgid "Confirm import"
+msgstr "確認"
+
+#: .\common\templates\admin\common\import.html:14
+#: .\common\templates\admin\common\import.html:25
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: .\common\utils.py:51 .\common\utils.py:64
 #, python-format
 msgid "Start time must be earlier than end time: %(start)s - %(end)s"
 msgstr "開始時刻は終了時刻より前のものを指定してください。%(start)s - %(end)s"
@@ -312,9 +356,3 @@ msgstr "%(label)sと%(start_label)sは同時に入力する必要があります
 #, python-format
 msgid "%(label)s must be provided when %(end_label)s is provided."
 msgstr "%(label)sと%(end_label)sは同時に入力する必要があります。"
-
-#~ msgid "Legal Holiday"
-#~ msgstr "法定休日"
-
-#~ msgid "Non-Legal Holiday"
-#~ msgstr "所定休日"
