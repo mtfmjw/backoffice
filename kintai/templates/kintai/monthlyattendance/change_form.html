@@ -2,6 +2,13 @@
 {% load i18n admin_urls static %}
 
 {% block object-tools-items %}
+    {% if change and not is_popup %}
+        <li>
+            <a href="{% url 'admin:export-attendance-sheet' object_id=original.pk %}" class="viewsitelink">
+                {% trans "Download Attendance Sheet" %}
+            </a>
+        </li>
+    {% endif %}
 {% endblock %}
 
 {% block extrahead %}

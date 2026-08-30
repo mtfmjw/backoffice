@@ -44,3 +44,18 @@ class DateStatus(models.IntegerChoices):
     # 代休日：休日に出勤して、後日休んだ日。休日に出勤したため、出勤日（元の休日）は休日出勤となる。
     COMPENSATORY_HOLIDAY = 7, _("Compensatory Holiday")  # 代休
     SP5 = 8, _("SP5")  # 4-5月：ゴールデンウイーク2日、7-9月：夏季休暇3日、12/29-1/3：年末年始休暇6日
+
+    # 生理休暇
+    MENSTRUAL_LEAVE = 100, "生理休暇"  # 生理休暇
+    # 育児休暇
+    CHILDCARE_LEAVE = 101, "子育て休暇"  # 子育て休暇
+    # 介護休暇
+    CARE_LEAVE = 102, "介護休暇"  # 介護休暇
+    # 産前休暇
+    PRENATAL_LEAVE = 103, "産前休暇"  # 産前休暇
+    # 産後休暇
+    POSTNATAL_LEAVE = 104, "産後休暇"  # 産後休暇
+    # 育児休業
+    CHILDCARE_LEAVE_OF_ABSENCE = 105, "育児休業"  # 育児休業
+    # 再雇用RF休暇
+    REEMPLOYMENT_RF_LEAVE = 106, "再雇用RF休暇"  # 再雇用RF休暇

@@ -5,13 +5,14 @@ from django.utils.translation import gettext_lazy as _
 
 from .base import MemberScopedBaseModel
 
-DEFAULT_WORK_PATTERN_NAME = "所定"
+DEFAULT_WORK_PATTERN_NO = 1
 
 
 class WorkPattern(MemberScopedBaseModel):
     """就業パターンマスタ（通常・シフト・フレックスなど）"""
 
-    name = models.CharField(_("Work Pattern Name"), max_length=100, unique=True)
+    no = models.IntegerField(_("Work Pattern Code"), unique=True)
+    name = models.CharField(_("Work Pattern Name"), max_length=100)
     start_time = models.TimeField(_("Standard Start Time"), default="09:30", null=True, blank=True)
     end_time = models.TimeField(_("Standard End Time"), default="18:00", null=True, blank=True)
     standard_work_time = models.TimeField(_("Standard Working Time"), default="07:30", null=True, blank=True)
@@ -35,7 +36,7 @@ class WorkPattern(MemberScopedBaseModel):
         db_table = "work_pattern"
         verbose_name = _("Work Pattern")
         verbose_name_plural = _("Work Patterns")
-        ordering = ("start_time",)
+        ordering = ("no",)
 
     def __str__(self):
         return self.name
@@ -105,4 +106,4 @@ class WorkPattern(MemberScopedBaseModel):
         if member.organization is not None and member.organization.work_pattern is not None:
             return member.organization.work_pattern
 
-        return WorkPattern.objects.filter(name=DEFAULT_WORK_PATTERN_NAME).first()
+        return WorkPattern.objects.filter(no=DEFAULT_WORK_PATTERN_NO).first()

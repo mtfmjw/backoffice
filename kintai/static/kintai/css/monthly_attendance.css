@@ -5,9 +5,6 @@
 fieldset .fieldBox {
     margin-right: 10px;
 }
-.object-tools {
-    display: none;
-}
 
 /* 月次備考欄 */
 input#id_note {

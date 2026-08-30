@@ -24,6 +24,7 @@ class WorkPatternResource(ImportBaseModelResourceMixin, resources.ModelResource)
 
         model = WorkPattern
         fields = (
+            "no",
             "name",
             "start_time",
             "end_time",
@@ -41,13 +42,13 @@ class WorkPatternResource(ImportBaseModelResourceMixin, resources.ModelResource)
             "break4_end_time",
             "break5_start_time",
             "break5_end_time",
+            "valid_flag",
             "created_by",
             "created_at",
             "updated_by",
             "updated_at",
-            "valid_flag",
         )
-        import_id_fields = ("name",)
+        import_id_fields = ("no",)
 
 
 class WorkPatternForm(forms.ModelForm):
@@ -116,6 +117,7 @@ class WorkPatternAdmin(MemberScopedBaseModelAdmin):
     form = WorkPatternForm
     resource_class = WorkPatternResource
     list_display = (
+        "no",
         "name",
         "working_duration",
         "standard_work_time",
@@ -129,7 +131,7 @@ class WorkPatternAdmin(MemberScopedBaseModelAdmin):
     )
     search_fields = ("name",)
     fields = (
-        "name",
+        ("no", "name"),
         ("start_time", "end_time", "standard_work_time"),
         ("lunch_break_start_time", "lunch_break_end_time", "half_day_time"),
         ("break1_start_time", "break1_end_time"),

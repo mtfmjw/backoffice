@@ -1,6 +1,5 @@
 from datetime import datetime
 from urllib.parse import urlencode
-
 from dateutil.relativedelta import relativedelta
 from django import forms
 from django.contrib import admin
@@ -14,6 +13,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.timezone import localdate, localtime
 from django.utils.translation import gettext_lazy as _
+import openpyxl
 
 from backoffice.admin import admin_site
 from common.admin.base import RowScopedBaseModelAdmin
@@ -21,10 +21,16 @@ from common.models import WorkPattern
 from common.models.member import get_user_full_name
 from common.utils import convert2str, minutes2str
 from kintai.const import ApproveStatus
+from kintai.ldjp.const import ATTENDANCE_SHEET, DOWNLOAD_FOLDER
 from kintai.models import MonthlyAttendance
+from django.shortcuts import get_object_or_404
 
+from kintai.ldjp.attendance import get_attendance_sheet_file_name, write_attendance_sheet
 from .daily_attendance import DailyAttendanceInline
+from django.urls import path
+from urllib.parse import quote
 
+from django.http import HttpResponse
 User = get_user_model()
 
 
@@ -74,7 +80,7 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
     change_list_template = "kintai/monthlyattendance/change_list.html"
     change_form_template = "kintai/monthlyattendance/change_form.html"
     form = MonthlyAttendanceForm
-    save_on_top = True
+    save_on_top = False
     list_display = (
         "member",
         "display_month",
@@ -364,3 +370,31 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
             obj.delete()
 
         form.instance.update_derived_fields()  # MonthlyAttendance instance
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                '<path:object_id>/export-attendance-sheet/',
+                self.admin_site.admin_view(self.export_attendance_sheet),
+                name='export-attendance-sheet',
+            ),
+        ]
+        return custom_urls + urls
+    
+    def export_attendance_sheet(self, request, object_id):
+        ma = get_object_or_404(MonthlyAttendance, pk=object_id)
+
+        download_file_name = quote(get_attendance_sheet_file_name(ma.month, ma.member))
+        template_path = DOWNLOAD_FOLDER / ATTENDANCE_SHEET
+        wb = openpyxl.load_workbook(template_path) # Set keep_vba=True if template is .xlsm
+        ws = wb.active
+        write_attendance_sheet(ws, self, ma)
+        
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{download_file_name}"'
+        
+        wb.save(response)
+        return response

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-29 10:36+0900\n"
+"POT-Creation-Date: 2026-08-30 09:36+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,29 +18,29 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: .\common\admin\base.py:165 .\common\admin\base.py:188
+#: .\common\admin\base.py:176 .\common\admin\base.py:199
 #: .\common\models\base.py:81
 msgid "Updated by"
 msgstr "更新者"
 
-#: .\common\admin\base.py:169 .\common\admin\base.py:188
+#: .\common\admin\base.py:180 .\common\admin\base.py:199
 #: .\common\models\base.py:80
 msgid "Updated at"
 msgstr "更新日時"
 
-#: .\common\admin\base.py:173
+#: .\common\admin\base.py:184
 msgid "Audit Info"
 msgstr "作成・更新履歴"
 
-#: .\common\admin\base.py:183 .\common\models\base.py:79
+#: .\common\admin\base.py:194 .\common\models\base.py:79
 msgid "Created by"
 msgstr "作成者"
 
-#: .\common\admin\base.py:183 .\common\models\base.py:78
+#: .\common\admin\base.py:194 .\common\models\base.py:78
 msgid "Created at"
 msgstr "作成日時"
 
-#: .\common\admin\base.py:262
+#: .\common\admin\base.py:273
 msgid ""
 "This record was modified by another user while you were editing it. Your "
 "changes were not saved."
@@ -65,45 +65,45 @@ msgstr "名前"
 msgid "Is Organization Manager"
 msgstr "組織長"
 
-#: .\common\admin\work_pattern.py:63 .\common\models\work_pattern.py:15
+#: .\common\admin\work_pattern.py:64 .\common\models\work_pattern.py:16
 msgid "Standard Start Time"
 msgstr "標準就業時刻"
 
-#: .\common\admin\work_pattern.py:63 .\common\models\work_pattern.py:16
+#: .\common\admin\work_pattern.py:64 .\common\models\work_pattern.py:17
 msgid "Standard End Time"
 msgstr "標準終了時刻"
 
-#: .\common\admin\work_pattern.py:67 .\common\admin\work_pattern.py:68
-#: .\common\admin\work_pattern.py:69
+#: .\common\admin\work_pattern.py:68 .\common\admin\work_pattern.py:69
+#: .\common\admin\work_pattern.py:70
 msgid "Either start time and end time or standard work time must be provided."
 msgstr ""
 "標準勤務開始時刻と終了時刻を入力するか、標準勤務時間を入力してください。"
 
-#: .\common\admin\work_pattern.py:78 .\common\admin\work_pattern.py:81
+#: .\common\admin\work_pattern.py:79 .\common\admin\work_pattern.py:82
 msgid ""
 "Lunch break start time and end time must be provided for work durations "
 "exceeding 6 hours."
 msgstr "標準勤務時間が6時間を超える場合は、昼休憩を設ける必要があります。"
 
-#: .\common\admin\work_pattern.py:87 .\common\admin\work_pattern.py:90
+#: .\common\admin\work_pattern.py:88 .\common\admin\work_pattern.py:91
 msgid ""
 "Lunch break duration must be at least 45 minutes for work durations "
 "exceeding 6 hours."
 msgstr ""
 "標準勤務時間が6時間を超える場合は、昼休憩時間は45分以上設けてください。"
 
-#: .\common\admin\work_pattern.py:94 .\common\admin\work_pattern.py:97
+#: .\common\admin\work_pattern.py:95 .\common\admin\work_pattern.py:98
 msgid ""
 "Lunch break duration must be at least 60 minutes for work durations "
 "exceeding 8 hours."
 msgstr ""
 "標準勤務時間が8時間を超える場合は、昼休憩時間を60分以上設けてください。"
 
-#: .\common\admin\work_pattern.py:101 .\common\models\work_pattern.py:21
+#: .\common\admin\work_pattern.py:102 .\common\models\work_pattern.py:22
 msgid "Lunch Break Start Time"
 msgstr "昼休開始時刻"
 
-#: .\common\admin\work_pattern.py:101 .\common\models\work_pattern.py:22
+#: .\common\admin\work_pattern.py:102 .\common\models\work_pattern.py:23
 msgid "Lunch Break End Time"
 msgstr "昼休終了時刻"
 
@@ -160,7 +160,7 @@ msgid "Belongs to"
 msgstr "所属"
 
 #: .\common\models\member.py:18 .\common\models\organization.py:13
-#: .\common\models\work_pattern.py:36
+#: .\common\models\work_pattern.py:37
 msgid "Work Pattern"
 msgstr "就業パターン"
 
@@ -242,64 +242,64 @@ msgid "Prefectures"
 msgstr "都道府県一覧"
 
 #: .\common\models\work_pattern.py:14
+msgid "Work Pattern Code"
+msgstr "就業パターンコード"
+
+#: .\common\models\work_pattern.py:15
 msgid "Work Pattern Name"
 msgstr "就業パターン"
 
-#: .\common\models\work_pattern.py:17
+#: .\common\models\work_pattern.py:18
 msgid "Standard Working Time"
 msgstr "標準勤務時間"
 
-#: .\common\models\work_pattern.py:19
+#: .\common\models\work_pattern.py:20
 msgid "Half Day Time"
 msgstr "半日区切"
 
-#: .\common\models\work_pattern.py:23
+#: .\common\models\work_pattern.py:24
 msgid "Break 1 Start Time"
 msgstr "休憩1開始時刻"
 
-#: .\common\models\work_pattern.py:24
+#: .\common\models\work_pattern.py:25
 msgid "Break 1 End Time"
 msgstr "休憩1終了時刻"
 
-#: .\common\models\work_pattern.py:25
+#: .\common\models\work_pattern.py:26
 msgid "Break 2 Start Time"
 msgstr "休憩2開始時刻"
 
-#: .\common\models\work_pattern.py:26
+#: .\common\models\work_pattern.py:27
 msgid "Break 2 End Time"
 msgstr "休憩2終了時刻"
 
-#: .\common\models\work_pattern.py:27
+#: .\common\models\work_pattern.py:28
 msgid "Break 3 Start Time"
 msgstr "休憩3開始時刻"
 
-#: .\common\models\work_pattern.py:28
+#: .\common\models\work_pattern.py:29
 msgid "Break 3 End Time"
 msgstr "休憩3終了時刻"
 
-#: .\common\models\work_pattern.py:29
+#: .\common\models\work_pattern.py:30
 msgid "Break 4 Start Time"
 msgstr "休憩4開始時刻"
 
-#: .\common\models\work_pattern.py:30
+#: .\common\models\work_pattern.py:31
 msgid "Break 4 End Time"
 msgstr "休憩4終了時刻"
 
-#: .\common\models\work_pattern.py:31
+#: .\common\models\work_pattern.py:32
 msgid "Break 5 Start Time"
 msgstr "休憩5開始時刻"
 
-#: .\common\models\work_pattern.py:32
+#: .\common\models\work_pattern.py:33
 msgid "Break 5 End Time"
 msgstr "休憩5終了時刻"
 
-#: .\common\models\work_pattern.py:37
+#: .\common\models\work_pattern.py:38
 msgid "Work Patterns"
 msgstr "就業パターン一覧"
-
-#: .\common\templates\admin\common\confirm_import.html:10
-msgid "Return to List"
-msgstr ""
 
 #: .\common\templates\admin\common\export.html:12
 msgid "Home"
@@ -326,7 +326,9 @@ msgstr "閉じる"
 msgid ""
 "Below is a preview of data to be imported. If you are satisfied with the "
 "results, click 'Confirm import'"
-msgstr "インポートされるデータのプレビューを表示しています。この内容で問題なければ「インポート確定」をクリックしてください。"
+msgstr ""
+"インポートされるデータのプレビューを表示しています。この内容で問題なければ"
+"「インポート確定」をクリックしてください。"
 
 #: .\common\templates\admin\common\import.html:12
 msgid "Confirm import"

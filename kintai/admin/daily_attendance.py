@@ -9,7 +9,7 @@ from django.forms.widgets import TextInput
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from common.utils import convert2datetime, convert2duration, duration2minutes, get_overlap_minutes
+from common.utils import convert2datetime, convert2duration, convert2localtime, duration2minutes, get_overlap_minutes
 from common.validation import mandatory_validation
 from kintai.const import NIGHT_END_TIME, NIGHT_START_TIME, DateStatus, DateType
 from kintai.models import DailyAttendance
@@ -40,11 +40,11 @@ class DailyAttendanceInlineForm(forms.ModelForm):
 
         if self.instance and self.instance.pk:
             if self.instance.clock_in_time:
-                local_in = timezone.localtime(self.instance.clock_in_time)
+                local_in = convert2localtime(self.instance.clock_in_time)
                 self.initial["clock_in_time_only"] = local_in.strftime("%H:%M")
 
             if self.instance.clock_out_time:
-                local_out = timezone.localtime(self.instance.clock_out_time)
+                local_out = convert2localtime(self.instance.clock_out_time)
                 self.initial["clock_out_time_only"] = local_out.strftime("%H:%M")
 
     def clean(self):
