@@ -1,5 +1,7 @@
 from datetime import datetime
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
+
+import openpyxl
 from dateutil.relativedelta import relativedelta
 from django import forms
 from django.contrib import admin
@@ -9,28 +11,26 @@ from django.core.exceptions import PermissionDenied
 from django.db import connection, transaction
 from django.db.models import Q
 from django.forms import TextInput
-from django.shortcuts import redirect
-from django.urls import reverse
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import path, reverse
 from django.utils.timezone import localdate, localtime
 from django.utils.translation import gettext_lazy as _
-import openpyxl
+from import_export import fields, resources
+from import_export.widgets import ForeignKeyWidget
 
 from backoffice.admin import admin_site
-from common.admin.base import RowScopedBaseModelAdmin
+from common.admin.base import ImportBaseModelResourceMixin, RowScopedBaseModelAdmin
 from common.models import WorkPattern
 from common.models.member import get_user_full_name
 from common.utils import convert2str, minutes2str
 from kintai.const import ApproveStatus
+from kintai.ldjp.attendance import get_attendance_sheet_file_name, write_attendance_sheet
 from kintai.ldjp.const import ATTENDANCE_SHEET, DOWNLOAD_FOLDER
 from kintai.models import MonthlyAttendance
-from django.shortcuts import get_object_or_404
 
-from kintai.ldjp.attendance import get_attendance_sheet_file_name, write_attendance_sheet
 from .daily_attendance import DailyAttendanceInline
-from django.urls import path
-from urllib.parse import quote
 
-from django.http import HttpResponse
 User = get_user_model()
 
 
@@ -75,12 +75,66 @@ class MonthlyAttendanceForm(forms.ModelForm):
         fields = "__all__"
 
 
+class MonthlyAttendanceResource(ImportBaseModelResourceMixin, resources.ModelResource):
+    class Meta:
+        skip_unchanged = True
+        report_skipped = True
+
+        model = MonthlyAttendance
+        import_id_fields = ("member", "month")
+        fields = (
+            "month",
+            "member__user__username",
+            "member__user__last_name",
+            "member__user__first_name",
+            "member__organization__code",
+            "member__organization__name",
+            "member__work_pattern__no",
+            "member__work_pattern__name",
+            "approve_status",
+            "worked_days",
+            "standard_working_days",
+            "working_time",
+            "overtime",
+            "night_working_time",
+            "paid_leave_days",
+            "absence_days",
+            "early_leave_days",
+            "late_days",
+            "total_absence_minutes",
+            "note",
+            "created_at",
+            "created_by",
+            "updated_at",
+            "updated_by",
+            "applied_by",
+            "applied_at",
+            "approved_by",
+            "approved_at",
+            "confirmed_by",
+            "confirmed_at",
+        )
+
+    member = fields.Field(
+        attribute="member",
+        column_name="member__user__username",
+        widget=ForeignKeyWidget(User, field="member__user__username"),
+    )
+
+    work_pattern = fields.Field(
+        attribute="work_pattern",
+        column_name="work_pattern_no",
+        widget=ForeignKeyWidget(WorkPattern, field="no"),
+    )
+
+
 @admin.register(MonthlyAttendance, site=admin_site)
 class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
     change_list_template = "kintai/monthlyattendance/change_list.html"
     change_form_template = "kintai/monthlyattendance/change_form.html"
     form = MonthlyAttendanceForm
     save_on_top = False
+    resource_class = MonthlyAttendanceResource
     list_display = (
         "member",
         "display_month",
@@ -187,6 +241,9 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
         if obj is None:
             return False  # 月次勤怠は一覧画面から削除不可
         return super().has_delete_permission(request, obj)
+
+    def has_import_permission(self, request):
+        return True  # 月次勤怠はインポート不可
 
     def is_all_organizations_accessible(self, request):
         return super().is_all_organizations_accessible(request) or (
@@ -375,26 +432,24 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
         urls = super().get_urls()
         custom_urls = [
             path(
-                '<path:object_id>/export-attendance-sheet/',
+                "<path:object_id>/export-attendance-sheet/",
                 self.admin_site.admin_view(self.export_attendance_sheet),
-                name='export-attendance-sheet',
+                name="export-attendance-sheet",
             ),
         ]
         return custom_urls + urls
-    
+
     def export_attendance_sheet(self, request, object_id):
         ma = get_object_or_404(MonthlyAttendance, pk=object_id)
 
         download_file_name = quote(get_attendance_sheet_file_name(ma.month, ma.member))
         template_path = DOWNLOAD_FOLDER / ATTENDANCE_SHEET
-        wb = openpyxl.load_workbook(template_path) # Set keep_vba=True if template is .xlsm
+        wb = openpyxl.load_workbook(template_path)  # Set keep_vba=True if template is .xlsm
         ws = wb.active
         write_attendance_sheet(ws, self, ma)
-        
-        response = HttpResponse(
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = f'attachment; filename="{download_file_name}"'
-        
+
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = f'attachment; filename="{download_file_name}"'
+
         wb.save(response)
         return response

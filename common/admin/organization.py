@@ -7,18 +7,29 @@ from backoffice.admin import admin_site
 from common.admin.filters import SimpleOrganizationFilter
 from common.models import Organization, WorkPattern
 
-from .base import MemberScopedBaseModelAdmin
+from .base import ImportBaseModelResourceMixin, MemberScopedBaseModelAdmin
 
 
-class OrganizationResource(resources.ModelResource):
+class OrganizationResource(ImportBaseModelResourceMixin, resources.ModelResource):
     class Meta:
         skip_unchanged = True
         report_skipped = True
 
         model = Organization
         import_id_fields = ("code",)
-        fields = ("code", "name", "parent", "work_pattern", "valid_flag", "created_at", "created_by", "updated_at", "updated_by")
-        export_order = ("code", "name", "parent", "work_pattern", "valid_flag", "created_at", "created_by", "updated_at", "updated_by")
+        fields = (
+            "code",
+            "name",
+            "parent",
+            "parent__name",
+            "work_pattern",
+            "work_pattern__name",
+            "valid_flag",
+            "created_at",
+            "created_by",
+            "updated_at",
+            "updated_by",
+        )
 
     parent = fields.Field(
         attribute="parent",
@@ -28,8 +39,8 @@ class OrganizationResource(resources.ModelResource):
 
     work_pattern = fields.Field(
         attribute="work_pattern",
-        column_name="work_pattern_name",
-        widget=ForeignKeyWidget(WorkPattern, field="name"),
+        column_name="work_pattern_no",
+        widget=ForeignKeyWidget(WorkPattern, field="no"),
     )
 
 
