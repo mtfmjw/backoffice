@@ -144,8 +144,6 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
         "display_worked_days",
         "display_standard_working_days",
         "display_working_time",
-        "display_overtime",
-        "display_night_working_time",
         "display_paid_leave_days",
         "absence_days",
         "early_leave_days",
@@ -160,8 +158,6 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
         "display_worked_days",
         "display_standard_working_days",
         "display_working_time",
-        "display_overtime",
-        "display_night_working_time",
         "display_paid_leave_days",
         "absence_days",
         "early_leave_days",
@@ -190,14 +186,6 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
     @display(description=_("Actual Working Time"))
     def display_working_time(self, obj) -> str:
         return minutes2str(obj.actual_work_minutes)
-
-    @display(description=_("Overtime"))
-    def display_overtime(self, obj) -> str:
-        return minutes2str(obj.overtime_minutes)
-
-    @display(description=_("Night Working Time"))
-    def display_night_working_time(self, obj) -> str:
-        return minutes2str(obj.night_work_minutes)
 
     @display(description=_("Paid Leave Days"))
     def display_paid_leave_days(self, obj) -> str:
@@ -335,8 +323,8 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
             extra_context["worked_days"] = self.display_worked_days(obj)
             extra_context["standard_working_days"] = self.display_standard_working_days(obj)
             extra_context["actual_working_time"] = self.display_working_time(obj)
-            extra_context["overtime"] = self.display_overtime(obj)
-            extra_context["night_working_time"] = self.display_night_working_time(obj)
+            extra_context["overtime"] = 0
+            extra_context["night_working_time"] = 0
             extra_context["paid_leave_days"] = self.display_paid_leave_days(obj)
             extra_context["absence_days"] = f"{obj.absence_days}回" if obj.absence_days is not None else ""
             extra_context["early_leave_days"] = f"{obj.early_leave_days}回" if obj.early_leave_days is not None else ""
@@ -427,7 +415,11 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
         for obj in formset.deleted_objects:
             obj.delete()
 
-        form.instance.update_derived_fields()  # MonthlyAttendance instance
+        member = request.user.member
+        month_str = request.GET.get("month", localdate().strftime("%Y-%m"))
+        first_day = datetime.strptime(month_str, "%Y-%m").date()  # noqa: DTZ007
+        with transaction.atomic(), connection.cursor() as cursor:
+            cursor.execute("""CALL calculate_working_time(%s, %s, %s);""", [member.id, first_day, request.user.username])
 
     def get_urls(self):
         urls = super().get_urls()
