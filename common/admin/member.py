@@ -79,7 +79,7 @@ class MemberAdmin(RowScopedBaseModelAdmin):
     def is_organization_manager(self, obj) -> bool:
         if obj is None:
             return False
-        return obj.is_organization_manager() or obj.is_company_executive()
+        return obj.is_organization_manager or obj.is_company_executive
 
     def has_add_permission(self, request):
         """Members cannot be added via the admin interface. They are created automatically when a user is created."""

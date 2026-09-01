@@ -31,16 +31,18 @@ input#id_note {
 /* Container: Defines 8 equal columns and handles scrolling on narrow screens */
 .summary-grid-container {
     display: grid;
-    grid-template-columns: repeat(9, minmax(60px, 1fr));
+    /* 12 fixed columns with a defined min-width to avoid compression */
+    grid-template-columns: repeat(12, minmax(80px, 1fr));
     gap: 1px;
-    width: 80%;
+    width: 100%;
     overflow-x: auto;
-    margin: 0px auto;
+    margin: 1px 0;
+    padding: 1px;
 }
 
-/* Shared styles for headers and data cells */
+/* Base styles for cells and headers */
 .break-grid-header, .break-grid-cell {
-    padding: 0px 3px;
+    padding: 2px 2px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -48,31 +50,37 @@ input#id_note {
     font-size: 12px;
     white-space: nowrap;
 }
+
 .break-grid-header {
     font-weight: bold;
 }
-.apply-button {
-    grid-row: span 2; 
-    grid-column: span 1; 
-    
-    /* 中央寄せ設定 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+
 .break-grid-cell.summary {
     border-bottom: 1px solid #ccc; 
 }
-.break-grid-cell {
-    padding-bottom: 2px;
+
+th[class*="column-has_break"],th[class="column-has_lunch_break"] {
+    white-space: nowrap;
 }
 
-/* apply to all checkbox styling */
+/* Span the button container across two rows on column 12 */
+.apply-button {
+    grid-column: 12;
+    grid-row: 3 / span 2;
+    background-color: transparent;
+    border: none;
+}
+
+.apply-button .button {
+    padding: 4px 8px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
 .apply-break-checkbox {
-    margin-left: 5px;
-    transform: scale(0.8);
+    margin-left: 4px;
+    vertical-align: middle;
 }
-
 
 /* インラインテーブル内の select と text input の余白調整 */
 tr.dynamic-daily_attendances select,
@@ -97,8 +105,8 @@ tr.dynamic-daily_attendances .vTimeField {
     max-width: 50px !important;
 }
 td.field-note input[type="text"] {
-    width: 300px;
-    min-width: 300px;
+    width: 270px;
+    min-width: 270px;
 }
 
 /* 時間入力欄が入っている <p class="time"> の不要な上下余白もクリア */

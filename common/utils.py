@@ -88,9 +88,9 @@ def get_overlap_minutes(duration1: tuple[datetime, datetime], duration2: tuple[d
 
 def minutes2str(minutes: int) -> str:
     """Return the duration in HH:MM format."""
-    return f"{int(minutes // 60):02d}:{int(minutes % 60):02d}" if minutes is not None else "-"
+    return f"{int(minutes // 60):02d}:{int(minutes % 60):02d}" if minutes else "-"
 
 
 def minutes2str_ja(minutes: int) -> str:
     """Return the duration in Japanese HH時間MM分 format."""
-    return f"{int(minutes // 60):02d}時間{int(minutes % 60):02d}分" if minutes is not None else "-"
+    return f"{int(minutes // 60):02d}時間{int(minutes % 60):02d}分" if minutes else "-"

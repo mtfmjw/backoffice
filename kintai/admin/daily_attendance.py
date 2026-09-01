@@ -5,14 +5,25 @@ from django import forms
 from django.contrib import admin
 from django.contrib.admin.widgets import AdminSplitDateTime, AdminTimeWidget
 from django.db import models
+from django.forms.models import BaseInlineFormSet
 from django.forms.widgets import TextInput
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from common.models.work_pattern import WorkPattern
 from common.utils import convert2datetime, convert2duration, convert2localtime
 from common.validation import mandatory_validation
 from kintai.const import DateStatus, DateType
 from kintai.models import DailyAttendance
+
+
+class DailyAttendanceInlineFormSet(BaseInlineFormSet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Fetch choices ONCE for all forms in the formset
+        work_pattern_choices = [(wp.pk, str(wp)) for wp in WorkPattern.get_all_work_patterns().values()]
+        for form in self.forms:
+            form.fields["work_pattern"].choices = work_pattern_choices
 
 
 class DailyAttendanceInlineForm(forms.ModelForm):
@@ -94,6 +105,7 @@ class DailyAttendanceInlineForm(forms.ModelForm):
 class DailyAttendanceInline(admin.TabularInline):
     model = DailyAttendance
     form = DailyAttendanceInlineForm
+    formset = DailyAttendanceInlineFormSet
     extra = 0
     can_delete = False
     fields = (
@@ -120,3 +132,8 @@ class DailyAttendanceInline(admin.TabularInline):
 
     def has_add_permission(self, request, obj=None):
         return False
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Fetch foreign keys in 1 query instead of N queries
+        return qs.select_related("work_pattern")

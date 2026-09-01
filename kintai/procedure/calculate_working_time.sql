@@ -23,17 +23,17 @@ BEGIN
             wp.name AS work_pattern_name, 
             wp.half_day_time,
             (EXTRACT(epoch FROM wp.standard_work_time) / 60)::INTEGER AS legal_standard_work_minutes,
-            (ad.day + wp.start_time) AT TIME ZONE 'Asia/Tokyo' AS standard_work_start,
-            (ad.day + wp.end_time + CASE WHEN wp.end_time < wp.start_time THEN INTERVAL '1 day' ELSE INTERVAL '0 day' END) AT TIME ZONE 'Asia/Tokyo' AS standard_work_end,
+            (ad.day + wp.start_time)::TIMESTAMP AT TIME ZONE 'Asia/Tokyo' AS standard_work_start,
+            (ad.day + wp.end_time + CASE WHEN wp.end_time < wp.start_time THEN INTERVAL '1 day' ELSE INTERVAL '0 day' END)::TIMESTAMP AT TIME ZONE 'Asia/Tokyo' AS standard_work_end,
             CASE 
                 WHEN wp.end_time >= wp.start_time THEN (EXTRACT(epoch FROM wp.end_time - wp.start_time) / 60)::INTEGER 
                 ELSE (EXTRACT(epoch FROM (INTERVAL '1 day' + wp.end_time - wp.start_time)) / 60)::INTEGER 
             END AS standard_work_minutes,
             
             -- Rounding Clock In up to p_time_unit
-            date_bin(make_interval(mins => p_time_unit), ad.clock_in_time + (make_interval(mins => p_time_unit) - INTERVAL '1 microsecond'), TIMESTAMPTZ '2000-01-01 00:00:00+09:00') AS clock_in,
+            date_bin(make_interval(mins => p_time_unit), ad.clock_in_time + (make_interval(mins => p_time_unit) - INTERVAL '1 microsecond'), TIMESTAMPTZ '2000-01-01 00:00:00+00') AS clock_in,
             -- Rounding Clock Out down to p_time_unit
-            date_bin(make_interval(mins => p_time_unit), ad.clock_out_time, TIMESTAMPTZ '2000-01-01 00:00:00+09:00') AS clock_out,
+            date_bin(make_interval(mins => p_time_unit), ad.clock_out_time, TIMESTAMPTZ '2000-01-01 00:00:00+00') AS clock_out,
             
             ad.has_lunch_break, ad.has_break1, ad.has_break2, ad.has_break3, ad.has_break4, ad.has_break5,
             wp.lunch_break_start_time, wp.lunch_break_end_time,
@@ -48,31 +48,29 @@ BEGIN
           AND ad.date_status IN (0, 2, 3) -- 0:通常勤務、2:午前半休、3:午後半休
           AND ad.clock_in_time IS NOT NULL 
           AND ad.clock_out_time IS NOT NULL
-    ), 
-    calculate_legal_end_time AS (
+    ), calculate_legal_end_time AS (
         SELECT *,
-            case WHEN date_status = 2 THEN coalesce(day + half_day_time AT TIME ZONE 'Asia/Tokyo', standard_work_start + make_interval(mins => (legal_standard_work_minutes/2)::INT)) ELSE standard_work_start END AS adjusted_work_start, -- 午前半休時の勤務開始時間を調整
-            case WHEN date_status = 3 THEN coalesce(day + half_day_time AT TIME ZONE 'Asia/Tokyo', standard_work_start + make_interval(mins => (legal_standard_work_minutes/2)::INT)) ELSE standard_work_end END AS adjusted_work_end, -- 午後半休時の勤務終了時間を調整
+            case WHEN date_status = 2 THEN coalesce((day + half_day_time)::TIMESTAMP AT TIME ZONE 'Asia/Tokyo', standard_work_start + make_interval(mins => (legal_standard_work_minutes/2)::INT)) ELSE standard_work_start END AS adjusted_work_start, -- 午前半休時の勤務開始時間を調整
+            case WHEN date_status = 3 THEN coalesce((day + half_day_time)::TIMESTAMP AT TIME ZONE 'Asia/Tokyo', standard_work_start + make_interval(mins => (legal_standard_work_minutes/2)::INT)) ELSE standard_work_end END AS adjusted_work_end, -- 午後半休時の勤務終了時間を調整
             clock_in + make_interval(mins => legal_standard_work_minutes
-                + calculate_overlapped(standard_work_start, standard_work_end, lunch_break_start_time, lunch_break_end_time)
-                + calculate_overlapped(standard_work_start, standard_work_end, break1_start_time, break1_end_time)
-                + calculate_overlapped(standard_work_start, standard_work_end, break2_start_time, break2_end_time)
-                + calculate_overlapped(standard_work_start, standard_work_end, break3_start_time, break3_end_time)
-                + calculate_overlapped(standard_work_start, standard_work_end, break4_start_time, break4_end_time)
-                + calculate_overlapped(standard_work_start, standard_work_end, break5_start_time, break5_end_time)
+                + CASE WHEN has_lunch_break THEN calculate_overlapped(standard_work_start, standard_work_end, lunch_break_start_time, lunch_break_end_time) ELSE 0 END
+                + CASE WHEN has_break1 THEN calculate_overlapped(standard_work_start, standard_work_end, break1_start_time, break1_end_time) ELSE 0 END
+                + CASE WHEN has_break2 THEN calculate_overlapped(standard_work_start, standard_work_end, break2_start_time, break2_end_time) ELSE 0 END
+                + CASE WHEN has_break3 THEN calculate_overlapped(standard_work_start, standard_work_end, break3_start_time, break3_end_time) ELSE 0 END
+                + CASE WHEN has_break4 THEN calculate_overlapped(standard_work_start, standard_work_end, break4_start_time, break4_end_time) ELSE 0 END
+                + CASE WHEN has_break5 THEN calculate_overlapped(standard_work_start, standard_work_end, break5_start_time, break5_end_time) ELSE 0 END
             ) AS legal_end_time,
             
             -- Define Night Windows (22:00 - 05:00 next day)
-            CASE WHEN clock_out > (day + TIME '22:00:00') AT TIME ZONE 'Asia/Tokyo' 
-                 THEN GREATEST((day + TIME '22:00:00') AT TIME ZONE 'Asia/Tokyo', clock_in) 
+            CASE WHEN clock_out > (day + '22:00:00'::TIME)::TIMESTAMP AT TIME ZONE 'Asia/Tokyo' 
+                 THEN GREATEST((day + '22:00:00'::TIME)::TIMESTAMP AT TIME ZONE 'Asia/Tokyo', clock_in) 
                  ELSE NULL END AS night_work_start,
                  
-            CASE WHEN clock_out > (day + TIME '22:00:00') AT TIME ZONE 'Asia/Tokyo' 
-                 THEN LEAST((day + INTERVAL '1 day' + TIME '05:00:00') AT TIME ZONE 'Asia/Tokyo', clock_out) 
+            CASE WHEN clock_out > (day + '22:00:00'::TIME)::TIMESTAMP AT TIME ZONE 'Asia/Tokyo' 
+                 THEN LEAST((day + INTERVAL '1 day' + '05:00:00'::TIME)::TIMESTAMP AT TIME ZONE 'Asia/Tokyo', clock_out) 
                  ELSE NULL END AS night_work_end
         FROM daily_attendance_data
-    ),
-    calculate_work_time AS (
+    ), calculate_work_time AS (
         SELECT id, day, date_type, date_status, work_pattern_name, standard_work_start, standard_work_end, clock_in, clock_out,
             legal_standard_work_minutes,
             GREATEST(EXTRACT(epoch FROM clock_in - adjusted_work_start) / 60, 0)::INTEGER AS late_minutes,
@@ -117,15 +115,14 @@ BEGIN
              + CASE WHEN has_break4 THEN calculate_overlapped(legal_end_time, night_work_end, break4_start_time, break4_end_time) ELSE 0 END
              + CASE WHEN has_break5 THEN calculate_overlapped(legal_end_time, night_work_end, break5_start_time, break5_end_time) ELSE 0 END) AS total_night_work_overtime_break_minutes
         FROM calculate_legal_end_time
-    ), 
-    calculate_overtime AS (
+    ), calculate_overtime AS (
         SELECT id, day, date_type, date_status, work_pattern_name, standard_work_start, standard_work_end, clock_in, clock_out,
             late_minutes,
             early_leave_minutes,
-            total_work_minutes - total_break_minutes AS total_work_minutes,
-            total_overtime_minutes - total_overtime_break_minutes AS total_overtime_minutes,
-            total_night_work_overtime_minutes - total_night_work_overtime_break_minutes AS total_night_work_overtime_minutes,
-            total_night_work_minutes - total_night_work_break_minutes - (total_night_work_overtime_minutes - total_night_work_overtime_break_minutes) AS total_night_work_minutes
+            GREATEST(total_work_minutes - total_break_minutes, 0) AS total_work_minutes,
+            GREATEST(total_overtime_minutes - total_overtime_break_minutes, 0) AS total_overtime_minutes,
+            GREATEST(total_night_work_overtime_minutes - total_night_work_overtime_break_minutes, 0) AS total_night_work_overtime_minutes,
+            GREATEST(total_night_work_minutes - total_night_work_break_minutes - (total_night_work_overtime_minutes - total_night_work_overtime_break_minutes), 0) AS total_night_work_minutes
         FROM calculate_work_time
     )
     UPDATE attendance_daily ad

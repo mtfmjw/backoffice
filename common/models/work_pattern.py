@@ -1,11 +1,15 @@
 from datetime import time
 
+from django.core.cache import cache
 from django.db import models
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 
 from .base import MemberScopedBaseModel
 
-DEFAULT_WORK_PATTERN_NO = 1
+WORK_PATTERNS_CACHE_KEY = "all_work_patterns_dict"
+WORK_PATTERNS_CACHE_TIMEOUT = 86400
 
 
 class WorkPattern(MemberScopedBaseModel):
@@ -98,12 +102,41 @@ class WorkPattern(MemberScopedBaseModel):
         super().save(*args, **kwargs)
 
     @classmethod
-    def get_work_pattern(cls, member) -> "WorkPattern":
-        """Return the work pattern for a member, falling back to the organization's work pattern or the default."""
-        if member.work_pattern is not None:
-            return member.work_pattern
+    def get_all_work_patterns(cls):
+        """
+        Retrieves a dictionary of all WorkPattern instances keyed by ID from Redis.
+        If not cached, fetches from DB, sets the cache, and returns it.
+        """
+        patterns = cache.get(WORK_PATTERNS_CACHE_KEY)
 
-        if member.organization is not None and member.organization.work_pattern is not None:
-            return member.organization.work_pattern
+        if patterns is None:
+            # Query all records and build a dict: {1: <WorkPattern: Standard>, 2: ...}
+            patterns = {wp.id: wp for wp in cls.objects.all()}
+            cache.set(WORK_PATTERNS_CACHE_KEY, patterns, timeout=WORK_PATTERNS_CACHE_TIMEOUT)
 
-        return WorkPattern.objects.filter(no=DEFAULT_WORK_PATTERN_NO).first()
+        return patterns
+
+    @classmethod
+    def get_work_pattern_by_id(cls, pattern_id):
+        """
+        Fetches a single WorkPattern by ID directly from the cached Redis dict.
+        """
+        if not pattern_id:
+            return None
+        patterns = cls.get_all_work_patterns()
+        return patterns.get(pattern_id)
+
+    @classmethod
+    def get_default_work_pattern(cls):
+        """
+        Fetches the default WorkPattern (with no=1) from the cached Redis dict.
+        """
+        for pattern in cls.get_all_work_patterns().values():
+            if pattern.no == 1:
+                return pattern
+        return None
+
+
+@receiver([post_save, post_delete], sender=WorkPattern)
+def clear_work_patterns_cache(sender, instance, **kwargs):
+    cache.delete(WORK_PATTERNS_CACHE_KEY)

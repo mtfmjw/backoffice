@@ -63,3 +63,10 @@ class OrganizationAdmin(MemberScopedBaseModelAdmin):
 
         preserved_order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ordered_ids)])
         return Organization.objects.filter(id__in=ordered_ids).order_by(preserved_order)
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = list(super().get_readonly_fields(request, obj))
+        if obj is not None:
+            # Editing an existing object
+            readonly_fields.append("code")
+        return readonly_fields

@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import partial
 from urllib.parse import quote, urlencode
 
 import openpyxl
@@ -64,7 +65,9 @@ class MonthlyAttendanceForm(forms.ModelForm):
         label=_("Note"),
         widget=TextInput(
             attrs={
-                "placeholder": _("昼間不在は[05:00~22:00]、夜間不在は[22:00~翌05:00]期間中期間中の標準休憩以外の不在時間があれば入力してください。")
+                "placeholder": _(
+                    "終了時刻に開始時刻より早い時間を入力した場合、終了時刻は翌日の時刻として扱われます。却下時は、理由をここに記入してください。"
+                )
             }
         ),
         required=False,
@@ -90,7 +93,7 @@ class MonthlyAttendanceResource(ImportBaseModelResourceMixin, resources.ModelRes
             "member__email",
             "member__organization__code",
             "member__organization__name",
-            "member__work_pattern__no",
+            "work_pattern",
             "member__work_pattern__name",
             "approve_status",
             "worked_days",
@@ -129,6 +132,11 @@ class MonthlyAttendanceResource(ImportBaseModelResourceMixin, resources.ModelRes
     )
 
 
+def call_calculate_working_time(member_id, month, username):
+    with connection.cursor() as cursor:
+        cursor.execute("CALL calculate_working_time(%s, %s, %s);", [member_id, month, username])
+
+
 @admin.register(MonthlyAttendance, site=admin_site)
 class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
     change_list_template = "kintai/monthlyattendance/change_list.html"
@@ -145,24 +153,22 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
         "display_standard_working_days",
         "display_working_time",
         "display_paid_leave_days",
-        "absence_days",
-        "early_leave_days",
-        "late_days",
+        "display_overtime_125",
+        "display_overtime_150",
+        "display_off_day_125",
+        "display_off_day_150",
+        "display_holiday_135",
+        "display_holiday_160",
+        "display_night_time_025",
+        "display_absence_days",
+        "display_early_leave_days",
+        "display_late_days",
         "display_total_absence_minutes",
     )
     search_fields = ("member__user__username", "member__user__last_name", "member__user__first_name", "member__organization__name")
     list_select_related = ("member", "work_pattern")
     list_filter = (MonthFilter, "approve_status")
     fields = ("note",)
-    readonly_fields = (
-        "display_worked_days",
-        "display_standard_working_days",
-        "display_working_time",
-        "display_paid_leave_days",
-        "absence_days",
-        "early_leave_days",
-        "late_days",
-    )
     inlines = (DailyAttendanceInline,)
 
     @display(description=_("Month"))
@@ -177,23 +183,67 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
 
     @display(description=_("Days Worked"))
     def display_worked_days(self, obj) -> str:
-        return f"{obj.worked_days:.1f}日"
+        return f"{obj.worked_days:.1f}日" if obj is not None and obj.worked_days else "-"
 
     @display(description=_("Standard Working Days"))
     def display_standard_working_days(self, obj) -> str:
-        return f"{obj.standard_working_days}日"
+        return f"{obj.standard_working_days}日" if obj is not None and obj.standard_working_days else "-"
 
     @display(description=_("Actual Working Time"))
     def display_working_time(self, obj) -> str:
-        return minutes2str(obj.actual_work_minutes)
+        return minutes2str(obj.actual_work_minutes) if obj is not None else "-"
+
+    @display(description=_("Overtime 1.25"))
+    def display_overtime_125(self, obj) -> str:
+        return minutes2str(obj.overtime_125) if obj is not None else "-"
+
+    @display(description=_("Overtime 1.50"))
+    def display_overtime_150(self, obj) -> str:
+        return minutes2str(obj.overtime_150) if obj is not None else "-"
+
+    @display(description=_("Night Work 0.25"))
+    def display_night_time_025(self, obj) -> str:
+        return minutes2str(obj.night_time_025) if obj is not None else "-"
+
+    @display(description=_("Off Day 1.25"))
+    def display_off_day_125(self, obj) -> str:
+        return minutes2str(obj.off_day_125) if obj is not None else "-"
+
+    @display(description=_("Off Day 1.50"))
+    def display_off_day_150(self, obj) -> str:
+        return minutes2str(obj.off_day_150) if obj is not None else "-"
+
+    @display(description=_("Holiday 1.35"))
+    def display_holiday_135(self, obj) -> str:
+        return minutes2str(obj.holiday_135) if obj is not None else "-"
+
+    @display(description=_("Holiday 1.60"))
+    def display_holiday_160(self, obj) -> str:
+        return minutes2str(obj.holiday_160) if obj is not None else "-"
 
     @display(description=_("Paid Leave Days"))
     def display_paid_leave_days(self, obj) -> str:
-        return f"{obj.paid_leave_days:.1f}日" if obj.paid_leave_days is not None else ""
+        return f"{obj.paid_leave_days:.1f}日" if obj is not None and obj.paid_leave_days else "-"
+
+    @display(description=_("Paid Leave Available"))
+    def display_paid_leave_available(self, obj) -> str:
+        return f"{obj.paid_leave_available:.1f}日" if obj is not None and getattr(obj, "paid_leave_available", None) else "-"
+
+    @display(description=_("Absence Days"))
+    def display_absence_days(self, obj) -> str:
+        return f"{obj.absence_days}日" if obj is not None and obj.absence_days else "-"
+
+    @display(description=_("Early Leave Days"))
+    def display_early_leave_days(self, obj) -> str:
+        return f"{obj.early_leave_days}回" if obj is not None and obj.early_leave_days else "-"
+
+    @display(description=_("Late Days"))
+    def display_late_days(self, obj) -> str:
+        return f"{obj.late_days}回" if obj is not None and obj.late_days else "-"
 
     @display(description=_("Total Absence Time"))
     def display_total_absence_minutes(self, obj) -> str:
-        return minutes2str(obj.total_absence_minutes)
+        return minutes2str(obj.total_absence_minutes) if obj is not None else "-"
 
     @display(description=_("Audit Info"))
     def audit_info(self, obj):
@@ -236,7 +286,7 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
 
     def is_all_organizations_accessible(self, request):
         return super().is_all_organizations_accessible(request) or (
-            getattr(request.user, "member", None) is not None and request.user.member.is_attendance_management_staff()
+            getattr(request.user, "member", None) is not None and request.user.member.is_attendance_management_staff
         )
 
     def changelist_view(self, request, extra_context=None):
@@ -283,11 +333,7 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
             with transaction.atomic(), connection.cursor() as cursor:
                 cursor.execute("""CALL create_monthly_attendance(%s, %s, %s, %s);""", [member.id, first_day, request.user.username, 0])
                 attendance_id = cursor.fetchone()[0]
-                monthly_attendance = MonthlyAttendance.objects.get(id=attendance_id)
-                for daily_attendance in monthly_attendance.daily_attendances.all():
-                    daily_attendance.update_derived_fields()  # DailyAttendance instance
-                    daily_attendance.save()
-                monthly_attendance.update_derived_fields()  # MonthlyAttendance instance
+                cursor.execute("""CALL calculate_working_time(%s, %s, %s);""", [member.id, first_day, request.user.username])
 
         # 1. Get the current request's GET query string (e.g., "status=1&month=2026-08")
         # Or get it from request.META.get('HTTP_REFERER') if coming from a different view
@@ -310,9 +356,15 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
         extra_context["worked_days_label"] = _("Days Worked")
         extra_context["standard_working_days_label"] = _("Standard Working Days")
         extra_context["actual_working_time_label"] = _("Actual Working Time")
-        extra_context["overtime_label"] = _("Overtime")
-        extra_context["night_working_time_label"] = _("Night Working Time")
+        extra_context["overtime_125_label"] = _("Overtime 1.25")
+        extra_context["overtime_150_label"] = _("Overtime 1.50")
+        extra_context["off_day_125_label"] = _("Off Day 1.25")
+        extra_context["off_day_150_label"] = _("Off Day 1.50")
+        extra_context["holiday_135_label"] = _("Holiday 1.35")
+        extra_context["holiday_160_label"] = _("Holiday 1.60")
+        extra_context["night_time_025_label"] = _("Night Work 0.25")
         extra_context["paid_leave_days_label"] = _("Paid Leave Days")
+        extra_context["paid_leave_available_label"] = _("Paid Leave Available")
         extra_context["absence_days_label"] = _("Absence Days")
         extra_context["early_leave_days_label"] = _("Early Leave Days")
         extra_context["late_days_label"] = _("Late Days")
@@ -323,14 +375,20 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
             extra_context["worked_days"] = self.display_worked_days(obj)
             extra_context["standard_working_days"] = self.display_standard_working_days(obj)
             extra_context["actual_working_time"] = self.display_working_time(obj)
-            extra_context["overtime"] = 0
-            extra_context["night_working_time"] = 0
+            extra_context["overtime_125"] = self.display_overtime_125(obj)
+            extra_context["overtime_150"] = self.display_overtime_150(obj)
+            extra_context["off_day_125"] = self.display_off_day_125(obj)
+            extra_context["off_day_150"] = self.display_off_day_150(obj)
+            extra_context["holiday_135"] = self.display_holiday_135(obj)
+            extra_context["holiday_160"] = self.display_holiday_160(obj)
+            extra_context["night_time_025"] = self.display_night_time_025(obj)
             extra_context["paid_leave_days"] = self.display_paid_leave_days(obj)
-            extra_context["absence_days"] = f"{obj.absence_days}回" if obj.absence_days is not None else ""
-            extra_context["early_leave_days"] = f"{obj.early_leave_days}回" if obj.early_leave_days is not None else ""
-            extra_context["late_days"] = f"{obj.late_days}回" if obj.late_days is not None else ""
+            extra_context["paid_leave_available"] = self.display_paid_leave_available(obj)
+            extra_context["absence_days"] = self.display_absence_days(obj)
+            extra_context["early_leave_days"] = self.display_early_leave_days(obj)
+            extra_context["late_days"] = self.display_late_days(obj)
             extra_context["total_absence_time"] = self.display_total_absence_minutes(obj)
-            work_pattern = obj.work_pattern
+            work_pattern = obj.work_pattern if obj is not None else None
 
             extra_context["show_save_and_add_another"] = False
             obj = self.get_object(request, object_id)
@@ -404,22 +462,19 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
 
         super().save_model(request, obj, form, change)
 
-    def save_formset(self, request, form, formset, change):
-        # Save the inline formset instances first
-        instances = formset.save(commit=False)
-        for instance in instances:
-            instance.save()
-        formset.save_m2m()
+    def save_related(self, request, form, formsets, change):
+        # 1. Let Django save the parent's m2m relationships and all inline formsets
+        super().save_related(request, form, formsets, change)
 
-        # Handle deleted inline objects
-        for obj in formset.deleted_objects:
-            obj.delete()
+        # 2. Get the saved parent instance
+        monthly_attendance = form.instance
 
-        member = request.user.member
-        month_str = request.GET.get("month", localdate().strftime("%Y-%m"))
-        first_day = datetime.strptime(month_str, "%Y-%m").date()  # noqa: DTZ007
-        with transaction.atomic(), connection.cursor() as cursor:
-            cursor.execute("""CALL calculate_working_time(%s, %s, %s);""", [member.id, first_day, request.user.username])
+        # 3. Schedule the procedure to execute AFTER the current database transaction commits
+        member_id = monthly_attendance.member.id
+        month = monthly_attendance.month
+
+        # Register it to run AFTER the transaction commits
+        transaction.on_commit(partial(call_calculate_working_time, member_id, month, request.user.username))
 
     def get_urls(self):
         urls = super().get_urls()

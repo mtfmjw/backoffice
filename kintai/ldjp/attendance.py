@@ -55,9 +55,9 @@ def write_attendance_sheet(ws: WorkSheet, model_admin: admin.ModelAdmin, monthly
         if daily.date_status and daily.date_status >= 100:  # 特別休暇、育児休業など
             ws[f"I{row}"] = daily.date_status.label  # 特記事項
         if daily.date_status and daily.date_status < 100:  # 出勤、欠勤、有給休暇など
-            ws[f"J{row}"] = daily.date_status  # 項目番号
-        ws[f"AV{row}"] = "1" if not daily.has_break1 and daily.is_present() else ""  # 休憩2
-        ws[f"AW{row}"] = "1" if not daily.has_break2 and daily.is_present() else ""  # 休憩3
-        ws[f"AX{row}"] = "1" if not daily.has_break3 and daily.is_present() else ""  # 休憩4
-        ws[f"AY{row}"] = "1" if not daily.has_break4 and daily.is_present() else ""  # 休憩5
-        ws[f"AZ{row}"] = "1" if not daily.has_break5 and daily.is_present() else ""  # 休憩6
+            ws[f"K{row}"] = daily.date_status  # 項目番号
+        ws[f"AV{row}"] = "1" if not daily.has_break1 and daily.is_present else ""  # 休憩2
+        ws[f"AW{row}"] = "1" if not daily.has_break2 and daily.is_present else ""  # 休憩3
+        ws[f"AX{row}"] = "1" if not daily.has_break3 and daily.is_present else ""  # 休憩4
+        ws[f"AY{row}"] = "1" if not daily.has_break4 and daily.is_present else ""  # 休憩5
+        ws[f"AZ{row}"] = "1" if not daily.has_break5 and daily.is_present else ""  # 休憩6

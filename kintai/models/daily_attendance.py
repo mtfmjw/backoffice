@@ -1,10 +1,9 @@
 from django.db import models
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 from common.models import WorkPattern
-from common.utils import (
-    minutes2str,
-)
+from common.utils import minutes2str_ja
 from kintai.const import WEEKDAYS, DateStatus, DateType
 
 from .monthly_attendance import MonthlyAttendance
@@ -39,7 +38,7 @@ class DailyAttendance(models.Model):
     early_leave_minutes = models.PositiveIntegerField(_("Early Leave"), default=0, null=True, blank=True)  # 早退時間（分）
     overtime_125 = models.PositiveIntegerField(_("Overtime 1.25"), default=0, null=True, blank=True)  # 普通残業時間（1.25）
     overtime_150 = models.PositiveIntegerField(_("Overtime 1.50"), default=0, null=True, blank=True)  # 普通深夜残業時間（1.50）
-    night_time_025 = models.PositiveIntegerField(_("Night Overtime 0.25"), default=0, null=True, blank=True)  # 深夜就業時間（0.25）
+    night_time_025 = models.PositiveIntegerField(_("Night Work 0.25"), default=0, null=True, blank=True)  # 深夜就業時間（0.25）
     off_day_125 = models.PositiveIntegerField(_("Off Day 1.25"), default=0, null=True, blank=True)  # 休日出勤時間（1.25）
     off_day_150 = models.PositiveIntegerField(_("Off Day 1.50"), default=0, null=True, blank=True)  # 休日深夜出勤時間（1.50）
     holiday_135 = models.PositiveIntegerField(_("Holiday 1.35"), default=0, null=True, blank=True)  # 法定休日出勤時間（1.35）
@@ -53,13 +52,20 @@ class DailyAttendance(models.Model):
         ordering = ("monthly_attendance", "day")
 
     def __str__(self):
-        default_message = f"{self.day.strftime('%Y年%m月%d日')}({WEEKDAYS[self.day.isoweekday() - 1]}) - {self.get_date_type_display()}"
-        if self.is_present():
-            working_time = f"{_('Actual Working Time')}：{minutes2str(self.actual_work_minutes)}" if self.actual_work_minutes is not None else ""
-            is_late = f"{_('Late')}：{minutes2str(self.late_minutes)}" if self.late_minutes else ""
-            is_early_leave = f"{_('Early Leave')}：{minutes2str(self.early_leave_minutes)}" if self.early_leave_minutes else ""
-            absence_days = f"{_('Absence Days')}：1" if self.date_status == DateStatus.ABSENCE else ""
-            return f"{default_message}　{working_time}　{is_late}　{is_early_leave} {absence_days}"
+        default_message = f"{self.day.strftime('%Y年%m月%d日')}({WEEKDAYS[self.day.isoweekday() - 1]}) - {self.get_date_type_display()}　"
+        if self.is_present:
+            working_time = f"　{_('Actual Working Time')}：{minutes2str_ja(self.actual_work_minutes)}" if self.actual_work_minutes else ""
+            overtime_125 = f"　{_('Overtime 1.25')}：{minutes2str_ja(self.overtime_125)}" if self.overtime_125 else ""
+            overtime_150 = f"　{_('Overtime 1.50')}：{minutes2str_ja(self.overtime_150)}" if self.overtime_150 else ""
+            night_time_025 = f"　{_('Night Work 0.25')}：{minutes2str_ja(self.night_time_025)}" if self.night_time_025 else ""
+            off_day_125 = f"　{_('Off Day 1.25')}：{minutes2str_ja(self.off_day_125)}" if self.off_day_125 else ""
+            off_day_150 = f"　{_('Off Day 1.50')}：{minutes2str_ja(self.off_day_150)}" if self.off_day_150 else ""
+            holiday_135 = f"　{_('Holiday 1.35')}：{minutes2str_ja(self.holiday_135)}" if self.holiday_135 else ""
+            holiday_160 = f"　{_('Holiday 1.60')}：{minutes2str_ja(self.holiday_160)}" if self.holiday_160 else ""
+            late_minutes = f"　{_('Late')}：{minutes2str_ja(self.late_minutes)}" if self.late_minutes else ""
+            early_leave_minutes = f"　{_('Early Leave')}：{minutes2str_ja(self.early_leave_minutes)}" if self.early_leave_minutes else ""
+            absence_days = f"　{_('Absence Days')}：1" if self.date_status == DateStatus.ABSENCE else ""
+            return f"{default_message}{working_time}{night_time_025}{overtime_125}{overtime_150}{off_day_125}{off_day_150}{holiday_135}{holiday_160}{late_minutes}{early_leave_minutes}{absence_days}"
         else:
             return default_message
 
@@ -67,6 +73,7 @@ class DailyAttendance(models.Model):
         """勤務日かどうかを返す"""
         return self.date_type == DateType.WORK_DAY
 
+    @cached_property
     def is_present(self):
         """就業状態かどうかを返す"""
         return (

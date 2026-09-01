@@ -69,17 +69,15 @@ class MonthlyAttendance(RowScopedBaseModel):
 
     def is_approvable_by(self, login_user):
         """Check if the record is approvable by the given user."""
-        return (
-            login_user.member.is_organization_manager() or login_user.member.is_company_executive()
-        ) and self.approve_status == ApproveStatus.APPLIED
+        return (login_user.member.is_organization_manager or login_user.member.is_company_executive) and self.approve_status == ApproveStatus.APPLIED
 
     def is_confirmable_by(self, login_user):
         """Check if the record is confirmable by the given user."""
         return (
-            login_user.member.is_attendance_management_staff() or login_user.member.is_company_executive()
+            login_user.member.is_attendance_management_staff or login_user.member.is_company_executive
         ) and self.approve_status == ApproveStatus.APPROVED
 
     @classmethod
     def is_all_organizations_accessible(cls, login_user):
         """Check if the model is accessible to all organizations."""
-        return super().is_all_organizations_accessible(login_user) or login_user.member.is_attendance_management_staff()
+        return super().is_all_organizations_accessible(login_user) or login_user.member.is_attendance_management_staff
