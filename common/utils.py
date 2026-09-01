@@ -1,6 +1,5 @@
 from datetime import date, time, timedelta
 
-from django.core.exceptions import ValidationError
 from django.utils.timezone import datetime, is_naive, localtime, make_aware
 from django.utils.translation import gettext_lazy as _
 
@@ -42,13 +41,14 @@ def convert2duration(base_date: date, start_time: time, end_time: time) -> tuple
 
 
 def duration2minutes(duration: tuple[datetime, datetime]) -> int:
-    """Return the duration in minutes."""
+    """Return the duration in minutes, supporting overnight shifts."""
     start_time, end_time = duration
     if start_time and end_time:
-        if start_time <= end_time:
-            return int((end_time - start_time).total_seconds() // 60)
-        else:
-            raise ValidationError(_("Start time must be earlier than end time: %(start)s - %(end)s") % {"start": start_time, "end": end_time})
+        # If end_time is earlier than start_time, assume it crossed midnight and add 1 day
+        if start_time > end_time:
+            end_time += timedelta(days=1)
+
+        return int((end_time - start_time).total_seconds() // 60)
     return 0
 
 
@@ -56,12 +56,7 @@ def duration2str(duration: tuple[time, time]) -> str:
     """Show duration in HH:MM - HH:MM format."""
     start_time, end_time = duration
     if start_time and end_time:
-        start = start_time.strftime("%H:%M")
-        end = end_time.strftime("%H:%M")
-        if start_time <= end_time:
-            return f"{start} - {end}"
-        else:
-            raise ValidationError(_("Start time must be earlier than end time: %(start)s - %(end)s") % {"start": start, "end": end})
+        return f"{start_time.strftime('%H:%M')} - {end_time.strftime('%H:%M')}"
     return ""
 
 

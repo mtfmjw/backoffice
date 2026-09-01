@@ -320,7 +320,7 @@ msgstr "確定"
 
 #: .\common\templates\admin\common\export.html:45
 msgid "Close"
-msgstr "閉じる"
+msgstr "キャンセル"
 
 #: .\common\templates\admin\common\import.html:9
 msgid ""

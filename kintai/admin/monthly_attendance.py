@@ -22,7 +22,7 @@ from import_export.widgets import ForeignKeyWidget
 from backoffice.admin import admin_site
 from common.admin.base import ImportBaseModelResourceMixin, RowScopedBaseModelAdmin
 from common.models import WorkPattern
-from common.models.member import get_user_full_name
+from common.models.member import Member, get_user_full_name
 from common.utils import convert2str, minutes2str
 from kintai.const import ApproveStatus
 from kintai.ldjp.attendance import get_attendance_sheet_file_name, write_attendance_sheet
@@ -87,6 +87,7 @@ class MonthlyAttendanceResource(ImportBaseModelResourceMixin, resources.ModelRes
             "member__user__username",
             "member__user__last_name",
             "member__user__first_name",
+            "member__email",
             "member__organization__code",
             "member__organization__name",
             "member__work_pattern__no",
@@ -117,8 +118,8 @@ class MonthlyAttendanceResource(ImportBaseModelResourceMixin, resources.ModelRes
 
     member = fields.Field(
         attribute="member",
-        column_name="member__user__username",
-        widget=ForeignKeyWidget(User, field="member__user__username"),
+        column_name="member__email",
+        widget=ForeignKeyWidget(Member, field="email"),
     )
 
     work_pattern = fields.Field(

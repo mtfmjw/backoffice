@@ -27,7 +27,7 @@ def get_member_name(member: Member) -> str:
 
 
 def get_attendance_sheet_file_name(month: date, member: Member) -> str:
-    month_str = convert2localtime(month).strftime("%y%m")
+    month_str = month.strftime("%y%m")
     code = get_organization_code(member)
     no = get_member_no(member)
     name = get_member_name(member)

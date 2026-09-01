@@ -141,7 +141,7 @@ msgstr "却下"
 
 #: .\templates\admin\submit_line.html:22 .\templates\admin\submit_line.html:25
 msgid "Close"
-msgstr "閉じる"
+msgstr "戻る"
 
 #: .\templates\admin\submit_line.html:29
 msgid "Delete"
