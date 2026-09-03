@@ -105,7 +105,6 @@ class MonthlyAttendanceResource(ImportBaseModelResourceMixin, resources.ModelRes
             "absence_days",
             "early_leave_days",
             "late_days",
-            "total_absence_minutes",
             "note",
             "created_at",
             "created_by",
@@ -163,7 +162,6 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
         "display_absence_days",
         "display_early_leave_days",
         "display_late_days",
-        "display_total_absence_minutes",
     )
     search_fields = ("member__user__username", "member__user__last_name", "member__user__first_name", "member__organization__name")
     list_select_related = ("member", "work_pattern")
@@ -240,10 +238,6 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
     @display(description=_("Late Days"))
     def display_late_days(self, obj) -> str:
         return f"{obj.late_days}回" if obj is not None and obj.late_days else "-"
-
-    @display(description=_("Total Absence Time"))
-    def display_total_absence_minutes(self, obj) -> str:
-        return minutes2str(obj.total_absence_minutes) if obj is not None else "-"
 
     @display(description=_("Audit Info"))
     def audit_info(self, obj):
@@ -368,7 +362,6 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
         extra_context["absence_days_label"] = _("Absence Days")
         extra_context["early_leave_days_label"] = _("Early Leave Days")
         extra_context["late_days_label"] = _("Late Days")
-        extra_context["total_absence_time_label"] = _("Total Absence Time")
 
         if object_id is not None:
             obj = self.get_object(request, object_id)
@@ -387,7 +380,6 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
             extra_context["absence_days"] = self.display_absence_days(obj)
             extra_context["early_leave_days"] = self.display_early_leave_days(obj)
             extra_context["late_days"] = self.display_late_days(obj)
-            extra_context["total_absence_time"] = self.display_total_absence_minutes(obj)
             work_pattern = obj.work_pattern if obj is not None else None
 
             extra_context["show_save_and_add_another"] = False

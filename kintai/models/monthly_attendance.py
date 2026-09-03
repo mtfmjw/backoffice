@@ -28,7 +28,6 @@ class MonthlyAttendance(RowScopedBaseModel):
     absence_days = models.PositiveIntegerField(_("Absence Days"), default=0, null=True, blank=True)
     early_leave_days = models.PositiveIntegerField(_("Early Leave Days"), default=0, null=True, blank=True)
     late_days = models.PositiveIntegerField(_("Late Days"), default=0, null=True, blank=True)
-    total_absence_minutes = models.PositiveIntegerField(_("Total Absence Time"), default=0, null=True, blank=True)
     overtime_125 = models.PositiveIntegerField(_("Overtime 1.25"), default=0, null=True, blank=True)  # 普通残業時間（1.25）
     overtime_150 = models.PositiveIntegerField(_("Overtime 1.50"), default=0, null=True, blank=True)  # 普通深夜残業時間（1.50）
     night_time_025 = models.PositiveIntegerField(_("Night Overtime 0.25"), default=0, null=True, blank=True)  # 深夜就業時間（0.25）
