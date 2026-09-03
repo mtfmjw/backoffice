@@ -1,0 +1,2 @@
+month,member__user__username,member__user__last_name,member__user__first_name,member__organization__code,member__organization__name,member__work_pattern__no,member__work_pattern__name,approve_status,worked_days,standard_working_days,paid_leave_days,absence_days,early_leave_days,late_days,total_absence_minutes,note,created_at,created_by,updated_at,updated_by,applied_by,applied_at,approved_by,approved_at,confirmed_by,confirmed_at
+2026-08-01,9400,情シス,9400,90,情シス,,,0,20.0,20,0.0,0,0,0,0,,2026-08-30 05:51,9400,2026-08-30 05:51,9400,,,,,,

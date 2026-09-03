@@ -2,12 +2,19 @@
 {% load i18n admin_urls static %}
 
 {% block object-tools-items %}
+    {% if change and not is_popup %}
+        <li>
+            <a href="{% url 'admin:export-attendance-sheet' object_id=original.pk %}" class="viewsitelink">
+                {% trans "Download Attendance Sheet" %}
+            </a>
+        </li>
+    {% endif %}
 {% endblock %}
 
 {% block extrahead %}
     {{ block.super }}
-    <script src="{% static 'kintai/js/monthly_attendance.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'kintai/css/monthly_attendance.css' %}">
+    <script src="{% static 'kintai/js/monthly_attendance_change_form.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'kintai/css/monthly_attendance_change_form.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -18,45 +25,56 @@
 
 {% block after_field_sets %}
     <div class="summary-grid-container">
-        <!-- 月次集計結果 Headers -->
+        <!-- Row 1: 月次集計結果 Headers (Columns 1 to 11) -->
         <div class="break-grid-header summary">{{ worked_days_label }}</div>
         <div class="break-grid-header summary">{{ actual_working_time_label }}</div>
-        <div class="break-grid-header summary">{{ overtime_label }}</div>
-        <div class="break-grid-header summary">{{ night_working_time_label }}</div>
         <div class="break-grid-header summary">{{ paid_leave_days_label }}</div>
+        <div class="break-grid-header summary">{{ overtime_125_label }}</div>
+        <div class="break-grid-header summary">{{ overtime_150_label }}</div>
+        <div class="break-grid-header summary">{{ off_day_125_label }}</div>
+        <div class="break-grid-header summary">{{ off_day_150_label }}</div>
+        <div class="break-grid-header summary">{{ holiday_135_label }}</div>
+        <div class="break-grid-header summary">{{ holiday_160_label }}</div>
+        <div class="break-grid-header summary">{{ night_time_025_label }}</div>
         <div class="break-grid-header summary">{{ absence_days_label }}</div>
-        <div class="break-grid-header summary">{{ early_leave_days_label }}</div>
-        <div class="break-grid-header summary">{{ late_days_label }}</div>
-        <div class="break-grid-header summary">{{ total_absence_time_label }}</div>
+        <div class="break-grid-header summary"></div>
 
-        <!-- 月次集計結果 -->
+        <!-- Row 2: 月次集計結果 Values (Columns 1 to 11) -->
         <div class="break-grid-cell summary">{{ worked_days }}</div>
         <div class="break-grid-cell summary">{{ actual_working_time }}</div>
-        <div class="break-grid-cell summary">{{ overtime }}</div>
-        <div class="break-grid-cell summary">{{ night_working_time }}</div>
         <div class="break-grid-cell summary">{{ paid_leave_days }}</div>
+        <div class="break-grid-cell summary">{{ overtime_125 }}</div>
+        <div class="break-grid-cell summary">{{ overtime_150 }}</div>
+        <div class="break-grid-cell summary">{{ off_day_125 }}</div>
+        <div class="break-grid-cell summary">{{ off_day_150 }}</div>
+        <div class="break-grid-cell summary">{{ holiday_135 }}</div>
+        <div class="break-grid-cell summary">{{ holiday_160 }}</div>
+        <div class="break-grid-cell summary">{{ night_time_025 }}</div>
         <div class="break-grid-cell summary">{{ absence_days }}</div>
-        <div class="break-grid-cell summary">{{ early_leave_days }}</div>
-        <div class="break-grid-cell summary">{{ late_days }}</div>
-        <div class="break-grid-cell summary">{{ total_absence_time }}</div>
+        <div class="break-grid-cell summary"></div>
 
-        <!-- WorkPattern Headers -->
+        <!-- Row 3: WorkPattern Headers (Columns 1 to 11) + Action Button (Column 12, Spans Rows 3-4) -->
         <div class="break-grid-header work-pattern">{{ standard_working_days_label }}</div>
         <div class="break-grid-header work-pattern">勤務時間</div>
+        <div class="break-grid-header summary">{{ paid_leave_available_label }}</div>
+        <div class="break-grid-header summary">{{ early_leave_days_label }}</div>
+        <div class="break-grid-header summary">{{ late_days_label }}</div>
         <div class="break-grid-header work-pattern">昼休憩<input type="checkbox" name="apply_lunch_break" id="id_apply_lunch_break" class="apply-break-checkbox"></div>
         <div class="break-grid-header work-pattern">休憩1<input type="checkbox" name="apply_break1" id="id_apply_break1" class="apply-break-checkbox"></div>
         <div class="break-grid-header work-pattern">休憩2<input type="checkbox" name="apply_break2" id="id_apply_break2" class="apply-break-checkbox"></div>
         <div class="break-grid-header work-pattern">休憩3<input type="checkbox" name="apply_break3" id="id_apply_break3" class="apply-break-checkbox"></div>
         <div class="break-grid-header work-pattern">休憩4<input type="checkbox" name="apply_break4" id="id_apply_break4" class="apply-break-checkbox"></div>
         <div class="break-grid-header work-pattern">休憩5<input type="checkbox" name="apply_break5" id="id_apply_break5" class="apply-break-checkbox"></div>
-        <!-- 結合する最終列のセル -->
         <div class="break-grid-header work-pattern apply-button">
             <button type="button" class="button" onclick="applyToAll(this)">休憩パターン適用</button>
         </div>
 
-        <!-- WorkPattern Values -->
+        <!-- Row 4: WorkPattern Values (Columns 1 to 11) -->
         <div class="break-grid-cell work-pattern">{{ standard_working_days }}</div>
         <div class="break-grid-cell work-pattern">{{ work_duration }}</div>
+        <div class="break-grid-cell summary">{{ paid_leave_available }}</div>
+        <div class="break-grid-cell summary">{{ early_leave_days }}</div>
+        <div class="break-grid-cell summary">{{ late_days }}</div>
         <div class="break-grid-cell work-pattern">{{ lunch_break_duration }}</div>
         <div class="break-grid-cell work-pattern">{{ break1_duration }}</div>
         <div class="break-grid-cell work-pattern">{{ break2_duration }}</div>
@@ -64,5 +82,4 @@
         <div class="break-grid-cell work-pattern">{{ break4_duration }}</div>
         <div class="break-grid-cell work-pattern">{{ break5_duration }}</div>
     </div>
-
 {% endblock %}

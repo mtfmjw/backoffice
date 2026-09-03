@@ -5,7 +5,9 @@ from django.contrib import admin, messages
 from django.contrib.admin import display
 from django.contrib.auth import get_user_model
 from django.http import HttpResponseRedirect
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from import_export import widgets
 from import_export.admin import ImportExportMixin
 from import_export.formats.base_formats import CSV
 from import_export.forms import ExportForm
@@ -14,9 +16,41 @@ from common.admin.filters import OrganizationFilter
 from common.models import Organization
 from common.models.base import ConcurrencyError
 from common.models.member import get_user_full_name
-from common.utils import convert2str
+from common.utils import convert2localtime, convert2str
 
 User = get_user_model()
+
+
+class CommonImportResourceMixin:
+    """Mixin to add import functionality to a ModelAdmin using django-import-export."""
+
+    def get_compare_ignored_fields(self):
+        return []
+
+    def skip_row(self, instance, original, row, import_validation_errors=None):
+        if not self._meta.skip_unchanged or self._meta.skip_diff or import_validation_errors:
+            return False
+        for field in self.get_import_fields():
+            if field.column_name in self.get_compare_ignored_fields():
+                continue
+            # For fields that are models.fields.related.ManyRelatedManager
+            # we need to compare the results
+            if isinstance(field.widget, widgets.ManyToManyWidget):
+                # #1437 - handle m2m field not present in import file
+                if field.column_name not in row.keys():  # noqa: SIM118
+                    continue
+                # m2m instance values are taken from the 'row' because they
+                # have not been written to the 'instance' at this point
+                instance_values = list(field.clean(row))
+                original_values = [] if original.pk is None else list(field.get_value(original).all())
+                if len(instance_values) != len(original_values):
+                    return False
+
+                if sorted(v.pk for v in instance_values) != sorted(v.pk for v in original_values):
+                    return False
+            elif field.get_value(instance) != field.get_value(original):
+                return False
+        return True
 
 
 class CommonImportExportMixin(ImportExportMixin):
@@ -57,6 +91,11 @@ class CommonImportExportMixin(ImportExportMixin):
         if preserved_filters:
             return f"{changelist_url}?{preserved_filters}"
         return changelist_url
+
+    def get_export_filename(self, request, queryset, file_format):
+        date_str = convert2localtime(timezone.now()).strftime("%Y_%m_%d")
+        filename = f"{self.model.__name__}_{date_str}.{file_format.get_extension()}"
+        return filename
 
 
 class MemberScopedAdminMixin:
@@ -304,8 +343,13 @@ class BaseModelAdminMixin:
             obj.save(update_fields=["valid_flag", "updated_by"])
 
 
-class ImportBaseModelResourceMixin:
+class ImportBaseModelResourceMixin(CommonImportResourceMixin):
     """Mixin to add import functionality to a ModelAdmin using django-import-export."""
+
+    def get_compare_ignored_fields(self):
+        ignored_fields = super().get_compare_ignored_fields()
+        ignored_fields.extend(["created_by", "created_at", "updated_by", "updated_at", "version"])
+        return ignored_fields
 
     def before_import_row(self, row, **kwargs):
         """Set created_by and updated_by fields based on the current user."""
@@ -316,31 +360,6 @@ class ImportBaseModelResourceMixin:
         if "valid_flag" not in row or not row["valid_flag"]:
             row["valid_flag"] = True
         super().before_import_row(row, **kwargs)
-
-    def skip_row(self, instance, original, row, import_validation_errors=None):
-        """
-        Skip processing this row if the existing record's valid_flag
-        matches the incoming row's valid_flag.
-        """
-        # If no existing record was found in the DB (new row), don't skip
-        if not original.pk:
-            return False
-
-        # Convert incoming row value to boolean/datatype if necessary
-        # (Note: raw row data values are strings)
-        raw_valid_flag = row.get("valid_flag")
-
-        # Helper to parse boolean values from raw CSV strings if valid_flag is a BooleanField
-        if isinstance(raw_valid_flag, str):
-            incoming_flag = raw_valid_flag.strip().lower() in ("true", "1", "t", "y", "yes")
-        else:
-            incoming_flag = bool(raw_valid_flag)
-
-        # If existing record's flag is identical to incoming row's flag, skip
-        if original.valid_flag == incoming_flag:
-            return True
-
-        return super().skip_row(instance, original, row, import_validation_errors)
 
 
 class MemberScopedBaseModelAdmin(CommonImportExportMixin, MemberScopedAdminMixin, BaseModelAdminMixin, admin.ModelAdmin):

@@ -1,9 +1,11 @@
 from django.contrib.auth import get_user_model
-from django.db.models.signals import post_save
+from django.core.cache import cache
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from common.middleware import get_current_user
 from common.models import Member
+from common.models.work_pattern import WORK_PATTERNS_CACHE_KEY, WorkPattern
 
 User = get_user_model()
 
@@ -35,3 +37,8 @@ def create_member_for_new_user(sender, instance, created, **kwargs):
             member.email = instance.email
             member.updated_by = get_current_user()
             member.save()
+
+
+@receiver([post_save, post_delete], sender=WorkPattern)
+def clear_work_patterns_cache(sender, instance, **kwargs):
+    cache.delete(WORK_PATTERNS_CACHE_KEY)

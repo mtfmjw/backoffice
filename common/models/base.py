@@ -38,7 +38,7 @@ class RowScopedModelMixin(MemberScopedModelMixin):
             return False
 
         if login_user.member.organization is None:
-            return login_user.member.is_company_executive()
+            return login_user.member.is_company_executive
         return True
 
     def is_editable_by(self, login_user):
@@ -51,21 +51,19 @@ class RowScopedModelMixin(MemberScopedModelMixin):
             return True
 
         # ログインユーザーが組織長の場合、自分の所属組織の下部組織に所属するモデルを編集可能
-        return (
-            login_user.member.is_organization_manager() and login_user.member.organization in self.member.organization.get_ancestor_organizations()
-        )
+        return login_user.member.is_organization_manager and login_user.member.organization in self.member.organization.get_ancestor_organizations()
 
     @classmethod
     def is_all_organizations_accessible(cls, login_user):
         """Check if the member can view all organizations."""
-        return cls.is_authorized(login_user) and login_user.member.is_company_executive()
+        return cls.is_authorized(login_user) and login_user.member.is_company_executive
 
     @classmethod
     def get_accessible_top_organization(cls, login_user):
         """Get the highest level organization that the member can access."""
         if not cls.is_authorized(login_user):
             return None
-        return login_user.member.organization if login_user.member.is_organization_manager() else None
+        return login_user.member.organization if login_user.member.is_organization_manager else None
 
 
 class RowScopedModel(RowScopedModelMixin, models.Model):

@@ -5,14 +5,25 @@ from django import forms
 from django.contrib import admin
 from django.contrib.admin.widgets import AdminSplitDateTime, AdminTimeWidget
 from django.db import models
+from django.forms.models import BaseInlineFormSet
 from django.forms.widgets import TextInput
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from common.utils import convert2datetime, convert2duration, duration2minutes, get_overlap_minutes
+from common.models.work_pattern import WorkPattern
+from common.utils import convert2datetime, convert2duration, convert2localtime
 from common.validation import mandatory_validation
-from kintai.const import NIGHT_END_TIME, NIGHT_START_TIME, DateStatus, DateType
+from kintai.const import DateStatus, DateType
 from kintai.models import DailyAttendance
+
+
+class DailyAttendanceInlineFormSet(BaseInlineFormSet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Fetch choices ONCE for all forms in the formset
+        work_pattern_choices = [(wp.pk, str(wp)) for wp in WorkPattern.get_all_work_patterns().values()]
+        for form in self.forms:
+            form.fields["work_pattern"].choices = work_pattern_choices
 
 
 class DailyAttendanceInlineForm(forms.ModelForm):
@@ -22,8 +33,8 @@ class DailyAttendanceInlineForm(forms.ModelForm):
     clock_out_time_only = forms.TimeField(
         label=_("Clock Out"), widget=AdminTimeWidget(format="%H:%M", attrs={"placeholder": "HH:MM"}), input_formats=["%H:%M"], required=False
     )
-    day_absence = forms.TimeField(label=_("Day Absence"), widget=AdminTimeWidget(format="%H:%M", attrs={"placeholder": "HH:MM"}), required=False)
-    night_absence = forms.TimeField(label=_("Night Absence"), widget=AdminTimeWidget(format="%H:%M", attrs={"placeholder": "HH:MM"}), required=False)
+    absence_start = forms.TimeField(label=_("Absence Start"), widget=AdminTimeWidget(format="%H:%M", attrs={"placeholder": "HH:MM"}), required=False)
+    absence_end = forms.TimeField(label=_("Absence End"), widget=AdminTimeWidget(format="%H:%M", attrs={"placeholder": "HH:MM"}), required=False)
     note = forms.CharField(
         label=_("Note"),
         widget=TextInput(attrs={"placeholder": _("休憩については実際休んだ分だけチェックしてください。")}),
@@ -40,11 +51,11 @@ class DailyAttendanceInlineForm(forms.ModelForm):
 
         if self.instance and self.instance.pk:
             if self.instance.clock_in_time:
-                local_in = timezone.localtime(self.instance.clock_in_time)
+                local_in = convert2localtime(self.instance.clock_in_time)
                 self.initial["clock_in_time_only"] = local_in.strftime("%H:%M")
 
             if self.instance.clock_out_time:
-                local_out = timezone.localtime(self.instance.clock_out_time)
+                local_out = convert2localtime(self.instance.clock_out_time)
                 self.initial["clock_out_time_only"] = local_out.strftime("%H:%M")
 
     def clean(self):
@@ -74,31 +85,6 @@ class DailyAttendanceInlineForm(forms.ModelForm):
             if work_end > next_day_start:
                 self.add_error("clock_out_time_only", _("Clock-out time must be before the next day's start time."))
 
-            day_absence = cleaned_data.get("day_absence")
-            night_absence = cleaned_data.get("night_absence")
-            if day_absence is not None:
-                night_duration = convert2duration(timezone.localdate(), NIGHT_START_TIME, NIGHT_END_TIME)
-                work_duration = convert2duration(timezone.localdate(), clock_in_time, clock_out_time)
-                night_work_minutes = get_overlap_minutes(work_duration, night_duration)
-                day_work_minutes = duration2minutes(work_duration) - night_work_minutes
-                day_absence_minutes = day_absence.hour * 60 + day_absence.minute
-                if day_absence_minutes >= day_work_minutes:
-                    self.add_error("day_absence", _("Day Absence must be less than total work minutes."))
-            if night_absence is not None:
-                night_duration = convert2duration(timezone.localdate(), NIGHT_START_TIME, NIGHT_END_TIME)
-                work_duration = convert2duration(timezone.localdate(), clock_in_time, clock_out_time)
-                night_work_minutes = get_overlap_minutes(work_duration, night_duration)
-                night_absence_minutes = night_absence.hour * 60 + night_absence.minute
-                if night_absence_minutes >= night_work_minutes:
-                    self.add_error("night_absence", _("Night Absence must be less than total night work minutes."))
-        else:
-            day_absence = cleaned_data.get("day_absence")
-            night_absence = cleaned_data.get("night_absence")
-            if day_absence is not None:
-                self.add_error("day_absence", _("Day Absence cannot be set when clock-in and clock-out times are not provided."))
-            if night_absence is not None:
-                self.add_error("night_absence", _("Night Absence cannot be set when clock-in and clock-out times are not provided."))
-
         return cleaned_data
 
     def save(self, commit=True):
@@ -119,6 +105,7 @@ class DailyAttendanceInlineForm(forms.ModelForm):
 class DailyAttendanceInline(admin.TabularInline):
     model = DailyAttendance
     form = DailyAttendanceInlineForm
+    formset = DailyAttendanceInlineFormSet
     extra = 0
     can_delete = False
     fields = (
@@ -132,8 +119,8 @@ class DailyAttendanceInline(admin.TabularInline):
         "has_break3",
         "has_break4",
         "has_break5",
-        "day_absence",
-        "night_absence",
+        "absence_start",
+        "absence_end",
         "note",
         "date_type",
     )
@@ -145,3 +132,8 @@ class DailyAttendanceInline(admin.TabularInline):
 
     def has_add_permission(self, request, obj=None):
         return False
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Fetch foreign keys in 1 query instead of N queries
+        return qs.select_related("work_pattern")

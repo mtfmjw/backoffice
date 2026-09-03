@@ -24,6 +24,7 @@ class WorkPatternResource(ImportBaseModelResourceMixin, resources.ModelResource)
 
         model = WorkPattern
         fields = (
+            "no",
             "name",
             "start_time",
             "end_time",
@@ -41,16 +42,19 @@ class WorkPatternResource(ImportBaseModelResourceMixin, resources.ModelResource)
             "break4_end_time",
             "break5_start_time",
             "break5_end_time",
+            "valid_flag",
             "created_by",
             "created_at",
             "updated_by",
             "updated_at",
-            "valid_flag",
         )
-        import_id_fields = ("name",)
+        import_id_fields = ("no",)
 
 
 class WorkPatternForm(forms.ModelForm):
+    half_day_time = forms.TimeField(label=_("Half Day Time"), required=True, help_text="午前休の開始時刻、午後休の終了時刻")
+    end_time = forms.TimeField(label=_("Standard End Time"), required=True, help_text="開始時刻より前になると翌日扱いになるので注意")
+
     class Meta:
         model = WorkPattern
         fields = "__all__"
@@ -116,6 +120,7 @@ class WorkPatternAdmin(MemberScopedBaseModelAdmin):
     form = WorkPatternForm
     resource_class = WorkPatternResource
     list_display = (
+        "no",
         "name",
         "working_duration",
         "standard_work_time",
@@ -127,9 +132,10 @@ class WorkPatternAdmin(MemberScopedBaseModelAdmin):
         "break4_duration",
         "break5_duration",
     )
+    list_display_links = ("name",)
     search_fields = ("name",)
     fields = (
-        "name",
+        ("no", "name"),
         ("start_time", "end_time", "standard_work_time"),
         ("lunch_break_start_time", "lunch_break_end_time", "half_day_time"),
         ("break1_start_time", "break1_end_time"),
@@ -169,3 +175,10 @@ class WorkPatternAdmin(MemberScopedBaseModelAdmin):
     @display(description="休憩５")
     def break5_duration(self, obj):
         return duration2str((obj.break5_start_time, obj.break5_end_time))
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = list(super().get_readonly_fields(request, obj))
+        if obj is not None:
+            # Editing an existing object
+            readonly_fields.append("no")
+        return readonly_fields

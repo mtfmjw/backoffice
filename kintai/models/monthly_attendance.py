@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from common.models import Member, RowScopedBaseModel, WorkPattern
-from kintai.const import ApproveStatus, DateStatus
+from kintai.const import ApproveStatus
 
 
 class MonthlyAttendance(RowScopedBaseModel):
@@ -22,15 +22,19 @@ class MonthlyAttendance(RowScopedBaseModel):
     note = models.CharField(_("Note"), max_length=255, null=True, blank=True)
     # 勤怠集計結果を保存するフィールド
     actual_work_minutes = models.PositiveIntegerField(_("Actual Working Time"), default=0, null=True, blank=True)
-    overtime_minutes = models.PositiveIntegerField(_("Overtime"), default=0, null=True, blank=True)
-    night_work_minutes = models.PositiveIntegerField(_("Night Working Time"), default=0, null=True, blank=True)
     worked_days = models.FloatField(_("Days Worked"), default=0, null=True, blank=True)
     paid_leave_days = models.FloatField(_("Paid Leave Days"), default=0, null=True, blank=True)  # Including half-days
     standard_working_days = models.PositiveIntegerField(_("Standard Working Days"), default=0, null=True, blank=True)
     absence_days = models.PositiveIntegerField(_("Absence Days"), default=0, null=True, blank=True)
     early_leave_days = models.PositiveIntegerField(_("Early Leave Days"), default=0, null=True, blank=True)
     late_days = models.PositiveIntegerField(_("Late Days"), default=0, null=True, blank=True)
-    total_absence_minutes = models.PositiveIntegerField(_("Total Absence Time"), default=0, null=True, blank=True)
+    overtime_125 = models.PositiveIntegerField(_("Overtime 1.25"), default=0, null=True, blank=True)  # 普通残業時間（1.25）
+    overtime_150 = models.PositiveIntegerField(_("Overtime 1.50"), default=0, null=True, blank=True)  # 普通深夜残業時間（1.50）
+    night_time_025 = models.PositiveIntegerField(_("Night Overtime 0.25"), default=0, null=True, blank=True)  # 深夜就業時間（0.25）
+    off_day_125 = models.PositiveIntegerField(_("Off Day 1.25"), default=0, null=True, blank=True)  # 休日出勤時間（1.25）
+    off_day_150 = models.PositiveIntegerField(_("Off Day 1.50"), default=0, null=True, blank=True)  # 休日深夜出勤時間（1.50）
+    holiday_135 = models.PositiveIntegerField(_("Holiday 1.35"), default=0, null=True, blank=True)  # 法定休日出勤時間（1.35）
+    holiday_160 = models.PositiveIntegerField(_("Holiday 1.60"), default=0, null=True, blank=True)  # 法定休日深夜出勤時間（1.60）
 
     class Meta:
         db_table = "attendance_monthly"
@@ -64,51 +68,15 @@ class MonthlyAttendance(RowScopedBaseModel):
 
     def is_approvable_by(self, login_user):
         """Check if the record is approvable by the given user."""
-        return (
-            login_user.member.is_organization_manager() or login_user.member.is_company_executive()
-        ) and self.approve_status == ApproveStatus.APPLIED
+        return (login_user.member.is_organization_manager or login_user.member.is_company_executive) and self.approve_status == ApproveStatus.APPLIED
 
     def is_confirmable_by(self, login_user):
         """Check if the record is confirmable by the given user."""
         return (
-            login_user.member.is_attendance_management_staff() or login_user.member.is_company_executive()
+            login_user.member.is_attendance_management_staff or login_user.member.is_company_executive
         ) and self.approve_status == ApproveStatus.APPROVED
 
     @classmethod
     def is_all_organizations_accessible(cls, login_user):
         """Check if the model is accessible to all organizations."""
-        return super().is_all_organizations_accessible(login_user) or login_user.member.is_attendance_management_staff()
-
-    def update_derived_fields(self):
-        """Update the aggregate fields of the monthly attendance record."""
-
-        daily_records = self.daily_attendances.all()
-        self.actual_work_minutes = sum(day_record.actual_work_minutes for day_record in daily_records)
-        self.overtime_minutes = sum(day_record.overtime_minutes for day_record in daily_records)
-        self.night_work_minutes = sum(day_record.night_work_minutes for day_record in daily_records)
-        self.worked_days = sum(day_record.get_worked_days() for day_record in daily_records)
-        self.paid_leave_days = sum(day_record.get_paid_leave_days() for day_record in daily_records)
-        self.standard_working_days = sum(1 if day_record.is_work_day() else 0 for day_record in daily_records)
-        self.absence_days = sum(1 if day_record.date_status == DateStatus.ABSENCE else 0 for day_record in daily_records)
-        self.early_leave_days = sum(1 if (day_record.early_leave_minutes or 0) > 0 else 0 for day_record in daily_records)
-        self.late_days = sum(1 if (day_record.late_minutes or 0) > 0 else 0 for day_record in daily_records)
-        self.total_absence_minutes = sum(
-            (day_record.early_leave_minutes or 0)
-            + (day_record.late_minutes or 0)
-            + (day_record.work_pattern.get_standard_work_minutes() if day_record.date_status == DateStatus.ABSENCE else 0)
-            for day_record in daily_records
-        )
-        self.save(
-            update_fields=[
-                "actual_work_minutes",
-                "overtime_minutes",
-                "night_work_minutes",
-                "worked_days",
-                "paid_leave_days",
-                "standard_working_days",
-                "absence_days",
-                "early_leave_days",
-                "late_days",
-                "total_absence_minutes",
-            ]
-        )
+        return super().is_all_organizations_accessible(login_user) or login_user.member.is_attendance_management_staff

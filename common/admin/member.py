@@ -9,12 +9,12 @@ from backoffice.admin import admin_site
 from common.admin.filters import SimpleOrganizationFilter
 from common.models import Member, Organization, WorkPattern
 
-from .base import RowScopedBaseModelAdmin
+from .base import ImportBaseModelResourceMixin, RowScopedBaseModelAdmin
 
 User = get_user_model()
 
 
-class MemberResource(resources.ModelResource):
+class MemberResource(ImportBaseModelResourceMixin, resources.ModelResource):
     class Meta:
         skip_unchanged = True
         report_skipped = True
@@ -25,18 +25,9 @@ class MemberResource(resources.ModelResource):
             "user",
             "email",
             "organization",
+            "organization__name",
             "work_pattern",
-            "valid_flag",
-            "created_at",
-            "created_by",
-            "updated_at",
-            "updated_by",
-        )
-        export_order = (
-            "user",
-            "email",
-            "organization",
-            "work_pattern",
+            "work_pattern__name",
             "valid_flag",
             "created_at",
             "created_by",
@@ -58,8 +49,8 @@ class MemberResource(resources.ModelResource):
 
     work_pattern = fields.Field(
         attribute="work_pattern",
-        column_name="work_pattern_name",
-        widget=ForeignKeyWidget(WorkPattern, field="name"),
+        column_name="work_pattern_no",
+        widget=ForeignKeyWidget(WorkPattern, field="no"),
     )
 
 
@@ -88,7 +79,7 @@ class MemberAdmin(RowScopedBaseModelAdmin):
     def is_organization_manager(self, obj) -> bool:
         if obj is None:
             return False
-        return obj.is_organization_manager() or obj.is_company_executive()
+        return obj.is_organization_manager or obj.is_company_executive
 
     def has_add_permission(self, request):
         """Members cannot be added via the admin interface. They are created automatically when a user is created."""
