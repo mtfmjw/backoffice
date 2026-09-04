@@ -16,17 +16,18 @@ from .municipality import MunicipalityAdmin
 from .organization import OrganizationAdmin
 from .postcode import PostcodeAdmin
 from .prefecture import PrefectureAdmin
+from .transport import TransportationCompanyAdmin, TransportationLineAdmin, TransportationStationAdmin
 from .work_pattern import WorkPatternAdmin
 
 __all__ = [  # noqa: RUF022
+    "BaseModelAdminMixin",
     "CommonImportExportMixin",
     "ImportBaseModelResourceMixin",
-    "MemberScopedAdminMixin",
     "MemberScopedAdmin",
+    "MemberScopedAdminMixin",
     "MemberScopedBaseModelAdmin",
-    "RowScopedAdminMixin",
-    "BaseModelAdminMixin",
     "RowScopedAdmin",
+    "RowScopedAdminMixin",
     "RowScopedBaseModelAdmin",
     "PrefectureFilter",
     "HolidayAdmin",
@@ -36,4 +37,7 @@ __all__ = [  # noqa: RUF022
     "PostcodeAdmin",
     "PrefectureAdmin",
     "WorkPatternAdmin",
+    "TransportationCompanyAdmin",
+    "TransportationLineAdmin",
+    "TransportationStationAdmin",
 ]

@@ -49,7 +49,18 @@ class CustomAdminSite(AdminSite):
         for app in app_list:
             if app["app_label"] == "common":
                 # 希望するモデルの順序（object_name：モデルのクラス名）をリストで指定
-                ordering = ["Prefecture", "Municipality", "Postcode", "Holiday", "WorkPattern", "Organization", "Member"]
+                ordering = [
+                    "Prefecture",
+                    "Municipality",
+                    "Postcode",
+                    "Holiday",
+                    "WorkPattern",
+                    "Organization",
+                    "Member",
+                    "TransportationCompany",
+                    "TransportationLine",
+                    "TransportationStation",
+                ]
 
                 # 指定した順序に従って models リストを並び替え
                 app["models"].sort(key=lambda x: ordering.index(x["object_name"]) if x["object_name"] in ordering else 999)

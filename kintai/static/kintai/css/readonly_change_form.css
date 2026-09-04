@@ -1,0 +1,30 @@
+/* readonlyの対応 */
+/* Only applies when the container has .is-readonly-form */
+.is-readonly-form input[type="text"]:not(#id_note),
+.is-readonly-form .apply-button button,
+.is-readonly-form select,
+.is-readonly-form input[type="checkbox"] {
+    pointer-events: none !important; /* Prevents clicks, toggles, and selection */
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+    border-color: #dee2e6 !important;
+    box-shadow: none !important;
+    user-select: none !important;
+}
+
+/* Visually mute checkboxes and remove point cursor */
+.is-readonly-form input[type="checkbox"] {
+    opacity: 0.6;
+    cursor: not-allowed !important;
+}
+
+/* Hide clock/calendar time-picker icon buttons inside inline rows */
+.is-readonly-form .datetimeshortcuts {
+    display: none !important;
+}
+
+/* Hide placeholder text when .is-readonly-form is active */
+.is-readonly-form input:not(#id_note)::placeholder {
+    color: transparent !important; /* Makes placeholder text invisible */
+    opacity: 0 !important;
+}

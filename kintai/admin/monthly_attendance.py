@@ -22,10 +22,10 @@ from import_export.widgets import ForeignKeyWidget
 
 from backoffice.admin import admin_site
 from common.admin.base import ImportBaseModelResourceMixin, RowScopedBaseModelAdmin
+from common.const import ApproveStatus
 from common.models import WorkPattern
 from common.models.member import Member, get_user_full_name
 from common.utils import convert2str, minutes2str
-from kintai.const import ApproveStatus
 from kintai.ldjp.attendance import get_attendance_sheet_file_name, write_attendance_sheet
 from kintai.ldjp.const import ATTENDANCE_SHEET, DOWNLOAD_FOLDER
 from kintai.models import MonthlyAttendance
@@ -61,8 +61,8 @@ class MonthFilter(SimpleListFilter):
 
 
 class MonthlyAttendanceForm(forms.ModelForm):
-    note = forms.CharField(
-        label=_("Note"),
+    approve_note = forms.CharField(
+        label=_("Approve Note"),
         widget=TextInput(
             attrs={
                 "placeholder": _(
@@ -105,7 +105,7 @@ class MonthlyAttendanceResource(ImportBaseModelResourceMixin, resources.ModelRes
             "absence_days",
             "early_leave_days",
             "late_days",
-            "note",
+            "approve_note",
             "created_at",
             "created_by",
             "updated_at",
@@ -166,7 +166,7 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
     search_fields = ("member__user__username", "member__user__last_name", "member__user__first_name", "member__organization__name")
     list_select_related = ("member", "work_pattern")
     list_filter = (MonthFilter, "approve_status")
-    fields = ("note",)
+    fields = ("approve_note",)
     inlines = (DailyAttendanceInline,)
 
     @display(description=_("Month"))
