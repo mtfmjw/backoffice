@@ -3,10 +3,9 @@ from functools import partial
 from urllib.parse import quote, urlencode
 
 import openpyxl
-from dateutil.relativedelta import relativedelta
 from django import forms
 from django.contrib import admin
-from django.contrib.admin import SimpleListFilter, display
+from django.contrib.admin import display
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.db import connection, transaction
@@ -15,54 +14,30 @@ from django.forms import TextInput
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import path, reverse
-from django.utils.timezone import localdate, localtime
+from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.widgets import ForeignKeyWidget
 
 from backoffice.admin import admin_site
-from common.admin.base import ImportBaseModelResourceMixin, RowScopedBaseModelAdmin
+from common.admin.base import ApprovedBaseModelAdmin, ImportBaseModelResourceMixin
+from common.const import ApproveStatus
 from common.models import WorkPattern
-from common.models.member import Member, get_user_full_name
-from common.utils import convert2str, minutes2str
-from kintai.const import ApproveStatus
+from common.models.member import Member
+from common.utils import minutes2str
 from kintai.ldjp.attendance import get_attendance_sheet_file_name, write_attendance_sheet
 from kintai.ldjp.const import ATTENDANCE_SHEET, DOWNLOAD_FOLDER
 from kintai.models import MonthlyAttendance
 
+from .common import MonthFilter
 from .daily_attendance import DailyAttendanceInline
 
 User = get_user_model()
 
 
-class MonthFilter(SimpleListFilter):
-    title = _("Month")
-    parameter_name = "month"
-
-    def lookups(self, request, model_admin):
-        current_first_day = localdate().replace(day=1)
-        choices = []
-        for i in range(1, -5, -1):
-            m_date = current_first_day + relativedelta(months=i)
-            val = m_date.strftime("%Y-%m")
-            label = m_date.strftime("%Y年%m月")
-            choices.append((val, label))
-        return choices
-
-    def queryset(self, request, queryset):
-        value = self.value()
-        if value is None:
-            return queryset
-        try:
-            year, month = map(int, value.split("-"))
-            return queryset.filter(month__year=year, month__month=month)
-        except (ValueError, AttributeError):
-            return queryset
-
-
 class MonthlyAttendanceForm(forms.ModelForm):
-    note = forms.CharField(
-        label=_("Note"),
+    approve_note = forms.CharField(
+        label=_("Approve Note"),
         widget=TextInput(
             attrs={
                 "placeholder": _(
@@ -105,7 +80,7 @@ class MonthlyAttendanceResource(ImportBaseModelResourceMixin, resources.ModelRes
             "absence_days",
             "early_leave_days",
             "late_days",
-            "note",
+            "approve_note",
             "created_at",
             "created_by",
             "updated_at",
@@ -137,7 +112,7 @@ def call_calculate_working_time(member_id, month, username):
 
 
 @admin.register(MonthlyAttendance, site=admin_site)
-class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
+class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
     change_list_template = "kintai/monthlyattendance/change_list.html"
     change_form_template = "kintai/monthlyattendance/change_form.html"
     form = MonthlyAttendanceForm
@@ -165,19 +140,13 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
     )
     search_fields = ("member__user__username", "member__user__last_name", "member__user__first_name", "member__organization__name")
     list_select_related = ("member", "work_pattern")
-    list_filter = (MonthFilter, "approve_status")
-    fields = ("note",)
+    list_filter = (MonthFilter,)
+    fields = ("approve_note",)
     inlines = (DailyAttendanceInline,)
 
     @display(description=_("Month"))
     def display_month(self, obj) -> str:
         return obj.month.strftime("%Y/%m")
-
-    @display(description=_("Belong To"))
-    def belong(self, obj) -> str:
-        if not obj.member or not obj.member.organization:
-            return "-"
-        return obj.member.organization.name
 
     @display(description=_("Days Worked"))
     def display_worked_days(self, obj) -> str:
@@ -239,33 +208,6 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
     def display_late_days(self, obj) -> str:
         return f"{obj.late_days}回" if obj is not None and obj.late_days else "-"
 
-    @display(description=_("Audit Info"))
-    def audit_info(self, obj):
-        """Display audit information for the object, including created_by, created_at, updated_by, and updated_at."""
-
-        if obj is None:
-            return ""
-
-        if obj.applied_at is None:
-            return super().audit_info(obj)
-
-        # 申請者情報
-        applied_by = get_user_full_name(obj.applied_by) or "-"
-        applied_at = convert2str(obj.applied_at)
-        audit_info = f"{_('Applied by')}：{applied_by}　{_('Applied at')}：{applied_at}　"
-        # 承認者情報
-        approved_by = get_user_full_name(obj.approved_by) or "-"
-        approved_at = convert2str(obj.approved_at)
-        audit_info += f"　{_('Approved by')}：{approved_by}　{_('Approved at')}：{approved_at}　"
-        # 確定者情報
-        confirmed_by = get_user_full_name(obj.confirmed_by) or "-"
-        confirmed_at = convert2str(obj.confirmed_at)
-        audit_info += f"　{_('Confirmed by')}：{confirmed_by}　{_('Confirmed at')}：{confirmed_at}"
-        return audit_info
-
-    def has_add_permission(self, request):
-        return request.user.is_authenticated and hasattr(request.user, "member")
-
     def has_change_permission(self, request, obj=None):
         # self.model.is_editable_by()によりCSSで編集可不可を制御するため、常にTrueを返す
         return self.model.is_authorized(request.user)
@@ -276,12 +218,7 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
         return super().has_delete_permission(request, obj)
 
     def has_import_permission(self, request):
-        return True  # 月次勤怠はインポート不可
-
-    def is_all_organizations_accessible(self, request):
-        return super().is_all_organizations_accessible(request) or (
-            getattr(request.user, "member", None) is not None and request.user.member.is_attendance_management_staff
-        )
+        return False  # 月次勤怠はインポート不可
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
@@ -304,12 +241,6 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
         queryset = queryset.filter(Q(member=request.user.member) | ~Q(approve_status=ApproveStatus.DRAFT))
 
         return queryset
-
-    def get_changeform_initial_data(self, request):
-        if not request.user.is_authenticated or not hasattr(request.user, "member"):
-            raise PermissionDenied
-
-        return super().get_changeform_initial_data(request)
 
     def add_view(self, request, form_url="", extra_context=None):
         if not request.user.is_authenticated or not hasattr(request.user, "member"):
@@ -382,45 +313,8 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
             extra_context["late_days"] = self.display_late_days(obj)
             work_pattern = obj.work_pattern if obj is not None else None
 
-            extra_context["show_save_and_add_another"] = False
-            obj = self.get_object(request, object_id)
-            if obj.is_editable_by(request.user):
-                extra_context["show_apply_button"] = True
-                extra_context["show_save"] = True
-                extra_context["show_save_and_continue"] = True
-                extra_context["show_reject_button"] = False
-                extra_context["next"] = False
-                extra_context["apply_button_name"] = "_apply"
-                extra_context["apply_button_label"] = _("Apply")
-            else:
-                extra_context["adminform_class"] = "is-readonly-form"
-
-                extra_context["show_save"] = False
-                extra_context["show_save_and_continue"] = False
-                extra_context["next"] = True
-                if obj.approve_status in [ApproveStatus.REJECTED, ApproveStatus.CONFIRMED]:
-                    extra_context["show_apply_button"] = False
-                    extra_context["show_reject_button"] = False
-                else:
-                    login_user = request.user
-                    if obj.approve_status == ApproveStatus.APPLIED:
-                        extra_context["show_apply_button"] = obj.is_approvable_by(login_user)
-                        extra_context["show_reject_button"] = obj.is_approvable_by(login_user)
-                        extra_context["apply_button_name"] = "_approve"
-                        extra_context["apply_button_label"] = _("Approve")
-                        extra_context["save_and_add_label"] = _("Approve and Go to Next")
-                    elif obj.approve_status == ApproveStatus.APPROVED:
-                        extra_context["show_apply_button"] = obj.is_confirmable_by(login_user)
-                        extra_context["show_reject_button"] = obj.is_confirmable_by(login_user)
-                        extra_context["show_reject_button"] = True
-                        extra_context["apply_button_name"] = "_confirm"
-                        extra_context["apply_button_label"] = _("Confirm")
-                        extra_context["save_and_add_label"] = _("Confirm and Go to Next")
         else:
             work_pattern = WorkPattern.get_work_pattern(request.user.member)
-            extra_context["show_apply_button"] = True
-            extra_context["apply_button_name"] = "_apply"
-            extra_context["apply_button_label"] = _("Apply")
 
         # 就業パターンの情報を取得して、テンプレートに渡す
         if work_pattern is not None:
@@ -431,28 +325,6 @@ class MonthlyAttendanceAdmin(RowScopedBaseModelAdmin):
                     extra_context[name] = f"{duration[0].strftime('%H:%M')} - {duration[1].strftime('%H:%M')}"
 
         return super().changeform_view(request, object_id, form_url, extra_context=extra_context)
-
-    def save_model(self, request, obj, form, change):
-        if "_apply" in request.POST:
-            obj.approve_status = ApproveStatus.APPLIED
-            obj.applied_by = request.user.username
-            obj.applied_at = localtime()
-        elif "_approve" in request.POST:
-            obj.approve_status = ApproveStatus.APPROVED
-            obj.approved_by = request.user.username
-            obj.approved_at = localtime()
-        elif "_confirm" in request.POST:
-            obj.approve_status = ApproveStatus.CONFIRMED
-            obj.confirmed_by = request.user.username
-            obj.confirmed_at = localtime()
-        elif "_reject" in request.POST:
-            obj.approve_status = ApproveStatus.REJECTED
-        elif "_reapply" in request.POST:
-            obj.approve_status = ApproveStatus.APPLIED
-            obj.applied_by = request.user.username
-            obj.applied_at = localtime()
-
-        super().save_model(request, obj, form, change)
 
     def save_related(self, request, form, formsets, change):
         # 1. Let Django save the parent's m2m relationships and all inline formsets

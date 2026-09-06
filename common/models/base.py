@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from common.const import ApproveStatus
+
 
 class ConcurrencyError(Exception):
     """Raised when a record has been updated by another user."""
@@ -37,7 +39,7 @@ class RowScopedModelMixin(MemberScopedModelMixin):
         if not super().is_authorized(login_user):
             return False
 
-        if login_user.member.organization is None:
+        if login_user.member.organization_id is None:
             return login_user.member.is_company_executive
         return True
 
@@ -51,19 +53,24 @@ class RowScopedModelMixin(MemberScopedModelMixin):
             return True
 
         # ログインユーザーが組織長の場合、自分の所属組織の下部組織に所属するモデルを編集可能
-        return login_user.member.is_organization_manager and login_user.member.organization in self.member.organization.get_ancestor_organizations()
+        return (
+            login_user.member.is_organization_manager and login_user.member._organization in self.member._organization.get_ancestor_organizations()
+        )
 
     @classmethod
     def is_all_organizations_accessible(cls, login_user):
         """Check if the member can view all organizations."""
-        return cls.is_authorized(login_user) and login_user.member.is_company_executive
+        if not cls.is_authorized(login_user):
+            return False
+
+        return login_user.member.is_company_executive
 
     @classmethod
     def get_accessible_top_organization(cls, login_user):
         """Get the highest level organization that the member can access."""
         if not cls.is_authorized(login_user):
             return None
-        return login_user.member.organization if login_user.member.is_organization_manager else None
+        return login_user.member._organization if login_user.member.is_organization_manager else None
 
 
 class RowScopedModel(RowScopedModelMixin, models.Model):
@@ -116,5 +123,47 @@ class MemberScopedBaseModel(MemberScopedModelMixin, BaseModel):
 
 
 class RowScopedBaseModel(RowScopedModelMixin, BaseModel):
+    class Meta:
+        abstract = True
+
+
+class ApprovedModel(RowScopedModelMixin, models.Model):
+    """This model is used for records that require approval."""
+
+    approve_status = models.IntegerField(_("Approve Status"), choices=ApproveStatus.choices, default=ApproveStatus.DRAFT)
+    applied_by = models.CharField(_("Applied by"), max_length=100, null=True, blank=True)
+    applied_at = models.DateTimeField(_("Applied at"), null=True, blank=True)
+    approved_by = models.CharField(_("Approved by"), max_length=100, null=True, blank=True)
+    approved_at = models.DateTimeField(_("Approved at"), null=True, blank=True)
+    confirmed_by = models.CharField(_("Confirmed by"), max_length=100, null=True, blank=True)
+    confirmed_at = models.DateTimeField(_("Confirmed at"), null=True, blank=True)
+    approve_note = models.CharField(_("Approve Note"), max_length=255, null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+    def is_editable_by(self, login_user):
+        """The daily attendance records are only editable by the member themselves when the record is in DRAFT or REJECTED status."""
+        if self.approve_status in [ApproveStatus.DRAFT, ApproveStatus.REJECTED]:
+            return super().is_editable_by(login_user) and login_user.member == self.member
+        else:
+            return False
+
+    def is_deletable_by(self, login_user):
+        """Check if the record is deletable by the given user."""
+        return self.is_editable_by(login_user) and self.approve_status in [ApproveStatus.DRAFT, ApproveStatus.REJECTED]
+
+    def is_approvable_by(self, login_user):
+        """Check if the record is approvable by the given user."""
+        return self.approve_status == ApproveStatus.APPLIED and (login_user.member.is_organization_manager or login_user.member.is_company_executive)
+
+    def is_confirmable_by(self, login_user):
+        """Check if the record is confirmable by the given user."""
+        return self.approve_status == ApproveStatus.APPROVED and (
+            login_user.member.is_attendance_management_staff or login_user.member.is_company_executive
+        )
+
+
+class ApprovedBaseModel(ApprovedModel, BaseModel):
     class Meta:
         abstract = True

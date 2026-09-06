@@ -49,7 +49,18 @@ class CustomAdminSite(AdminSite):
         for app in app_list:
             if app["app_label"] == "common":
                 # 希望するモデルの順序（object_name：モデルのクラス名）をリストで指定
-                ordering = ["Prefecture", "Municipality", "Postcode", "Holiday", "WorkPattern", "Organization", "Member"]
+                ordering = [
+                    "Prefecture",
+                    "Municipality",
+                    "Postcode",
+                    "Holiday",
+                    "WorkPattern",
+                    "Organization",
+                    "Member",
+                    "TransportationCompany",
+                    "TransportationLine",
+                    "TransportationStation",
+                ]
 
                 # 指定した順序に従って models リストを並び替え
                 app["models"].sort(key=lambda x: ordering.index(x["object_name"]) if x["object_name"] in ordering else 999)
@@ -96,21 +107,26 @@ class UserResource(resources.ModelResource):
         fields = ("username", "email", "first_name", "last_name", "is_staff", "is_active", "groups")
         import_id_fields = ("username",)
 
-    def before_save_instance(self, instance, using_transactions, dry_run):
+    def before_save_instance(self, *args, **kwargs):
         """
         Triggered right before saving each instance.
+
+        Accept any combination of positional/keyword args to avoid "multiple values"
+        errors when callers pass both positional and keyword forms. We extract the
+        `instance` if present to perform password setup, then forward the original
+        args/kwargs to the parent implementation.
         """
+        # Obtain instance from kwargs or positional args if available
+        instance = kwargs.get("instance") if "instance" in kwargs else (args[0] if len(args) > 0 else None)
+
         # Only set password if creating a brand-new User (no PK yet)
-        if not instance.pk:
+        if instance is not None and getattr(instance, "pk", None) is None:
             temp_password = "P09olp09ol"
-
-            # Properly hash the password before saving
             instance.set_password(temp_password)
-
-            # Store temporary password on instance if you want to notify/log it later
             instance._temp_password = temp_password
 
-        super().before_save_instance(instance, using_transactions, dry_run)
+        # Forward original args/kwargs to the parent implementation
+        super().before_save_instance(*args, **kwargs)
 
 
 class GroupResource(resources.ModelResource):

@@ -6,6 +6,7 @@ from django.contrib.admin import display
 from django.contrib.auth import get_user_model
 from django.http import HttpResponseRedirect
 from django.utils import timezone
+from django.utils.timezone import localtime
 from django.utils.translation import gettext_lazy as _
 from import_export import widgets
 from import_export.admin import ImportExportMixin
@@ -13,6 +14,7 @@ from import_export.formats.base_formats import CSV
 from import_export.forms import ExportForm
 
 from common.admin.filters import OrganizationFilter
+from common.const import ApproveStatus
 from common.models import Organization
 from common.models.base import ConcurrencyError
 from common.models.member import get_user_full_name
@@ -160,6 +162,12 @@ class MemberScopedAdminMixin:
         extra_context["show_return"] = True
         extra_context["show_save_and_add_another"] = False
         return super().changeform_view(request, object_id, form_url, extra_context=extra_context)
+
+    @display(description=_("Belong To"))
+    def belong(self, obj) -> str:
+        if obj.member is None or getattr(obj.member, "organization", None) is None:
+            return "-"
+        return obj.member.organization.name
 
 
 class MemberScopedAdmin(CommonImportExportMixin, MemberScopedAdminMixin, admin.ModelAdmin):
@@ -368,3 +376,118 @@ class MemberScopedBaseModelAdmin(CommonImportExportMixin, MemberScopedAdminMixin
 
 class RowScopedBaseModelAdmin(CommonImportExportMixin, RowScopedAdminMixin, BaseModelAdminMixin, admin.ModelAdmin):
     """Base ModelAdmin for common models with row-scoped access control, soft delete, and audit fields."""
+
+
+class ApprovedModelAdminMixin:
+    """Mixin to add approval functionality to a ModelAdmin."""
+
+    @display(description=_("Audit Info"))
+    def audit_info(self, obj):
+        """Display audit information for the object, including created_by, created_at, updated_by, and updated_at."""
+        if obj and obj.applied_at is not None:
+            # 申請者情報
+            applied_by = get_user_full_name(obj.applied_by) or "-"
+            applied_at = convert2str(obj.applied_at)
+            audit_info = f"{_('Applied by')}：{applied_by}　{_('Applied at')}：{applied_at}　"
+            # 承認者情報
+            approved_by = get_user_full_name(obj.approved_by) or "-"
+            approved_at = convert2str(obj.approved_at)
+            audit_info += f"　{_('Approved by')}：{approved_by}　{_('Approved at')}：{approved_at}　"
+            # 確定者情報
+            confirmed_by = get_user_full_name(obj.confirmed_by) or "-"
+            confirmed_at = convert2str(obj.confirmed_at)
+            audit_info += f"　{_('Confirmed by')}：{confirmed_by}　{_('Confirmed at')}：{confirmed_at}"
+
+            return audit_info
+        return super().audit_info(obj)
+
+    def get_list_display(self, request):
+        """Add audit fields to list_display for all descendants."""
+        list_display = list(super().get_list_display(request))
+        for f in ["valid_flag", "applied_by", "applied_at", "approved_by", "approved_at", "confirmed_by", "confirmed_at"]:
+            if f not in list_display:
+                list_display.append(f)
+        return tuple(list_display)
+
+    def get_list_filter(self, request):
+        """Add audit fields to list_filter for all descendants."""
+        list_filter = list(super().get_list_filter(request))
+        list_filter.insert(0, "approve_status")
+        return tuple(list_filter)
+
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        extra_context = extra_context or {}
+
+        if object_id is None:
+            extra_context["show_apply_button"] = True
+            extra_context["apply_button_name"] = "_apply"
+            extra_context["apply_button_label"] = _("Apply")
+        else:
+            extra_context["show_save_and_add_another"] = False
+
+            obj = self.get_object(request, object_id)
+            if obj.is_editable_by(request.user):
+                extra_context["show_apply_button"] = True
+                extra_context["show_save"] = True
+                extra_context["show_save_and_continue"] = True
+                extra_context["show_reject_button"] = False
+                extra_context["next"] = False
+                extra_context["apply_button_name"] = "_apply"
+                extra_context["apply_button_label"] = _("Apply")
+            else:
+                extra_context["adminform_class"] = "is-readonly-form"
+
+                extra_context["show_save"] = False
+                extra_context["show_save_and_continue"] = False
+                extra_context["next"] = True
+                if obj.approve_status in [ApproveStatus.REJECTED, ApproveStatus.CONFIRMED]:
+                    extra_context["show_apply_button"] = False
+                    extra_context["show_reject_button"] = False
+                else:
+                    login_user = request.user
+                    if obj.approve_status == ApproveStatus.APPLIED:
+                        extra_context["show_apply_button"] = obj.is_approvable_by(login_user)
+                        extra_context["show_reject_button"] = obj.is_approvable_by(login_user)
+                        extra_context["apply_button_name"] = "_approve"
+                        extra_context["apply_button_label"] = _("Approve")
+                        extra_context["save_and_add_label"] = _("Approve and Go to Next")
+                    elif obj.approve_status == ApproveStatus.APPROVED:
+                        extra_context["show_apply_button"] = obj.is_confirmable_by(login_user)
+                        extra_context["show_reject_button"] = obj.is_confirmable_by(login_user)
+                        extra_context["show_reject_button"] = True
+                        extra_context["apply_button_name"] = "_confirm"
+                        extra_context["apply_button_label"] = _("Confirm")
+                        extra_context["save_and_add_label"] = _("Confirm and Go to Next")
+
+        return super().changeform_view(request, object_id, form_url, extra_context=extra_context)
+
+    def save_model(self, request, obj, form, change):
+        if "_apply" in request.POST:
+            obj.approve_status = ApproveStatus.APPLIED
+            obj.applied_by = request.user.username
+            obj.applied_at = localtime()
+            super().save_model(request, obj, form, change)
+        elif "_approve" in request.POST:
+            obj.approve_status = ApproveStatus.APPROVED
+            obj.approved_by = request.user.username
+            obj.approved_at = localtime()
+            super().save_model(request, obj, form, change, update_fields=["approve_status", "approved_by", "approved_at"])
+        elif "_confirm" in request.POST:
+            obj.approve_status = ApproveStatus.CONFIRMED
+            obj.confirmed_by = request.user.username
+            obj.confirmed_at = localtime()
+            super().save_model(request, obj, form, change, update_fields=["approve_status", "confirmed_by", "confirmed_at"])
+        elif "_reject" in request.POST:
+            obj.approve_status = ApproveStatus.REJECTED
+            super().save_model(request, obj, form, change, update_fields=["approve_status"])
+        elif "_reapply" in request.POST:
+            obj.approve_status = ApproveStatus.APPLIED
+            obj.applied_by = request.user.username
+            obj.applied_at = localtime()
+            super().save_model(request, obj, form, change)
+        else:
+            super().save_model(request, obj, form, change)
+
+
+class ApprovedBaseModelAdmin(ApprovedModelAdminMixin, RowScopedBaseModelAdmin):
+    """Base ModelAdmin for row-scoped models with approval functionality."""

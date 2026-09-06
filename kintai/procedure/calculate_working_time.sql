@@ -45,8 +45,8 @@ BEGIN
         FROM attendance_monthly am
             INNER JOIN attendance_daily ad ON ad.monthly_attendance_id = am.id
             INNER JOIN work_pattern wp ON wp.id = ad.work_pattern_id
-        -- WHERE am.member_id = p_member_id
-        --   AND DATE_TRUNC('month', am.month) = DATE_TRUNC('month', p_month)
+        WHERE am.member_id = p_member_id
+          AND DATE_TRUNC('month', am.month) = DATE_TRUNC('month', p_month)
     ), daily_attendance_with_breaks AS (
         select id, monthly_attendance_id, day, date_type, date_status, clock_in, clock_out, is_working_day,
             adjusted_standard_start, adjusted_standard_end, legal_standard_work_minutes, half_day_time,

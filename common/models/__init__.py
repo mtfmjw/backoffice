@@ -1,4 +1,6 @@
 from .base import (
+    ApprovedBaseModel,
+    ApprovedModel,
     BaseModel,
     ConcurrencyError,
     MemberScopedBaseModel,
@@ -18,6 +20,8 @@ from .work_pattern import WorkPattern
 
 __all__ = [  # noqa: RUF022
     "BaseModel",
+    "ApprovedModel",
+    "ApprovedBaseModel",
     "MemberScopedModelMixin",
     "ConcurrencyError",
     "RowScopedModelMixin",

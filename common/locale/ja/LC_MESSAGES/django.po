@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-02 17:07+0900\n"
+"POT-Creation-Date: 2026-09-06 19:21+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,29 +18,33 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: .\common\admin\base.py:215 .\common\admin\base.py:238
-#: .\common\models\base.py:79
+#: .\common\admin\base.py:166
+msgid "Belong To"
+msgstr "所属"
+
+#: .\common\admin\base.py:223 .\common\admin\base.py:246
+#: .\common\models\base.py:86
 msgid "Updated by"
 msgstr "更新者"
 
-#: .\common\admin\base.py:219 .\common\admin\base.py:238
-#: .\common\models\base.py:78
+#: .\common\admin\base.py:227 .\common\admin\base.py:246
+#: .\common\models\base.py:85
 msgid "Updated at"
 msgstr "更新日時"
 
-#: .\common\admin\base.py:223
+#: .\common\admin\base.py:231 .\common\admin\base.py:384
 msgid "Audit Info"
 msgstr "作成・更新履歴"
 
-#: .\common\admin\base.py:233 .\common\models\base.py:77
+#: .\common\admin\base.py:241 .\common\models\base.py:84
 msgid "Created by"
 msgstr "作成者"
 
-#: .\common\admin\base.py:233 .\common\models\base.py:76
+#: .\common\admin\base.py:241 .\common\models\base.py:83
 msgid "Created at"
 msgstr "作成日時"
 
-#: .\common\admin\base.py:312
+#: .\common\admin\base.py:320
 msgid ""
 "This record was modified by another user while you were editing it. Your "
 "changes were not saved."
@@ -48,10 +52,58 @@ msgstr ""
 "編集中に他のユーザーより内容が変更されましたので保存できません。もう一度読み"
 "込んでください。"
 
+#: .\common\admin\base.py:391 .\common\models\base.py:134
+msgid "Applied by"
+msgstr "申請者"
+
+#: .\common\admin\base.py:391 .\common\models\base.py:135
+msgid "Applied at"
+msgstr "申請日時"
+
+#: .\common\admin\base.py:395 .\common\models\base.py:136
+msgid "Approved by"
+msgstr "承認者"
+
+#: .\common\admin\base.py:395 .\common\models\base.py:137
+msgid "Approved at"
+msgstr "承認日時"
+
+#: .\common\admin\base.py:399 .\common\models\base.py:138
+msgid "Confirmed by"
+msgstr "確定者"
+
+#: .\common\admin\base.py:399 .\common\models\base.py:139
+msgid "Confirmed at"
+msgstr "確定日時"
+
+#: .\common\admin\base.py:424 .\common\admin\base.py:436
+msgid "Apply"
+msgstr "申請"
+
+#: .\common\admin\base.py:452
+msgid "Approve"
+msgstr "承認"
+
+#: .\common\admin\base.py:453
+msgid "Approve and Go to Next"
+msgstr "承認して次へ"
+
+#: .\common\admin\base.py:459
+msgid "Confirm"
+msgstr "確定"
+
+#: .\common\admin\base.py:460
+msgid "Confirm and Go to Next"
+msgstr "確定して次へ"
+
 #: .\common\admin\filters.py:22 .\common\admin\filters.py:45
 #: .\common\models\organization.py:20
 msgid "Organization"
 msgstr "組織"
+
+#: .\common\admin\filters.py:57
+msgid "Individual"
+msgstr "個人"
 
 #: .\common\admin\holiday.py:17
 msgid "Year"
@@ -116,9 +168,37 @@ msgstr "昼休終了時刻"
 msgid "Common"
 msgstr "共通マスタ"
 
-#: .\common\models\base.py:75
+#: .\common\const.py:21
+msgid "Draft"
+msgstr "入力中"
+
+#: .\common\const.py:22
+msgid "Applied"
+msgstr "申請済"
+
+#: .\common\const.py:23
+msgid "Approved"
+msgstr "承認済"
+
+#: .\common\const.py:24
+msgid "Rejected"
+msgstr "却下"
+
+#: .\common\const.py:25
+msgid "Confirmed"
+msgstr "確定"
+
+#: .\common\models\base.py:82
 msgid "Valid"
 msgstr "有効"
+
+#: .\common\models\base.py:133
+msgid "Approve Status"
+msgstr "承認状態"
+
+#: .\common\models\base.py:140
+msgid "Approve Note"
+msgstr "申請・承認コメント"
 
 #: .\common\models\holiday.py:16
 msgid "National Holiday"
@@ -354,8 +434,3 @@ msgstr "%(label)sと%(start_label)sは同時に入力する必要があります
 #, python-format
 msgid "%(label)s must be provided when %(end_label)s is provided."
 msgstr "%(label)sと%(end_label)sは同時に入力する必要があります。"
-
-#, python-format
-#~ msgid "Start time must be earlier than end time: %(start)s - %(end)s"
-#~ msgstr ""
-#~ "開始時刻は終了時刻より前のものを指定してください。%(start)s - %(end)s"

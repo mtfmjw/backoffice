@@ -11,14 +11,6 @@ TIME_UNIT = 15  # 勤怠計算の時間単位（分）、当該単位で切り�
 WEEKDAYS = ["月", "火", "水", "木", "金", "土", "日"]
 
 
-class ApproveStatus(models.IntegerChoices):
-    DRAFT = 0, _("Draft")  # 入力中
-    APPLIED = 1, _("Applied")  # 申請済
-    APPROVED = 2, _("Approved")  # 承認済
-    REJECTED = 3, _("Rejected")  # 却下
-    CONFIRMED = 4, _("Confirmed")  # 確定済
-
-
 class DateType(models.IntegerChoices):
     """勤務日分類"""
 
@@ -59,3 +51,13 @@ class DateStatus(models.IntegerChoices):
     CHILDCARE_LEAVE_OF_ABSENCE = 105, "育児休業"  # 育児休業
     # 再雇用RF休暇
     REEMPLOYMENT_RF_LEAVE = 106, "再雇用RF休暇"  # 再雇用RF休暇
+
+
+class RouteType(models.IntegerChoices):
+    """通勤経路の種類"""
+
+    SUBWAY = 0, _("Subway")  # 地下鉄
+    BUS = 1, _("Bus")  # バス
+    TRAIN = 2, _("Train")  # 電車
+    WALK = 3, _("Walk")  # 徒歩
+    CAR = 4, _("Car")  # 車

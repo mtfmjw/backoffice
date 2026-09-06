@@ -1,3 +1,5 @@
-from .monthly_attendance import MonthlyAttendance
+from .monthly_attendance import MonthlyAttendanceAdmin
 
-__all__ = ["MonthlyAttendance"]
+__all__ = [  # noqa: RUF022
+    "MonthlyAttendanceAdmin",
+]
