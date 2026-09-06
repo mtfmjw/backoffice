@@ -73,10 +73,13 @@ class Member(RowScopedBaseModel):
     def is_authorized(cls, login_user):
         """Only authenticated users with a member profile are authorized to access this model instance."""
         # If the user belongs to the SYSTEM_INFO_GROUP, they are authorized regardless of whether they have a member profile.
-        if login_user.member and login_user.member.is_system_info_staff:
-            return True
+        if not login_user.is_authenticated:
+            return False
 
-        return login_user.is_authenticated and getattr(login_user, "member", None) is not None
+        if getattr(login_user, "member", None) is None:
+            return False
+
+        return login_user.member.is_system_info_staff or login_user.member.is_company_executive
 
     def is_editable_by(self, login_user):
         """Check if the record is editable by the given user."""
@@ -103,6 +106,6 @@ class Member(RowScopedBaseModel):
 def get_user_full_name(username: str) -> str:
     """Return the full name of the member."""
     user = User.objects.filter(username=username).first()
-    if user is None or getattr(user, "member", None) is None:
-        return username
-    return user.member.full_name
+    if user is not None and getattr(user, "member", None) is not None:
+        return user.member.full_name
+    return username

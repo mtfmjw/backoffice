@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-28 15:03+0900\n"
+"POT-Creation-Date: 2026-09-06 19:21+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,11 +26,11 @@ msgstr "バックオフィス"
 msgid "Site Administration"
 msgstr "サイト管理"
 
-#: .\backoffice\admin.py:198
+#: .\backoffice\admin.py:209
 msgid "Delete?"
 msgstr "削除?"
 
-#: .\backoffice\admin.py:199
+#: .\backoffice\admin.py:210
 msgid "Run"
 msgstr "実行"
 
@@ -67,7 +67,7 @@ msgstr "変更"
 msgid "You don’t have permission to view or edit anything."
 msgstr "照会または編集する権限がありません。"
 
-#: .\templates\admin\base_site.html:28
+#: .\templates\admin\base_site.html:27
 msgid "Welcome,"
 msgstr "ようこそ、"
 

@@ -54,4 +54,12 @@ class OrganizationFilter(SimpleOrganizationFilter):
                 return []
             choices = Organization.get_descendant_organization_tree(accessible_organization)
 
+        choices.append(("individual", _("Individual")))
         return choices if "choices" in locals() else []
+
+    def queryset(self, request, queryset):
+        value = self.value()
+
+        if value == "individual" and hasattr(queryset.model, "member"):
+            return queryset.filter(member=request.user.member)
+        return super().queryset(request, queryset)
