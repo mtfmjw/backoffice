@@ -335,8 +335,15 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
         return super().get_inline_instances(request, obj)
 
     def save_related(self, request, form, formsets, change):
-        if request.method == "POST" and ("_approve" in request.POST or "_confirm" in request.POST or "_reject" in request.POST):
+        if request.method == "POST" and ("_approve" in request.POST or "_reject" in request.POST):
             # skip saving related objects
+            return
+        elif request.method == "POST" and "_confirm" in request.POST:
+            instance = form.instance
+
+            if instance.paid_leave_days and instance.member.paid_leave_available >= instance.paid_leave_days:
+                instance.member.paid_leave_available = instance.member.paid_leave_available - instance.paid_leave_days
+                instance.member.save()
             return
 
         super().save_related(request, form, formsets, change)

@@ -8,6 +8,9 @@ NIGHT_END_TIME = time(5, 0)
 HALF_DAY_MINUTES = 180  # 半日休暇の時間（分）
 TIME_UNIT = 15  # 勤怠計算の時間単位（分）、当該単位で切り捨てて計算する。15分単位で計算する場合は15、30分単位で計算する場合は30を設定する。
 
+GOLDEN_WEEK_PAID_LEAVE = 2  # ゴールデンウイーク特別休暇の日数
+SUMMER_VACATION_PAID_LEAVE = 3  # 夏季休暇の日数
+
 WEEKDAYS = ["月", "火", "水", "木", "金", "土", "日"]
 
 
@@ -51,13 +54,3 @@ class DateStatus(models.IntegerChoices):
     CHILDCARE_LEAVE_OF_ABSENCE = 105, "育児休業"  # 育児休業
     # 再雇用RF休暇
     REEMPLOYMENT_RF_LEAVE = 106, "再雇用RF休暇"  # 再雇用RF休暇
-
-
-class RouteType(models.IntegerChoices):
-    """通勤経路の種類"""
-
-    SUBWAY = 0, _("Subway")  # 地下鉄
-    BUS = 1, _("Bus")  # バス
-    TRAIN = 2, _("Train")  # 電車
-    WALK = 3, _("Walk")  # 徒歩
-    CAR = 4, _("Car")  # 車

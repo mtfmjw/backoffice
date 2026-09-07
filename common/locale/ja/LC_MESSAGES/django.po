@@ -111,11 +111,11 @@ msgstr "年"
 
 #: .\common\admin\member.py:38
 msgid "Join date is required to apply for yearly paid leave."
-msgstr ""
+msgstr "入社日は有休付与に必要です。"
 
 #: .\common\admin\member.py:45
 msgid "Join date must be within the past year to apply for yearly paid leave."
-msgstr ""
+msgstr "入社日が直前の10月1日より前の日に対しては有休付与ができません。"
 
 #: .\common\admin\member.py:106
 msgid "Full Name"

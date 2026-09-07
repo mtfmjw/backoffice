@@ -23,18 +23,3 @@ class ApproveStatus(models.IntegerChoices):
     APPROVED = 2, _("Approved")  # 承認済
     REJECTED = 3, _("Rejected")  # 却下
     CONFIRMED = 4, _("Confirmed")  # 確定済
-
-
-class ActiveStatus(models.IntegerChoices):
-    ACTIVE = 0, "運用中"
-    PRE_ACTIVE = 1, "運用前"
-    INACTIVE = 2, "廃止"
-
-
-class LineType(models.IntegerChoices):
-    OTHER = 0, "その他"
-    SHINKANSEN = 1, "新幹線"
-    GENERAL = 2, "一般"
-    SUBWAY = 3, "地下鉄"
-    TRAM = 4, "市電・路面電車"
-    MONORAIL = 5, "モノレール・新交通"
