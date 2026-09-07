@@ -27,7 +27,3 @@ class MonthFilter(SimpleListFilter):
             return queryset.filter(month__year=year, month__month=month)
         except (ValueError, AttributeError):
             return queryset
-
-
-class KintaiModelAdminMixin:
-    """Base ModelAdmin mixin for Kintai models with common functionality."""

@@ -127,6 +127,7 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
         "display_standard_working_days",
         "display_working_time",
         "display_paid_leave_days",
+        "display_paid_leave_available",
         "display_overtime_125",
         "display_overtime_150",
         "display_off_day_125",
@@ -194,7 +195,8 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
 
     @display(description=_("Paid Leave Available"))
     def display_paid_leave_available(self, obj) -> str:
-        return f"{obj.paid_leave_available:.1f}日" if obj is not None and getattr(obj, "paid_leave_available", None) else "-"
+        paid_leave_available = obj.member.paid_leave_available or 0
+        return f"{paid_leave_available:.1f}日" if paid_leave_available else "-"
 
     @display(description=_("Absence Days"))
     def display_absence_days(self, obj) -> str:
@@ -326,14 +328,23 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
 
         return super().changeform_view(request, object_id, form_url, extra_context=extra_context)
 
+    def get_inline_instances(self, request, obj=None):
+        # Hide inlines on submit so Django skips validation & saving completely
+        if request.method == "POST" and ("_approve" in request.POST or "_confirm" in request.POST or "_reject" in request.POST):
+            return []
+        return super().get_inline_instances(request, obj)
+
     def save_related(self, request, form, formsets, change):
-        # 1. Let Django save the parent's m2m relationships and all inline formsets
+        if request.method == "POST" and ("_approve" in request.POST or "_confirm" in request.POST or "_reject" in request.POST):
+            # skip saving related objects
+            return
+
         super().save_related(request, form, formsets, change)
 
-        # 2. Get the saved parent instance
+        # Get the saved parent instance
         monthly_attendance = form.instance
 
-        # 3. Schedule the procedure to execute AFTER the current database transaction commits
+        # Schedule the procedure to execute AFTER the current database transaction commits
         member_id = monthly_attendance.member.id
         month = monthly_attendance.month
 

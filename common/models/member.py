@@ -20,6 +20,8 @@ class Member(RowScopedBaseModel):
         Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name="members", verbose_name=_("Belongs to")
     )
     work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name=_("Work Pattern"))
+    join_date = models.DateField(verbose_name=_("Join Date"), null=True, blank=True)
+    paid_leave_available = models.IntegerField(verbose_name=_("Available Paid Leave"), default=0, blank=True, null=True)
 
     class Meta:
         db_table = "member"
@@ -69,33 +71,37 @@ class Member(RowScopedBaseModel):
             return self._organization.work_pattern
         return WorkPattern.get_default_work_pattern()
 
-    @classmethod
-    def is_authorized(cls, login_user):
-        """Only authenticated users with a member profile are authorized to access this model instance."""
-        # If the user belongs to the SYSTEM_INFO_GROUP, they are authorized regardless of whether they have a member profile.
-        if not login_user.is_authenticated:
-            return False
-
-        if getattr(login_user, "member", None) is None:
-            return False
-
-        return login_user.member.is_system_info_staff or login_user.member.is_company_executive
-
     def is_editable_by(self, login_user):
         """Check if the record is editable by the given user."""
         # If the user belongs to the SYSTEM_INFO_GROUP, they are authorized regardless of whether they have a member profile.
-        if login_user.member and login_user.member.is_system_info_staff:
-            return True
+        if getattr(login_user, "member", None) is None:
+            return False
+
+        if getattr(self, "organization", None) is None and not login_user.member.is_company_executive:
+            return False
 
         # ログインユーザーは自分が所有するモデルを編集可能
         if login_user.member == self:
             return True
+        # If the user is a company executive, they can edit any record.
+        if login_user.member.is_company_executive:
+            return True
 
-        if getattr(self, "organization", None) is None:
-            return False
+        # If the user is system info staff, they can edit any record.
+        if login_user.member.is_system_info_staff:
+            return True
+
+        # If the user is attendance management staff, they can edit any record.
+        if login_user.member.is_attendance_management_staff:
+            return True
 
         # ログインユーザーが組織長の場合、自分の所属組織の下部組織に所属するモデルを編集可能
         return login_user.member.is_organization_manager and login_user.member.organization in self.organization.get_ancestor_organizations()
+
+    def is_deletable_by(self, login_user):
+        """Check if the record is deletable by the given user."""
+        # Typically, the same rules as is_editable_by apply.
+        return self.is_editable_by(login_user) and (login_user.member.is_system_info_staff or login_user.member.is_company_executive)
 
     @classmethod
     def is_all_organizations_accessible(cls, login_user):

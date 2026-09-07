@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-06 19:21+0900\n"
+"POT-Creation-Date: 2026-09-07 17:37+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -74,19 +74,19 @@ msgid ""
 msgstr ""
 
 #: .\kintai\admin\monthly_attendance.py:151
-#: .\kintai\admin\monthly_attendance.py:281
+#: .\kintai\admin\monthly_attendance.py:282
 #: .\kintai\models\monthly_attendance.py:17
 msgid "Days Worked"
 msgstr "就業日数"
 
 #: .\kintai\admin\monthly_attendance.py:155
-#: .\kintai\admin\monthly_attendance.py:282
+#: .\kintai\admin\monthly_attendance.py:283
 #: .\kintai\models\monthly_attendance.py:19
 msgid "Standard Working Days"
 msgstr "基準日数"
 
 #: .\kintai\admin\monthly_attendance.py:159
-#: .\kintai\admin\monthly_attendance.py:283
+#: .\kintai\admin\monthly_attendance.py:284
 #: .\kintai\models\daily_attendance.py:36
 #: .\kintai\models\daily_attendance.py:57
 #: .\kintai\models\monthly_attendance.py:16
@@ -94,7 +94,7 @@ msgid "Actual Working Time"
 msgstr "就業時間"
 
 #: .\kintai\admin\monthly_attendance.py:163
-#: .\kintai\admin\monthly_attendance.py:284
+#: .\kintai\admin\monthly_attendance.py:285
 #: .\kintai\models\daily_attendance.py:39
 #: .\kintai\models\daily_attendance.py:58
 #: .\kintai\models\monthly_attendance.py:23
@@ -102,7 +102,7 @@ msgid "Overtime 1.25"
 msgstr "平日残業"
 
 #: .\kintai\admin\monthly_attendance.py:167
-#: .\kintai\admin\monthly_attendance.py:285
+#: .\kintai\admin\monthly_attendance.py:286
 #: .\kintai\models\daily_attendance.py:40
 #: .\kintai\models\daily_attendance.py:59
 #: .\kintai\models\monthly_attendance.py:24
@@ -110,14 +110,14 @@ msgid "Overtime 1.50"
 msgstr "深夜残業"
 
 #: .\kintai\admin\monthly_attendance.py:171
-#: .\kintai\admin\monthly_attendance.py:290
+#: .\kintai\admin\monthly_attendance.py:291
 #: .\kintai\models\daily_attendance.py:41
 #: .\kintai\models\daily_attendance.py:60
 msgid "Night Work 0.25"
 msgstr "夜間勤務"
 
 #: .\kintai\admin\monthly_attendance.py:175
-#: .\kintai\admin\monthly_attendance.py:286
+#: .\kintai\admin\monthly_attendance.py:287
 #: .\kintai\models\daily_attendance.py:42
 #: .\kintai\models\daily_attendance.py:61
 #: .\kintai\models\monthly_attendance.py:26
@@ -125,7 +125,7 @@ msgid "Off Day 1.25"
 msgstr "休日出勤"
 
 #: .\kintai\admin\monthly_attendance.py:179
-#: .\kintai\admin\monthly_attendance.py:287
+#: .\kintai\admin\monthly_attendance.py:288
 #: .\kintai\models\daily_attendance.py:43
 #: .\kintai\models\daily_attendance.py:62
 #: .\kintai\models\monthly_attendance.py:27
@@ -133,7 +133,7 @@ msgid "Off Day 1.50"
 msgstr "休日深夜"
 
 #: .\kintai\admin\monthly_attendance.py:183
-#: .\kintai\admin\monthly_attendance.py:288
+#: .\kintai\admin\monthly_attendance.py:289
 #: .\kintai\models\daily_attendance.py:44
 #: .\kintai\models\daily_attendance.py:63
 #: .\kintai\models\monthly_attendance.py:28
@@ -141,7 +141,7 @@ msgid "Holiday 1.35"
 msgstr "祝日出勤"
 
 #: .\kintai\admin\monthly_attendance.py:187
-#: .\kintai\admin\monthly_attendance.py:289
+#: .\kintai\admin\monthly_attendance.py:290
 #: .\kintai\models\daily_attendance.py:45
 #: .\kintai\models\daily_attendance.py:64
 #: .\kintai\models\monthly_attendance.py:29
@@ -149,31 +149,31 @@ msgid "Holiday 1.60"
 msgstr "祝日深夜"
 
 #: .\kintai\admin\monthly_attendance.py:191
-#: .\kintai\admin\monthly_attendance.py:291
+#: .\kintai\admin\monthly_attendance.py:292
 #: .\kintai\models\monthly_attendance.py:18
 msgid "Paid Leave Days"
 msgstr "有休取得"
 
 #: .\kintai\admin\monthly_attendance.py:195
-#: .\kintai\admin\monthly_attendance.py:292
+#: .\kintai\admin\monthly_attendance.py:293
 msgid "Paid Leave Available"
 msgstr "有休残"
 
-#: .\kintai\admin\monthly_attendance.py:199
-#: .\kintai\admin\monthly_attendance.py:293
+#: .\kintai\admin\monthly_attendance.py:200
+#: .\kintai\admin\monthly_attendance.py:294
 #: .\kintai\models\daily_attendance.py:67
 #: .\kintai\models\monthly_attendance.py:20
 msgid "Absence Days"
 msgstr "欠勤日数"
 
-#: .\kintai\admin\monthly_attendance.py:203
-#: .\kintai\admin\monthly_attendance.py:294
+#: .\kintai\admin\monthly_attendance.py:204
+#: .\kintai\admin\monthly_attendance.py:295
 #: .\kintai\models\monthly_attendance.py:21
 msgid "Early Leave Days"
 msgstr "早退回数"
 
-#: .\kintai\admin\monthly_attendance.py:207
-#: .\kintai\admin\monthly_attendance.py:295
+#: .\kintai\admin\monthly_attendance.py:208
+#: .\kintai\admin\monthly_attendance.py:296
 #: .\kintai\models\monthly_attendance.py:22
 msgid "Late Days"
 msgstr "遅刻回数"
@@ -341,4 +341,3 @@ msgstr "勤怠報告書ダウンロード"
 #, python-format
 msgid "Add %(name)s"
 msgstr "%(name)s 追加"
-

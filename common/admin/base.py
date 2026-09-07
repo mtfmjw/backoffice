@@ -454,7 +454,6 @@ class ApprovedModelAdminMixin:
                     elif obj.approve_status == ApproveStatus.APPROVED:
                         extra_context["show_apply_button"] = obj.is_confirmable_by(login_user)
                         extra_context["show_reject_button"] = obj.is_confirmable_by(login_user)
-                        extra_context["show_reject_button"] = True
                         extra_context["apply_button_name"] = "_confirm"
                         extra_context["apply_button_label"] = _("Confirm")
                         extra_context["save_and_add_label"] = _("Confirm and Go to Next")
@@ -471,15 +470,15 @@ class ApprovedModelAdminMixin:
             obj.approve_status = ApproveStatus.APPROVED
             obj.approved_by = request.user.username
             obj.approved_at = localtime()
-            super().save_model(request, obj, form, change, update_fields=["approve_status", "approved_by", "approved_at"])
+            obj.save(update_fields=["approve_status", "approved_by", "approved_at"])
         elif "_confirm" in request.POST:
             obj.approve_status = ApproveStatus.CONFIRMED
             obj.confirmed_by = request.user.username
             obj.confirmed_at = localtime()
-            super().save_model(request, obj, form, change, update_fields=["approve_status", "confirmed_by", "confirmed_at"])
+            obj.save(update_fields=["approve_status", "confirmed_by", "confirmed_at"])
         elif "_reject" in request.POST:
             obj.approve_status = ApproveStatus.REJECTED
-            super().save_model(request, obj, form, change, update_fields=["approve_status"])
+            obj.save(update_fields=["approve_status"])
         elif "_reapply" in request.POST:
             obj.approve_status = ApproveStatus.APPLIED
             obj.applied_by = request.user.username

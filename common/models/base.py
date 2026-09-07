@@ -159,9 +159,7 @@ class ApprovedModel(RowScopedModelMixin, models.Model):
 
     def is_confirmable_by(self, login_user):
         """Check if the record is confirmable by the given user."""
-        return self.approve_status == ApproveStatus.APPROVED and (
-            login_user.member.is_attendance_management_staff or login_user.member.is_company_executive
-        )
+        return self.approve_status == ApproveStatus.APPROVED and login_user.member.is_company_executive
 
 
 class ApprovedBaseModel(ApprovedModel, BaseModel):

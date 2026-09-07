@@ -9,7 +9,7 @@ BEGIN
         RETURN 0;
     END IF;
 
-    -- 10月以後は当年度の10月1日を基準日とする、10月以前は前年の10月1日を基準日とする
+    -- 10月より前の時点では前年の10月1日を基準日とする、10月以後は当年の10月1日を基準日とする
     v_reference_date := case when extract(month from target_date)::INT >= 10
                             then MAKE_DATE(EXTRACT(YEAR FROM target_date)::INT, 10, 1)
                             else MAKE_DATE(EXTRACT(YEAR FROM target_date)::INT - 1, 10, 1)
