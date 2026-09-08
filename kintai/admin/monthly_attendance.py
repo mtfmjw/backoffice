@@ -28,6 +28,7 @@ from common.utils import minutes2str
 from kintai.ldjp.attendance import get_attendance_sheet_file_name, write_attendance_sheet
 from kintai.ldjp.const import ATTENDANCE_SHEET, DOWNLOAD_FOLDER
 from kintai.models import MonthlyAttendance
+from kintai.models.paid_leave import PaidLeave
 
 from .common import MonthFilter
 from .daily_attendance import DailyAttendanceInline
@@ -76,7 +77,7 @@ class MonthlyAttendanceResource(ImportBaseModelResourceMixin, resources.ModelRes
             "working_time",
             "overtime",
             "night_working_time",
-            "paid_leave_days",
+            "taken_paid_leaves",
             "absence_days",
             "early_leave_days",
             "late_days",
@@ -126,7 +127,7 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
         "display_worked_days",
         "display_standard_working_days",
         "display_working_time",
-        "display_paid_leave_days",
+        "display_taken_paid_leaves",
         "display_paid_leave_available",
         "display_overtime_125",
         "display_overtime_150",
@@ -190,12 +191,12 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
         return minutes2str(obj.holiday_160) if obj is not None else "-"
 
     @display(description=_("Paid Leave Days"))
-    def display_paid_leave_days(self, obj) -> str:
-        return f"{obj.paid_leave_days:.1f}日" if obj is not None and obj.paid_leave_days else "-"
+    def display_taken_paid_leaves(self, obj) -> str:
+        return f"{obj.taken_paid_leaves:.1f}日" if obj is not None and obj.taken_paid_leaves else "-"
 
     @display(description=_("Paid Leave Available"))
     def display_paid_leave_available(self, obj) -> str:
-        paid_leave_available = obj.member.paid_leave_available or 0
+        paid_leave_available = PaidLeave.get_available_days(obj.member)
         return f"{paid_leave_available:.1f}日" if paid_leave_available else "-"
 
     @display(description=_("Absence Days"))
@@ -290,7 +291,7 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
         extra_context["holiday_135_label"] = _("Holiday 1.35")
         extra_context["holiday_160_label"] = _("Holiday 1.60")
         extra_context["night_time_025_label"] = _("Night Work 0.25")
-        extra_context["paid_leave_days_label"] = _("Paid Leave Days")
+        extra_context["taken_paid_leaves_label"] = _("Paid Leave Days")
         extra_context["paid_leave_available_label"] = _("Paid Leave Available")
         extra_context["absence_days_label"] = _("Absence Days")
         extra_context["early_leave_days_label"] = _("Early Leave Days")
@@ -308,7 +309,7 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
             extra_context["holiday_135"] = self.display_holiday_135(obj)
             extra_context["holiday_160"] = self.display_holiday_160(obj)
             extra_context["night_time_025"] = self.display_night_time_025(obj)
-            extra_context["paid_leave_days"] = self.display_paid_leave_days(obj)
+            extra_context["taken_paid_leaves"] = self.display_taken_paid_leaves(obj)
             extra_context["paid_leave_available"] = self.display_paid_leave_available(obj)
             extra_context["absence_days"] = self.display_absence_days(obj)
             extra_context["early_leave_days"] = self.display_early_leave_days(obj)
@@ -341,8 +342,8 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
         elif request.method == "POST" and "_confirm" in request.POST:
             instance = form.instance
 
-            if instance.paid_leave_days and instance.member.paid_leave_available >= instance.paid_leave_days:
-                instance.member.paid_leave_available = instance.member.paid_leave_available - instance.paid_leave_days
+            if instance.taken_paid_leaves and instance.member.paid_leave_available >= instance.taken_paid_leaves:
+                instance.member.paid_leave_available = instance.member.paid_leave_available - instance.taken_paid_leaves
                 instance.member.save()
             return
 

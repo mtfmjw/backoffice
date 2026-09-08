@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 17:37+0900\n"
+"POT-Creation-Date: 2026-09-08 09:18+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -109,30 +109,21 @@ msgstr "個人"
 msgid "Year"
 msgstr "年"
 
-#: .\common\admin\member.py:38
+#: .\common\admin\member.py:35
 msgid "Join date is required to apply for yearly paid leave."
 msgstr "入社日は有休付与に必要です。"
 
-#: .\common\admin\member.py:45
+#: .\common\admin\member.py:42
 msgid "Join date must be within the past year to apply for yearly paid leave."
 msgstr "入社日が直前の10月1日より前の日に対しては有休付与ができません。"
 
-#: .\common\admin\member.py:106
+#: .\common\admin\member.py:103
 msgid "Full Name"
 msgstr "名前"
 
-#: .\common\admin\member.py:110
+#: .\common\admin\member.py:107
 msgid "Is Organization Manager"
 msgstr "組織長"
-
-#: .\common\admin\member.py:166
-msgid "Calculate Yearly Paid Leave Days"
-msgstr "有休付与"
-
-#: .\common\admin\member.py:182
-#, python-brace-format
-msgid "Yearly paid leave days calculated for {obj}. Saved successfully!"
-msgstr "{obj}の有休付与日数を算出しました。"
 
 #: .\common\admin\work_pattern.py:55 .\common\models\work_pattern.py:24
 msgid "Half Day Time"
@@ -270,15 +261,11 @@ msgstr "就業パターン"
 msgid "Join Date"
 msgstr "入社日"
 
-#: .\common\models\member.py:24
-msgid "Available Paid Leave"
-msgstr "有休残日数"
-
-#: .\common\models\member.py:28
+#: .\common\models\member.py:27
 msgid "Member"
 msgstr "社員"
 
-#: .\common\models\member.py:29
+#: .\common\models\member.py:28
 msgid "Members"
 msgstr "社員一覧"
 
@@ -459,3 +446,4 @@ msgstr "%(label)sと%(start_label)sは同時に入力する必要があります
 #, python-format
 msgid "%(label)s must be provided when %(end_label)s is provided."
 msgstr "%(label)sと%(end_label)sは同時に入力する必要があります。"
+

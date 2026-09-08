@@ -49,11 +49,11 @@ class DailyAttendanceInlineFormSet(BaseInlineFormSet):
                 total_paid_leaves += 1
 
         # 当月取得した有休が有休残数を超えていないかチェック
-        if total_paid_leaves > main_obj.member.paid_leave_available:
+        if total_paid_leaves > main_obj.member.paid_leaves.get_available_days():
             raise ValidationError(
                 _("Total paid leave days ({total_paid_leaves}) exceed the maximum allowed ({max_allowed}) on the main request.").format(
                     total_paid_leaves=total_paid_leaves,
-                    max_allowed=main_obj.member.paid_leave_available,
+                    max_allowed=main_obj.member.paid_leaves.get_available_days(),
                 )
             )
 

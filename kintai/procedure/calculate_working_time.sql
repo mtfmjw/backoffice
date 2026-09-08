@@ -143,7 +143,7 @@ BEGIN
             DATE_TRUNC('month', ad.day) AS month,
             SUM(ad.actual_work_minutes) AS total_actual_work_minutes,
             SUM(CASE ad.date_status WHEN 0 THEN 1 WHEN 2 THEN 0.5 WHEN 3 THEN 0.5 ELSE 0 END) AS total_worked_days,
-            SUM(CASE WHEN ad.date_status NOT IN (0,1,2,3) THEN 1 ELSE 0 END) AS total_paid_leave_days,
+            SUM(CASE ad.date_status when 4 THEN 1 when 2 then 0.5 when 3 then 0.5 ELSE 0 END) AS taken_paid_leaves,
             SUM(CASE WHEN ad.date_type = c_work_day THEN 1 ELSE 0 END) AS total_standard_working_days,
             SUM(CASE WHEN ad.date_status = 1 THEN 1 ELSE 0 END) AS total_absence_days,
             SUM(CASE WHEN ad.early_leave_minutes > 0 THEN 1 ELSE 0 END) AS total_early_leave_days,
@@ -164,7 +164,7 @@ BEGIN
     UPDATE attendance_monthly am
     SET actual_work_minutes = m.total_actual_work_minutes,
         worked_days = m.total_worked_days,
-        paid_leave_days = m.total_paid_leave_days,
+        taken_paid_leaves = m.taken_paid_leaves,
         standard_working_days = m.total_standard_working_days,
         absence_days = m.total_absence_days,
         early_leave_days = m.total_early_leave_days,

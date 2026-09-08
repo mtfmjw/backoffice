@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 21:27+0900\n"
+"POT-Creation-Date: 2026-09-08 08:09+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,21 +28,27 @@ msgstr "月"
 msgid ""
 "Total paid leave days ({total_paid_leaves}) exceed the maximum allowed "
 "({max_allowed}) on the main request."
-msgstr "取得した有休({total_paid_leaves})が未消化有休残日数({max_allowed})を超えています。ご確認ください。"
+msgstr ""
+"取得した有休({total_paid_leaves})が未消化有休残日数({max_allowed})を超えてい"
+"ます。ご確認ください。"
 
 #: .\kintai\admin\daily_attendance.py:79
 #, python-brace-format
 msgid ""
 "Total Golden Week leave days ({special_paid_leaves}) exceed the maximum "
 "allowed ({max_allowed}) ones."
-msgstr "取得したゴールデンウイーク休暇日数({special_paid_leaves})が取得可能日数({max_allowed})を超えています。ご確認ください。"
+msgstr ""
+"取得したゴールデンウイーク休暇日数({special_paid_leaves})が取得可能日数"
+"({max_allowed})を超えています。ご確認ください。"
 
 #: .\kintai\admin\daily_attendance.py:105
 #, python-brace-format
 msgid ""
 "Total Summer Vacation leave days ({special_paid_leaves}) exceed the maximum "
 "allowed ({max_allowed}) ones."
-msgstr "取得した夏季休暇日数({special_paid_leaves})が取得可能日数({max_allowed})を超えています。ご確認ください。"
+msgstr ""
+"取得した夏季休暇日数({special_paid_leaves})が取得可能日数({max_allowed})を超"
+"えています。ご確認ください。"
 
 #: .\kintai\admin\daily_attendance.py:114
 #: .\kintai\admin\daily_attendance.py:154
@@ -249,7 +255,7 @@ msgstr "午前休"
 msgid "Afternoon Half-Day Leave"
 msgstr "午後休"
 
-#: .\kintai\const.py:34
+#: .\kintai\const.py:34 .\kintai\models\paid_leave.py:17
 msgid "Paid Leave"
 msgstr "有休"
 
@@ -340,6 +346,26 @@ msgstr "夜間勤務"
 msgid "Monthly Attendances"
 msgstr "月次勤怠一覧"
 
+#: .\kintai\models\paid_leave.py:9
+msgid "Member"
+msgstr "社員"
+
+#: .\kintai\models\paid_leave.py:10
+msgid "Year"
+msgstr "年"
+
+#: .\kintai\models\paid_leave.py:11
+msgid "Acquired Days"
+msgstr "付与日数"
+
+#: .\kintai\models\paid_leave.py:12
+msgid "Remaining Days"
+msgstr "残日数"
+
+#: .\kintai\models\paid_leave.py:18
+msgid "Paid Leaves"
+msgstr "有休"
+
 #: .\kintai\templates\kintai\monthlyattendance\change_form.html:8
 msgid "Download Attendance Sheet"
 msgstr "勤怠報告書ダウンロード"
@@ -348,18 +374,3 @@ msgstr "勤怠報告書ダウンロード"
 #, python-format
 msgid "Add %(name)s"
 msgstr "%(name)s 追加"
-
-#~ msgid "Subway"
-#~ msgstr "地下鉄"
-
-#~ msgid "Bus"
-#~ msgstr "バス"
-
-#~ msgid "Train"
-#~ msgstr "電車"
-
-#~ msgid "Walk"
-#~ msgstr "徒歩"
-
-#~ msgid "Car"
-#~ msgstr "車"

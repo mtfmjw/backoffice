@@ -21,7 +21,6 @@ class Member(RowScopedBaseModel):
     )
     work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name=_("Work Pattern"))
     join_date = models.DateField(verbose_name=_("Join Date"), null=True, blank=True)
-    paid_leave_available = models.FloatField(verbose_name=_("Available Paid Leave"), default=0, blank=True, null=True)
 
     class Meta:
         db_table = "member"
