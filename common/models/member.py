@@ -4,7 +4,7 @@ from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from common.const import ATTENDANCE_MANAGEMENT_GROUP, COMPANY_EXECUTIVE_GROUP, ORGANIZATION_MANAGER_GROUP, SYSTEM_INFO_GROUP
+from common.const import ACCOUNTING_GROUP, COMPANY_EXECUTIVE_GROUP, ORGANIZATION_MANAGER_GROUP, SYS_GROUP
 
 from .base import RowScopedBaseModel
 from .organization import Organization
@@ -35,16 +35,16 @@ class Member(RowScopedBaseModel):
         return self.user.groups.filter(name=COMPANY_EXECUTIVE_GROUP).exists()
 
     @cached_property
-    def is_system_info_staff(self):
-        return self.user.groups.filter(name=SYSTEM_INFO_GROUP).exists()
+    def is_sys_staff(self):
+        return self.user.groups.filter(name=SYS_GROUP).exists()
 
     @cached_property
     def is_organization_manager(self):
         return self.user.groups.filter(name=ORGANIZATION_MANAGER_GROUP).exists()
 
     @cached_property
-    def is_attendance_management_staff(self):
-        return self.user.groups.filter(name=ATTENDANCE_MANAGEMENT_GROUP).exists()
+    def is_accounting_staff(self):
+        return self.user.groups.filter(name=ACCOUNTING_GROUP).exists()
 
     @cached_property
     def full_name(self):
@@ -72,7 +72,7 @@ class Member(RowScopedBaseModel):
 
     def is_editable_by(self, login_user):
         """Check if the record is editable by the given user."""
-        # If the user belongs to the SYSTEM_INFO_GROUP, they are authorized regardless of whether they have a member profile.
+        # If the user belongs to the SYS_GROUP, they are authorized regardless of whether they have a member profile.
         if getattr(login_user, "member", None) is None:
             return False
 
@@ -82,16 +82,17 @@ class Member(RowScopedBaseModel):
         # ログインユーザーは自分が所有するモデルを編集可能
         if login_user.member == self:
             return True
+
         # If the user is a company executive, they can edit any record.
         if login_user.member.is_company_executive:
             return True
 
         # If the user is system info staff, they can edit any record.
-        if login_user.member.is_system_info_staff:
+        if login_user.member.is_sys_staff:
             return True
 
         # If the user is attendance management staff, they can edit any record.
-        if login_user.member.is_attendance_management_staff:
+        if login_user.member.is_accounting_staff:
             return True
 
         # ログインユーザーが組織長の場合、自分の所属組織の下部組織に所属するモデルを編集可能
@@ -100,7 +101,7 @@ class Member(RowScopedBaseModel):
     def is_deletable_by(self, login_user):
         """Check if the record is deletable by the given user."""
         # Typically, the same rules as is_editable_by apply.
-        return self.is_editable_by(login_user) and (login_user.member.is_system_info_staff or login_user.member.is_company_executive)
+        return self.is_editable_by(login_user) and (login_user.member.is_sys_staff or login_user.member.is_company_executive)
 
     @classmethod
     def is_all_organizations_accessible(cls, login_user):

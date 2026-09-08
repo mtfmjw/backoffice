@@ -40,7 +40,7 @@ class RowScopedModelMixin(MemberScopedModelMixin):
             return False
 
         if login_user.member.organization_id is None:
-            return login_user.member.is_company_executive
+            return login_user.member.is_company_executive or login_user.member.is_sys_staff
         return True
 
     def is_editable_by(self, login_user):

@@ -1,4 +1,7 @@
+from functools import cached_property
+
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from common.models.base import RowScopedBaseModel
@@ -7,32 +10,41 @@ from common.models.member import Member
 
 class PaidLeave(RowScopedBaseModel):
     member = models.ForeignKey(Member, on_delete=models.CASCADE, verbose_name=_("Organization Member"), related_name="paid_leaves")
-    year = models.IntegerField(_("Year"))
+    valid_from = models.DateField(_("Valid From"))
+    valid_till = models.DateField(_("Valid To"))
     acquired_days = models.FloatField(_("Acquired Days"), default=0)
     remaining_days = models.FloatField(_("Remaining Days"), default=0)
 
     class Meta:
         db_table = "paid_leave"
-        unique_together = ("member", "year")
+        unique_together = ("member", "valid_from")
         verbose_name = _("Paid Leave")
         verbose_name_plural = _("Paid Leaves")
 
     def is_editable_by(self, login_user):
-        return self.member.is_attendance_management_staff
+        return self.member.is_accounting_staff
+
+    def is_deletable_by(self, login_user):
+        return False
 
     @classmethod
     def is_all_organizations_accessible(cls, login_user):
-        return login_user.member.is_attendance_management_staff or super().is_all_organizations_accessible(login_user)
+        return login_user.member.is_accounting_staff or super().is_all_organizations_accessible(login_user)
 
-    @classmethod
-    def get_available_days(cls, member):
-        all_remaining_days = PaidLeave.objects.filter(member=member, valid_flag=True).values_list("remaining_days", flat=True)
+    @cached_property
+    def available_days(self):
+        today = timezone.localdate()
+        all_remaining_days = PaidLeave.objects.filter(member=self.member, valid_from__lte=today, valid_till__gte=today).values_list(
+            "remaining_days", flat=True
+        )
         return sum(all_remaining_days)
 
     def update_remaining_days(self, taken_days):
         if taken_days <= 0:
             return
-        valid_paid_leaves = PaidLeave.objects.filter(member=self.member, valid_flag=True)
+
+        today = timezone.localdate()
+        valid_paid_leaves = PaidLeave.objects.filter(member=self.member, valid_from__lte=today, valid_till__gte=today)
         for paid_leave in valid_paid_leaves:
             if paid_leave.remaining_days >= taken_days:
                 paid_leave.remaining_days -= taken_days

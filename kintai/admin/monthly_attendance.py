@@ -28,7 +28,6 @@ from common.utils import minutes2str
 from kintai.ldjp.attendance import get_attendance_sheet_file_name, write_attendance_sheet
 from kintai.ldjp.const import ATTENDANCE_SHEET, DOWNLOAD_FOLDER
 from kintai.models import MonthlyAttendance
-from kintai.models.paid_leave import PaidLeave
 
 from .common import MonthFilter
 from .daily_attendance import DailyAttendanceInline
@@ -196,8 +195,8 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
 
     @display(description=_("Paid Leave Available"))
     def display_paid_leave_available(self, obj) -> str:
-        paid_leave_available = PaidLeave.get_available_days(obj.member)
-        return f"{paid_leave_available:.1f}日" if paid_leave_available else "-"
+        available = obj.member.paid_leaves.first().available_days if obj is not None and obj.member.paid_leaves.exists() else 0
+        return f"{available:.1f}日" if available else "-"
 
     @display(description=_("Absence Days"))
     def display_absence_days(self, obj) -> str:
@@ -358,6 +357,14 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
 
         # Register it to run AFTER the transaction commits
         transaction.on_commit(partial(call_calculate_working_time, member_id, month, request.user.username))
+
+    def has_confirm_permission(self, request):
+        """Check if the user has permission to confirm the object."""
+        return request.user.member.is_accounting_staff or super().has_confirm_permission(request)
+
+    def has_reject_permission(self, request):
+        """Check if the user has permission to reject the object."""
+        return request.user.member.is_accounting_staff or super().has_reject_permission(request)
 
     def get_urls(self):
         urls = super().get_urls()

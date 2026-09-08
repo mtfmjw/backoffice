@@ -10,6 +10,6 @@ class PaidLeaveAdmin(RowScopedBaseModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = list(super().get_readonly_fields(request, obj))
         readonly_fields.extend(["member", "year", "acquired_days"])
-        if obj and not request.user.member.is_attendance_management_staff:
+        if obj and not request.user.member.is_accounting_staff:
             readonly_fields.append("remaining_days")
         return readonly_fields

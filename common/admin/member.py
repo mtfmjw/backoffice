@@ -122,10 +122,10 @@ class MemberAdmin(RowScopedBaseModelAdmin):
         readonly_fields.append("user")
         readonly_fields.append("is_organization_manager")
         login_member = request.user.member
-        if not (login_member.is_attendance_management_staff or login_member.is_system_info_staff):
+        if not (login_member.is_accounting_staff or login_member.is_sys_staff):
             readonly_fields.append("join_date")
 
-        if not login_member.is_system_info_staff:
+        if not login_member.is_sys_staff:
             readonly_fields.append("organization")
 
         if login_member != obj:

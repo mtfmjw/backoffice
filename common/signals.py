@@ -26,9 +26,9 @@ def create_member_for_new_user(sender, instance, created, **kwargs):
             current_user = get_current_user()
             if not current_user.is_authenticated:
                 current_user = instance
-            from .const import SYSTEM_INFO_GROUP
+            from .const import SYS_GROUP
 
-            if current_user.is_superuser or current_user.groups.filter(name=SYSTEM_INFO_GROUP).exists():
+            if current_user.is_superuser or current_user.groups.filter(name=SYS_GROUP).exists():
                 # 情シスユーザーが初期ログインした時、Memberが存在しなければ新規作成する
                 Member.objects.get_or_create(
                     user=instance, defaults={"email": instance.email, "created_by": current_user.username, "updated_by": current_user.username}

@@ -263,15 +263,15 @@ class BaseModelAdminMixin:
         # 2. Dynamically register your custom action (e.g., check delete permissions)
         delete_perm = f"{self.opts.app_label}.delete_{self.opts.model_name}"
         if request.user.has_perm(delete_perm):
-            actions["delete_selected_with_lock"] = (
-                self.delete_selected_with_lock.__func__,
-                "delete_selected_with_lock",
-                "Delete selected items",
+            actions["soft_delete_selected"] = (
+                self.soft_delete_selected.__func__,
+                "soft_delete_selected",
+                _("Soft delete selected items"),
             )
-            actions["undelete_selected_with_lock"] = (
-                self.undelete_selected_with_lock.__func__,
-                "undelete_selected_with_lock",
-                "Undelete selected items",
+            actions["undelete_selected"] = (
+                self.undelete_selected.__func__,
+                "undelete_selected",
+                _("Undelete selected items"),
             )
 
         return actions
@@ -301,94 +301,66 @@ class BaseModelAdminMixin:
         return super().response_action(request, queryset)
 
     # Action method defined directly on ModelAdmin
-    def delete_selected_with_lock(self, request, queryset):
-        success_count, conflict_count, skipped_count = self.toggle_valid_flag(request, False)
+    def soft_delete_selected(self, request, queryset):
+        self.update_selected(request, update_field=("valid_flag", _("Valid Flag")), update_from=(True, _("Valid")), update_to=False)
 
-        if success_count > 0:
-            self.message_user(
-                request,
-                _("Successfully deleted %(success_count)d item(s).") % {"success_count": success_count},
-                messages.SUCCESS,
-            )
+    def undelete_selected(self, request, queryset):
+        self.update_selected(request, update_field=("valid_flag", _("Valid Flag")), update_from=(False, _("Deleted")), update_to=True)
 
-        if conflict_count > 0:
-            self.message_user(
-                request,
-                _("Concurrency Conflict: %(conflict_count)d item(s) could not be deleted because they were modified by another user.")
-                % {"conflict_count": conflict_count},
-                messages.ERROR,
-            )
-
-        if skipped_count > 0:
-            self.message_user(
-                request,
-                _("Skipped: %(skipped_count)d item(s) could not be deleted because they were already deleted.") % {"skipped_count": skipped_count},
-                messages.ERROR,
-            )
-
-    def undelete_selected_with_lock(self, request, queryset):
-        success_count, conflict_count, skipped_count = self.toggle_valid_flag(request, True)
-
-        if success_count > 0:
-            self.message_user(
-                request,
-                _("Successfully undeleted %(success_count)d item(s).") % {"success_count": success_count},
-                messages.SUCCESS,
-            )
-
-        if conflict_count > 0:
-            self.message_user(
-                request,
-                _("Concurrency Conflict: %(conflict_count)d item(s) could not be undeleted because they were modified by another user.")
-                % {"conflict_count": conflict_count},
-                messages.ERROR,
-            )
-
-        if skipped_count > 0:
-            self.message_user(
-                request,
-                _("Skipped: %(skipped_count)d item(s) could not be undeleted because they were already undeleted.")
-                % {"skipped_count": skipped_count},
-                messages.ERROR,
-            )
-
-    def toggle_valid_flag(self, request, valid_flag) -> tuple[int, int, int]:
+    def update_selected(self, request, *args, **kwargs) -> int:
         selected_pairs = getattr(request, "version_pairs", [])
 
         if not selected_pairs:
             self.message_user(request, _("No items selected."), messages.ERROR)
-            return 0, 0, 0
+            return 0
 
-        success_count = 0
-        conflict_count = 0
-        skipped_count = 0
-
+        instandes = []
+        field_name, field_label = kwargs.get("update_field")
+        from_value, from_label = kwargs.get("update_from")
+        to_value = kwargs.get("update_to")
         for pair in selected_pairs:
             try:
                 pk, ui_version = map(int, pair.split(":"))
             except (ValueError, AttributeError):
                 continue
 
+            instance = self.model.objects.filter(pk=pk).first()
+            if getattr(instance, field_name) != from_value:
+                self.message_user(
+                    request,
+                    _("All selected rows must have the %(value)s value for the %(label)s field, please check your selection.")
+                    % {"value": from_label, "label": field_label},
+                    messages.ERROR,
+                )
+                return 0
+
+            setattr(instance, field_name, to_value)
+            instance.version = ui_version
+            instandes.append(instance)
+
+        updated_count = 0
+        conflict_count = 0
+        for instance in instandes:
             field_dict = {}
             field_dict["updated_by"] = request.user.username
             field_dict["updated_at"] = timezone.now()
-            field_dict["valid_flag"] = valid_flag
-            field_dict["version"] = ui_version + 1
+            field_dict[field_name] = getattr(instance, field_name)
+            field_dict["version"] = instance.version + 1
 
-            # Delete only if both ID and version match current DB state
-            is_exists = self.model.objects.filter(pk=pk, version=ui_version, valid_flag=valid_flag).exists()
-            if is_exists:
-                skipped_count += 1
-                continue
+            updated = self.model.objects.filter(pk=instance.pk, version=instance.version).update(**field_dict)
 
-            deleted_count = self.model.objects.filter(pk=pk, version=ui_version).update(**field_dict)
-
-            if deleted_count > 0:
-                success_count += 1
+            if updated > 0:
+                updated_count += 1
             else:
                 conflict_count += 1
 
-        return success_count, conflict_count, skipped_count
+        if updated_count > 0:
+            self.message_user(request, _("Successfully updated %(count)d rows.") % {"count": updated_count}, messages.SUCCESS)
+
+        if conflict_count > 0:
+            self.message_user(request, _("%(count)d rows failed to update due to version conflicts.") % {"count": conflict_count}, messages.WARNING)
+
+        return updated_count
 
     def get_list_display(self, request):
         """Add audit fields to list_display for all descendants."""
@@ -542,6 +514,16 @@ class ApprovedModelAdminMixin:
             return audit_info
         return super().audit_info(obj)
 
+    def has_approve_permission(self, request):
+        """Check if the user has permission to approve the object."""
+        change_perm = f"{self.opts.app_label}.change_{self.opts.model_name}"
+        return request.user.has_perm(change_perm)
+
+    def has_confirm_permission(self, request):
+        """Check if the user has permission to confirm the object."""
+        change_perm = f"{self.opts.app_label}.change_{self.opts.model_name}"
+        return request.user.has_perm(change_perm)
+
     def get_list_display(self, request):
         """Add audit fields to list_display for all descendants."""
         list_display = list(super().get_list_display(request))
@@ -628,6 +610,56 @@ class ApprovedModelAdminMixin:
         else:
             super().save_model(request, obj, form, change)
 
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+
+        # Dynamically register your custom action (e.g., check delete permissions)
+        if self.has_approve_permission(request):
+            actions["approve_selected"] = (
+                self.approve_selected.__func__,
+                "approve_selected",
+                _("Approve selected items"),
+            )
+        if self.has_confirm_permission(request):
+            actions["confirm_selected"] = (
+                self.confirm_selected.__func__,
+                "confirm_selected",
+                _("Confirm selected items"),
+            )
+
+        return actions
+
+    def approve_selected(self, request, queryset):
+        self.update_selected(
+            request,
+            update_field=("approve_status", _("Approve Status")),
+            update_from=(ApproveStatus.APPLIED, _("Applied")),
+            update_to=ApproveStatus.APPROVED,
+        )
+
+    def confirm_selected(self, request, queryset):
+        self.update_selected(
+            request,
+            update_field=("approve_status", _("Approve Status")),
+            update_from=(ApproveStatus.APPROVED, _("Approved")),
+            update_to=ApproveStatus.CONFIRMED,
+        )
+
 
 class ApprovedBaseModelAdmin(ApprovedModelAdminMixin, RowScopedBaseModelAdmin):
     """Base ModelAdmin for row-scoped models with approval functionality."""
+
+    def has_approve_permission(self, request):
+        """Check if the user has permission to approve the object."""
+        member = request.user.member
+        return super().has_approve_permission(request) and (member.is_company_executive or member.is_organization_manager)
+
+    def has_confirm_permission(self, request):
+        """Check if the user has permission to confirm the object."""
+        member = request.user.member
+        return super().has_confirm_permission(request) and member.is_company_executive
+
+    def has_reject_permission(self, request):
+        """Check if the user has permission to reject the object."""
+        member = request.user.member
+        return super().has_reject_permission(request) and (member.is_company_executive or member.is_organization_manager)

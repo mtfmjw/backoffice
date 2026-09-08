@@ -33,11 +33,14 @@ class DailyAttendanceInlineFormSet(BaseInlineFormSet):
 
         # Access the main model instance currently being saved/edited
         main_obj = self.instance
+        month = main_obj.month
+        member = main_obj.member
 
         # Read main model values (e.g., approve_status or total_leave_days)
         if main_obj.approve_status in (ApproveStatus.APPLIED, ApproveStatus.APPROVED, ApproveStatus.CONFIRMED):
             return
 
+        # 当月取得した有休が有休残数を超えていないかチェック
         total_paid_leaves = 0
         for form in self.forms:
             if not form.cleaned_data:
@@ -48,65 +51,57 @@ class DailyAttendanceInlineFormSet(BaseInlineFormSet):
             elif date_status == DateStatus.PAID_LEAVE:
                 total_paid_leaves += 1
 
-        # 当月取得した有休が有休残数を超えていないかチェック
-        if total_paid_leaves > main_obj.member.paid_leaves.get_available_days():
+        availables = member.paid_leaves.first().available_days if member.paid_leaves.exists() else 0
+        if total_paid_leaves > availables:
             raise ValidationError(
-                _("Total paid leave days ({total_paid_leaves}) exceed the maximum allowed ({max_allowed}) on the main request.").format(
-                    total_paid_leaves=total_paid_leaves,
-                    max_allowed=main_obj.member.paid_leaves.get_available_days(),
-                )
+                _("Total paid leave days ({total}) exceed the allowed ({allowed}).").format(total=total_paid_leaves, allowed=availables)
             )
 
         # ゴールデンウイーク休暇と夏休みチェック
         special_paid_leaves = 0
-        if main_obj.month.month in (4, 5):
+        if month.month in (4, 5):
             for form in self.forms:
                 if form.cleaned_data and form.cleaned_data.get("date_status", None) == DateStatus.SP5:
                     special_paid_leaves += 1
 
-            if main_obj.month.month == 5:
-                april_attendance = MonthlyAttendance.objects.get(member=main_obj.member, month__month=4, month__year=main_obj.month.year)
-                if april_attendance:
-                    other_leaves = DailyAttendance.objects.filter(
-                        monthly_attendance=april_attendance,
-                        date_status=DateStatus.SP5,
+            if special_paid_leaves > 0:
+                previous_leaves = 0
+                if month.month == 5:
+                    april = month.replace(month=4)
+                    april_attendance = MonthlyAttendance.objects.filter(member=member, month=april, valid_flag=True).first()
+                    if april_attendance:
+                        other_leaves = DailyAttendance.objects.filter(monthly_attendance=april_attendance, date_status=DateStatus.SP5)
+                        if other_leaves:
+                            previous_leaves = other_leaves.count()
+
+                if special_paid_leaves + previous_leaves > GOLDEN_WEEK_PAID_LEAVE:
+                    raise ValidationError(
+                        _("Total Golden Week leave days ({special_paid_leaves}) exceed the maximum allowed ({max_allowed}) ones.").format(
+                            special_paid_leaves=special_paid_leaves,
+                            max_allowed=GOLDEN_WEEK_PAID_LEAVE - previous_leaves,
+                        )
                     )
+        elif month.month in (7, 8, 9):
+            for form in self.forms:
+                if form.cleaned_data and form.cleaned_data.get("date_status", None) == DateStatus.SP5:
+                    special_paid_leaves += 1
+
+            if special_paid_leaves > 0:
+                previous_leaves = 0
+                if month.month > 7:
+                    july = month.replace(month=7)
+                    other_months = MonthlyAttendance.objects.filter(member=member, month__gte=july, month__lt=month, valid_flag=True)
+                    other_leaves = DailyAttendance.objects.filter(monthly_attendance__in=other_months, date_status=DateStatus.SP5)
                     if other_leaves:
                         previous_leaves = other_leaves.count()
 
-            if special_paid_leaves + previous_leaves > GOLDEN_WEEK_PAID_LEAVE:
-                raise ValidationError(
-                    _("Total Golden Week leave days ({special_paid_leaves}) exceed the maximum allowed ({max_allowed}) ones.").format(
-                        special_paid_leaves=special_paid_leaves,
-                        max_allowed=GOLDEN_WEEK_PAID_LEAVE - previous_leaves,
+                if special_paid_leaves + previous_leaves > SUMMER_VACATION_PAID_LEAVE:
+                    raise ValidationError(
+                        _("Total Summer Vacation leave days ({special_paid_leaves}) exceed the maximum allowed ({max_allowed}) ones.").format(
+                            special_paid_leaves=special_paid_leaves,
+                            max_allowed=SUMMER_VACATION_PAID_LEAVE - previous_leaves,
+                        )
                     )
-                )
-        elif main_obj.month.month in (7, 8, 9):
-            for form in self.forms:
-                if form.cleaned_data and form.cleaned_data.get("date_status", None) == DateStatus.SP5:
-                    special_paid_leaves += 1
-
-            if main_obj.month.month > 7:
-                other_months = MonthlyAttendance.objects.filter(
-                    member=main_obj.member,
-                    month__month__gte=7,
-                    month__month__lt=main_obj.month.month,
-                    month__year=main_obj.month.year,
-                )
-                other_leaves = DailyAttendance.objects.filter(
-                    monthly_attendance__in=other_months,
-                    date_status=DateStatus.SP5,
-                )
-                if other_leaves:
-                    previous_leaves = other_leaves.count()
-
-            if special_paid_leaves + previous_leaves > SUMMER_VACATION_PAID_LEAVE:
-                raise ValidationError(
-                    _("Total Summer Vacation leave days ({special_paid_leaves}) exceed the maximum allowed ({max_allowed}) ones.").format(
-                        special_paid_leaves=special_paid_leaves,
-                        max_allowed=SUMMER_VACATION_PAID_LEAVE - previous_leaves,
-                    )
-                )
 
 
 class DailyAttendanceInlineForm(forms.ModelForm):
