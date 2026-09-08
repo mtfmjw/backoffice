@@ -114,7 +114,7 @@ class BaseModel(models.Model):
 
         if rows_updated == 0:
             self.version = old_version  # Revert local instance version
-            raise ConcurrencyError("This record was modified by another user.")
+            raise ConcurrencyError(_("This record was modified by another user."))
 
 
 class MemberScopedBaseModel(MemberScopedModelMixin, BaseModel):

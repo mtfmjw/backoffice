@@ -6,6 +6,7 @@ from django.contrib.admin import display
 from django.contrib.auth import get_user_model
 from django.http import HttpResponseRedirect
 from django.utils import timezone
+from django.utils.html import format_html
 from django.utils.timezone import localtime
 from django.utils.translation import gettext_lazy as _
 from import_export import widgets
@@ -246,9 +247,153 @@ class BaseModelAdminMixin:
         audit_info += f"　{_('Updated by')}：{updated_by}　{_('Updated at')}：{updated_at}"
         return audit_info
 
+    def action_checkbox(self, obj):
+        return format_html('<input type="checkbox" name="_selected_action" value="{}:{}" class="action-select">', obj.pk, obj.version)
+
+    # Re-apply the select-all header toggle
+    # action_checkbox.short_description = format_html('<input type="checkbox" id="action-toggle">')
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+
+        # 1. Remove the default built-in delete action
+        if "delete_selected" in actions:
+            del actions["delete_selected"]
+
+        # 2. Dynamically register your custom action (e.g., check delete permissions)
+        delete_perm = f"{self.opts.app_label}.delete_{self.opts.model_name}"
+        if request.user.has_perm(delete_perm):
+            actions["delete_selected_with_lock"] = (
+                self.delete_selected_with_lock.__func__,
+                "delete_selected_with_lock",
+                "Delete selected items",
+            )
+            actions["undelete_selected_with_lock"] = (
+                self.undelete_selected_with_lock.__func__,
+                "undelete_selected_with_lock",
+                "Undelete selected items",
+            )
+
+        return actions
+
+    # Intercept response_action to clean request.POST before Django validates PKs
+    def response_action(self, request, queryset):
+        raw_selected = request.POST.getlist("_selected_action")
+
+        # Store composite pairs on request object for your action methods to use
+        request.version_pairs = []
+        clean_pks = []
+
+        for pair in raw_selected:
+            if ":" in pair:
+                request.version_pairs.append(pair)
+                pk, __ = pair.split(":", 1)
+                clean_pks.append(pk)
+            else:
+                clean_pks.append(pair)
+
+        # Mutate POST data temporarily so Django's internal queryset filtering receives valid PK integers
+        post_data = request.POST.copy()
+        post_data.setlist("_selected_action", clean_pks)
+        request.POST = post_data
+
+        # Let Django proceed with standard action dispatching
+        return super().response_action(request, queryset)
+
+    # Action method defined directly on ModelAdmin
+    def delete_selected_with_lock(self, request, queryset):
+        success_count, conflict_count, skipped_count = self.toggle_valid_flag(request, False)
+
+        if success_count > 0:
+            self.message_user(
+                request,
+                _("Successfully deleted %(success_count)d item(s).") % {"success_count": success_count},
+                messages.SUCCESS,
+            )
+
+        if conflict_count > 0:
+            self.message_user(
+                request,
+                _("Concurrency Conflict: %(conflict_count)d item(s) could not be deleted because they were modified by another user.")
+                % {"conflict_count": conflict_count},
+                messages.ERROR,
+            )
+
+        if skipped_count > 0:
+            self.message_user(
+                request,
+                _("Skipped: %(skipped_count)d item(s) could not be deleted because they were already deleted.") % {"skipped_count": skipped_count},
+                messages.ERROR,
+            )
+
+    def undelete_selected_with_lock(self, request, queryset):
+        success_count, conflict_count, skipped_count = self.toggle_valid_flag(request, True)
+
+        if success_count > 0:
+            self.message_user(
+                request,
+                _("Successfully undeleted %(success_count)d item(s).") % {"success_count": success_count},
+                messages.SUCCESS,
+            )
+
+        if conflict_count > 0:
+            self.message_user(
+                request,
+                _("Concurrency Conflict: %(conflict_count)d item(s) could not be undeleted because they were modified by another user.")
+                % {"conflict_count": conflict_count},
+                messages.ERROR,
+            )
+
+        if skipped_count > 0:
+            self.message_user(
+                request,
+                _("Skipped: %(skipped_count)d item(s) could not be undeleted because they were already undeleted.")
+                % {"skipped_count": skipped_count},
+                messages.ERROR,
+            )
+
+    def toggle_valid_flag(self, request, valid_flag) -> tuple[int, int, int]:
+        selected_pairs = getattr(request, "version_pairs", [])
+
+        if not selected_pairs:
+            self.message_user(request, _("No items selected."), messages.ERROR)
+            return 0, 0, 0
+
+        success_count = 0
+        conflict_count = 0
+        skipped_count = 0
+
+        for pair in selected_pairs:
+            try:
+                pk, ui_version = map(int, pair.split(":"))
+            except (ValueError, AttributeError):
+                continue
+
+            field_dict = {}
+            field_dict["updated_by"] = request.user.username
+            field_dict["updated_at"] = timezone.now()
+            field_dict["valid_flag"] = valid_flag
+            field_dict["version"] = ui_version + 1
+
+            # Delete only if both ID and version match current DB state
+            is_exists = self.model.objects.filter(pk=pk, version=ui_version, valid_flag=valid_flag).exists()
+            if is_exists:
+                skipped_count += 1
+                continue
+
+            deleted_count = self.model.objects.filter(pk=pk, version=ui_version).update(**field_dict)
+
+            if deleted_count > 0:
+                success_count += 1
+            else:
+                conflict_count += 1
+
+        return success_count, conflict_count, skipped_count
+
     def get_list_display(self, request):
         """Add audit fields to list_display for all descendants."""
         list_display = list(super().get_list_display(request))
+
         for f in ["valid_flag", "updated_by", "display_updated_at"]:
             if f not in list_display:
                 list_display.append(f)
@@ -331,11 +476,7 @@ class BaseModelAdminMixin:
 
     def delete_model(self, request, obj):
         """Override to perform a soft delete by toggling the valid_flag instead of deleting the record."""
-        if obj.valid_flag:
-            obj.valid_flag = False
-        else:
-            obj.valid_flag = True
-
+        obj.valid_flag = not obj.valid_flag
         obj.updated_by = request.user.username
         obj.save(update_fields=["valid_flag", "updated_by"])
 
