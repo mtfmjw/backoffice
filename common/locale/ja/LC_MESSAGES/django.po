@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 05:07+0900\n"
+"POT-Creation-Date: 2026-09-09 14:08+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,73 +18,77 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: .\common\admin\base.py:167
+#: .\common\admin\base.py:169
 msgid "Belong To"
 msgstr "所属"
 
-#: .\common\admin\base.py:224 .\common\admin\base.py:247
+#: .\common\admin\base.py:245 .\common\admin\base.py:268
 #: .\common\models\base.py:86
 msgid "Updated by"
 msgstr "更新者"
 
-#: .\common\admin\base.py:228 .\common\admin\base.py:247
+#: .\common\admin\base.py:249 .\common\admin\base.py:268
 #: .\common\models\base.py:85
 msgid "Updated at"
 msgstr "更新日時"
 
-#: .\common\admin\base.py:232 .\common\admin\base.py:497
+#: .\common\admin\base.py:253 .\common\admin\base.py:515
 msgid "Audit Info"
 msgstr "作成・更新履歴"
 
-#: .\common\admin\base.py:242 .\common\models\base.py:84
+#: .\common\admin\base.py:263 .\common\models\base.py:84
 msgid "Created by"
 msgstr "作成者"
 
-#: .\common\admin\base.py:242 .\common\models\base.py:83
+#: .\common\admin\base.py:263 .\common\models\base.py:83
 msgid "Created at"
 msgstr "作成日時"
 
-#: .\common\admin\base.py:269
+#: .\common\admin\base.py:287
 msgid "Soft delete selected items"
 msgstr "選択行を論理削除"
 
-#: .\common\admin\base.py:274
+#: .\common\admin\base.py:292
 msgid "Undelete selected items"
 msgstr "選択行の削除を取消"
 
-#: .\common\admin\base.py:305 .\common\admin\base.py:308
+#: .\common\admin\base.py:323 .\common\admin\base.py:326
 msgid "Valid Flag"
 msgstr "有効状態"
 
-#: .\common\admin\base.py:305 .\common\models\base.py:82
+#: .\common\admin\base.py:323 .\common\models\base.py:82
 msgid "Valid"
 msgstr "有効"
 
-#: .\common\admin\base.py:308
+#: .\common\admin\base.py:326
 msgid "Deleted"
 msgstr "削除"
 
-#: .\common\admin\base.py:314
+#: .\common\admin\base.py:332
 msgid "No items selected."
 msgstr "対象行が選択されていません。"
 
-#: .\common\admin\base.py:331
+#: .\common\admin\base.py:349
 #, python-format
 msgid ""
 "All selected rows must have the %(value)s value for the %(label)s field, "
 "please check your selection."
-msgstr "処理対象となる選択行の%(label)s列の値は%(value)sでなければなりません。選択行を確認してください。"
+msgstr ""
+"処理対象となる選択行の%(label)s列の値は%(value)sでなければなりません。選択行"
+"を確認してください。"
 
-#: .\common\admin\base.py:358
+#: .\common\admin\base.py:376
+#, python-format
 msgid "Successfully updated %(count)d rows."
 msgstr "%(count)d行のデータを更新しました。"
 
-#: .\common\admin\base.py:361
+#: .\common\admin\base.py:379
 #, python-format
 msgid "%(count)d rows failed to update due to version conflicts."
-msgstr "%(count)d行のデータは他のユーザーにより先に変更されたので、更新できません。"
+msgstr ""
+"%(count)d行のデータは他のユーザーにより先に変更されたので、更新できません。"
 
-#: .\common\admin\base.py:437
+#: .\common\admin\base.py:455
 msgid ""
 "This record was modified by another user while you were editing it. Your "
 "changes were not saved."
@@ -92,83 +96,83 @@ msgstr ""
 "編集中に他のユーザーより内容が変更されましたので保存できません。もう一度読み"
 "込んでください。"
 
-#: .\common\admin\base.py:504 .\common\models\base.py:134
+#: .\common\admin\base.py:522 .\common\models\base.py:134
 msgid "Applied by"
 msgstr "申請者"
 
-#: .\common\admin\base.py:504 .\common\models\base.py:135
+#: .\common\admin\base.py:522 .\common\models\base.py:135
 msgid "Applied at"
 msgstr "申請日時"
 
-#: .\common\admin\base.py:508 .\common\models\base.py:136
+#: .\common\admin\base.py:526 .\common\models\base.py:136
 msgid "Approved by"
 msgstr "承認者"
 
-#: .\common\admin\base.py:508 .\common\models\base.py:137
+#: .\common\admin\base.py:526 .\common\models\base.py:137
 msgid "Approved at"
 msgstr "承認日時"
 
-#: .\common\admin\base.py:512 .\common\models\base.py:138
+#: .\common\admin\base.py:530 .\common\models\base.py:138
 msgid "Confirmed by"
 msgstr "確定者"
 
-#: .\common\admin\base.py:512 .\common\models\base.py:139
+#: .\common\admin\base.py:530 .\common\models\base.py:139
 msgid "Confirmed at"
 msgstr "確定日時"
 
-#: .\common\admin\base.py:547 .\common\admin\base.py:559
+#: .\common\admin\base.py:565 .\common\admin\base.py:577
 msgid "Apply"
 msgstr "申請"
 
-#: .\common\admin\base.py:575
+#: .\common\admin\base.py:593
 msgid "Approve"
 msgstr "承認"
 
-#: .\common\admin\base.py:576
+#: .\common\admin\base.py:594
 msgid "Approve and Go to Next"
 msgstr "承認して次へ"
 
-#: .\common\admin\base.py:581
+#: .\common\admin\base.py:599
 msgid "Confirm"
 msgstr "確定"
 
-#: .\common\admin\base.py:582
+#: .\common\admin\base.py:600
 msgid "Confirm and Go to Next"
 msgstr "確定して次へ"
 
-#: .\common\admin\base.py:621
+#: .\common\admin\base.py:639
 msgid "Approve selected items"
 msgstr "選択行を承認"
 
-#: .\common\admin\base.py:627
+#: .\common\admin\base.py:645
 msgid "Confirm selected items"
 msgstr "選択行を確定"
 
-#: .\common\admin\base.py:635 .\common\admin\base.py:643
+#: .\common\admin\base.py:653 .\common\admin\base.py:661
 #: .\common\models\base.py:133
 msgid "Approve Status"
 msgstr "承認状態"
 
-#: .\common\admin\base.py:636 .\common\const.py:22
+#: .\common\admin\base.py:654 .\common\const.py:22
 msgid "Applied"
 msgstr "申請済"
 
-#: .\common\admin\base.py:644 .\common\const.py:23
+#: .\common\admin\base.py:662 .\common\const.py:23
 msgid "Approved"
 msgstr "承認済"
 
-#: .\common\admin\filters.py:22 .\common\admin\filters.py:45
+#: .\common\admin\filters.py:10
+msgid "Year"
+msgstr "年"
+
+#: .\common\admin\filters.py:62 .\common\admin\filters.py:85
 #: .\common\models\organization.py:20
 msgid "Organization"
 msgstr "組織"
 
-#: .\common\admin\filters.py:57
+#: .\common\admin\filters.py:97
 msgid "Individual"
-msgstr "個人"
-
-#: .\common\admin\holiday.py:17
-msgid "Year"
-msgstr "年"
+msgstr "自分"
 
 #: .\common\admin\member.py:35
 msgid "Join date is required to apply for yearly paid leave."
@@ -497,4 +501,3 @@ msgstr "%(label)sと%(start_label)sは同時に入力する必要があります
 #, python-format
 msgid "%(label)s must be provided when %(end_label)s is provided."
 msgstr "%(label)sと%(end_label)sは同時に入力する必要があります。"
-

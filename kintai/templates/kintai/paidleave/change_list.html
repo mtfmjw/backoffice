@@ -1,0 +1,11 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static %}
+
+{% block object-tools-items %}
+  {{ block.super }}
+  <li>
+    <a href="{% url opts|admin_urlname:'grant_annual_leave' %}?grant_year={{ grant_year }}" class="addlink">
+      {{ grant_annual_leave_label }}
+    </a>
+  </li>
+{% endblock %}

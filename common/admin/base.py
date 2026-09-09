@@ -1,10 +1,12 @@
 from typing import ClassVar
+from urllib.parse import urlencode
 
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin import display
 from django.contrib.auth import get_user_model
 from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.timezone import localtime
@@ -170,6 +172,25 @@ class MemberScopedAdminMixin:
             return "-"
         return obj.member.organization.name
 
+    def redirect_to_changelist(self, request):
+        changelist_url = reverse(
+            f"admin:{self.opts.app_label}_{self.opts.model_name}_changelist",
+            current_app=self.admin_site.name,
+        )
+        preserved_filters = self.get_preserved_filters(request)
+        redirect_to = f"{changelist_url}?{preserved_filters}" if preserved_filters else changelist_url
+        return redirect_to
+
+    def redirect_to_change(self, request, object_id):
+        change_url = reverse(
+            f"admin:{self.opts.app_label}_{self.opts.model_name}_change",
+            args=(object_id,),
+            current_app=self.admin_site.name,
+        )
+        preserved_filters = request.GET.urlencode()
+        redirect_to = f"{change_url}?{urlencode({'_changelist_filters': preserved_filters})}" if preserved_filters else change_url
+        return redirect_to
+
 
 class MemberScopedAdmin(CommonImportExportMixin, MemberScopedAdminMixin, admin.ModelAdmin):
     """Base ModelAdmin for common models with member-scoped access control and import/export functionality."""
@@ -250,9 +271,6 @@ class BaseModelAdminMixin:
     def action_checkbox(self, obj):
         return format_html('<input type="checkbox" name="_selected_action" value="{}:{}" class="action-select">', obj.pk, obj.version)
 
-    # Re-apply the select-all header toggle
-    # action_checkbox.short_description = format_html('<input type="checkbox" id="action-toggle">')
-
     def get_actions(self, request):
         actions = super().get_actions(request)
 
@@ -301,18 +319,18 @@ class BaseModelAdminMixin:
         return super().response_action(request, queryset)
 
     # Action method defined directly on ModelAdmin
-    def soft_delete_selected(self, request, queryset):
-        self.update_selected(request, update_field=("valid_flag", _("Valid Flag")), update_from=(True, _("Valid")), update_to=False)
+    def soft_delete_selected(self, request, queryset) -> list:
+        return self.update_selected(request, update_field=("valid_flag", _("Valid Flag")), update_from=(True, _("Valid")), update_to=False)
 
-    def undelete_selected(self, request, queryset):
-        self.update_selected(request, update_field=("valid_flag", _("Valid Flag")), update_from=(False, _("Deleted")), update_to=True)
+    def undelete_selected(self, request, queryset) -> list:
+        return self.update_selected(request, update_field=("valid_flag", _("Valid Flag")), update_from=(False, _("Deleted")), update_to=True)
 
-    def update_selected(self, request, *args, **kwargs) -> int:
+    def update_selected(self, request, *args, **kwargs) -> list:
         selected_pairs = getattr(request, "version_pairs", [])
 
         if not selected_pairs:
             self.message_user(request, _("No items selected."), messages.ERROR)
-            return 0
+            return []
 
         instandes = []
         field_name, field_label = kwargs.get("update_field")
@@ -332,7 +350,7 @@ class BaseModelAdminMixin:
                     % {"value": from_label, "label": field_label},
                     messages.ERROR,
                 )
-                return 0
+                return []
 
             setattr(instance, field_name, to_value)
             instance.version = ui_version
@@ -340,6 +358,7 @@ class BaseModelAdminMixin:
 
         updated_count = 0
         conflict_count = 0
+        updated_instances = []
         for instance in instandes:
             field_dict = {}
             field_dict["updated_by"] = request.user.username
@@ -351,6 +370,7 @@ class BaseModelAdminMixin:
 
             if updated > 0:
                 updated_count += 1
+                updated_instances.append(instance)
             else:
                 conflict_count += 1
 
@@ -360,7 +380,7 @@ class BaseModelAdminMixin:
         if conflict_count > 0:
             self.message_user(request, _("%(count)d rows failed to update due to version conflicts.") % {"count": conflict_count}, messages.WARNING)
 
-        return updated_count
+        return updated_instances
 
     def get_list_display(self, request):
         """Add audit fields to list_display for all descendants."""
@@ -629,16 +649,16 @@ class ApprovedModelAdminMixin:
 
         return actions
 
-    def approve_selected(self, request, queryset):
-        self.update_selected(
+    def approve_selected(self, request, queryset) -> list:
+        return self.update_selected(
             request,
             update_field=("approve_status", _("Approve Status")),
             update_from=(ApproveStatus.APPLIED, _("Applied")),
             update_to=ApproveStatus.APPROVED,
         )
 
-    def confirm_selected(self, request, queryset):
-        self.update_selected(
+    def confirm_selected(self, request, queryset) -> list:
+        return self.update_selected(
             request,
             update_field=("approve_status", _("Approve Status")),
             update_from=(ApproveStatus.APPROVED, _("Approved")),

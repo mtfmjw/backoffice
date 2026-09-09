@@ -20,9 +20,14 @@ class PaidLeave(RowScopedBaseModel):
         unique_together = ("member", "valid_from")
         verbose_name = _("Paid Leave")
         verbose_name_plural = _("Paid Leaves")
+        ordering = ("-valid_from",)
+
+    @classmethod
+    def is_authorized(cls, login_user):
+        return super().is_authorized(login_user) or login_user.member.is_accounting_staff
 
     def is_editable_by(self, login_user):
-        return self.member.is_accounting_staff
+        return login_user.member.is_accounting_staff
 
     def is_deletable_by(self, login_user):
         return False
@@ -39,7 +44,7 @@ class PaidLeave(RowScopedBaseModel):
         )
         return sum(all_remaining_days)
 
-    def update_remaining_days(self, taken_days):
+    def update_remaining_days(self, taken_days, updated_by):
         if taken_days <= 0:
             return
 
@@ -52,6 +57,7 @@ class PaidLeave(RowScopedBaseModel):
             else:
                 taken_days -= paid_leave.remaining_days
                 paid_leave.remaining_days = 0
+            paid_leave.updated_by = updated_by
             paid_leave.save()
-            if taken_days == 0:
+            if taken_days <= 0:
                 break

@@ -1,10 +1,50 @@
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.filters import RelatedOnlyFieldListFilter
+from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
 
 from common.models.organization import Organization
 
-# 2020年からのカレンダーを表示する
+
+class YearFilter(SimpleListFilter):
+    title = _("Year")
+    parameter_name = "year"
+    start_year = 2020
+    end_year = localdate().year + 1
+    field_name = "date"
+
+    def lookups(self, request, model_admin):
+        years = list(range(self.end_year, self.start_year - 1, -1))
+        choices = [(str(y), f"{y}年") for y in years]
+        choices.append(("all", "全期間"))
+        return choices
+
+    def queryset(self, request, queryset):
+        value = self.value()
+
+        if value is None:
+            start_date = localdate().replace(month=1, day=1)
+            end_date = start_date.replace(year=start_date.year + 1)
+            return queryset.filter(**{f"{self.field_name}__gte": start_date, f"{self.field_name}__lt": end_date})
+        elif value == "all":
+            start_date = localdate().replace(year=self.start_year, month=1, day=1)
+            return queryset.filter(**{f"{self.field_name}__gte": start_date})
+        elif value.isdigit():
+            start_date = localdate().replace(year=int(value), month=1, day=1)
+            end_date = start_date.replace(year=start_date.year + 1)
+            return queryset.filter(**{f"{self.field_name}__gte": start_date, f"{self.field_name}__lt": end_date})
+        return queryset
+
+    def choices(self, changelist):
+        """
+        Override choices to strip out the default 'All' option.
+        """
+        # Call the parent generator to get all choices
+        all_choices = list(super().choices(changelist))
+
+        # The first item (index 0) in all_choices is always the 'All' link.
+        # Returning all_choices[1:] strips it out.
+        return all_choices[1:]
 
 
 class PrefectureFilter(RelatedOnlyFieldListFilter):

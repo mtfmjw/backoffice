@@ -1,6 +1,6 @@
 from datetime import datetime
 from functools import partial
-from urllib.parse import quote, urlencode
+from urllib.parse import quote
 
 import openpyxl
 from django import forms
@@ -13,7 +13,7 @@ from django.db.models import Q
 from django.forms import TextInput
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import path, reverse
+from django.urls import path
 from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
@@ -262,20 +262,7 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
                 attendance_id = cursor.fetchone()[0]
                 cursor.execute("""CALL calculate_working_time(%s, %s, %s);""", [member.id, first_day, request.user.username])
 
-        # 1. Get the current request's GET query string (e.g., "status=1&month=2026-08")
-        # Or get it from request.META.get('HTTP_REFERER') if coming from a different view
-        preserved_filters = request.GET.urlencode()
-
-        # 2. Reverse the change form URL
-        base_url = reverse("admin:kintai_monthlyattendance_change", args=(attendance_id,))
-
-        # 3. Append _changelist_filters if filter parameters exist
-        if preserved_filters:
-            redirect_url = f"{base_url}?{urlencode({'_changelist_filters': preserved_filters})}"
-        else:
-            redirect_url = base_url
-
-        return redirect(redirect_url)
+        return redirect(self.redirect_to_change(request, attendance_id))
 
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         extra_context = extra_context or {}
@@ -334,16 +321,15 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
             return []
         return super().get_inline_instances(request, obj)
 
-    def save_related(self, request, form, formsets, change):
-        if request.method == "POST" and ("_approve" in request.POST or "_reject" in request.POST):
-            # skip saving related objects
-            return
-        elif request.method == "POST" and "_confirm" in request.POST:
-            instance = form.instance
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
 
-            if instance.taken_paid_leaves and instance.member.paid_leave_available >= instance.taken_paid_leaves:
-                instance.member.paid_leave_available = instance.member.paid_leave_available - instance.taken_paid_leaves
-                instance.member.save()
+        if request.method == "POST" and "_confirm" in request.POST and obj.taken_paid_leaves > 0:
+            obj.member.paid_leaves.first().update_remaining_days(obj.taken_paid_leaves, request.user.username)
+
+    def save_related(self, request, form, formsets, change):
+        if request.method == "POST" and ("_approve" in request.POST or "_reject" in request.POST or "_confirm" in request.POST):
+            # skip saving related objects
             return
 
         super().save_related(request, form, formsets, change)
@@ -365,6 +351,13 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
     def has_reject_permission(self, request):
         """Check if the user has permission to reject the object."""
         return request.user.member.is_accounting_staff or super().has_reject_permission(request)
+
+    def confirm_selected(self, request, queryset):
+        instances = super().confirm_selected(request, queryset)
+        for obj in instances:
+            if obj.taken_paid_leaves > 0:
+                obj.member.paid_leaves.first().update_remaining_days(obj.taken_paid_leaves, request.user.username)
+        return instances
 
     def get_urls(self):
         urls = super().get_urls()
