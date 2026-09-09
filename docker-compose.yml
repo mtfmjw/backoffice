@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:18-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: backoffice
+      POSTGRES_USER: backoffice
+      POSTGRES_PASSWORD: P09olp09ol
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./init/db_backup.dump:/backup.dump
+      - postgres_data:/var/lib/postgresql
+    # Execute pg_restore inline on container start
+    command: >
+      sh -c "docker-entrypoint.sh postgres &
+             until pg_isready -U mydbuser; do sleep 1; done;
+             pg_restore -U backoffice -d backoffice /backup.dump || true;
+             wait"
+  web:
+    build: .
+    container_name: django_web
+    restart: always
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_NAME=backoffice
+      - DB_USER=backoffice
+      - DB_PASSWORD=P09olp09ol
+      - DB_HOST=db
+      - DB_PORT=5432
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
