@@ -4,17 +4,20 @@ from datetime import timedelta
 from django import forms
 from django.contrib import admin
 from django.contrib.admin.widgets import AdminSplitDateTime, AdminTimeWidget
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.forms.models import BaseInlineFormSet
 from django.forms.widgets import TextInput
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from common.const import ApproveStatus
 from common.models.work_pattern import WorkPattern
 from common.utils import convert2datetime, convert2duration, convert2localtime
 from common.validation import mandatory_validation
-from kintai.const import DateStatus, DateType
+from kintai.const import GOLDEN_WEEK_PAID_LEAVE, SUMMER_VACATION_PAID_LEAVE, DateStatus, DateType
 from kintai.models import DailyAttendance
+from kintai.models.monthly_attendance import MonthlyAttendance
 
 
 class DailyAttendanceInlineFormSet(BaseInlineFormSet):
@@ -24,6 +27,81 @@ class DailyAttendanceInlineFormSet(BaseInlineFormSet):
         work_pattern_choices = [(wp.pk, str(wp)) for wp in WorkPattern.get_all_work_patterns().values()]
         for form in self.forms:
             form.fields["work_pattern"].choices = work_pattern_choices
+
+    def clean(self):
+        super().clean()
+
+        # Access the main model instance currently being saved/edited
+        main_obj = self.instance
+        month = main_obj.month
+        member = main_obj.member
+
+        # Read main model values (e.g., approve_status or total_leave_days)
+        if main_obj.approve_status in (ApproveStatus.APPLIED, ApproveStatus.APPROVED, ApproveStatus.CONFIRMED):
+            return
+
+        # 当月取得した有休が有休残数を超えていないかチェック
+        total_paid_leaves = 0
+        for form in self.forms:
+            if not form.cleaned_data:
+                continue
+            date_status = form.cleaned_data.get("date_status", None)
+            if date_status in (DateStatus.MORNING_PAID_LEAVE, DateStatus.AFTERNOON_PAID_LEAVE):
+                total_paid_leaves += 0.5
+            elif date_status == DateStatus.PAID_LEAVE:
+                total_paid_leaves += 1
+
+        availables = member.paid_leaves.first().available_days if member.paid_leaves.exists() else 0
+        if total_paid_leaves > availables:
+            raise ValidationError(
+                _("Total paid leave days ({total}) exceed the allowed ({allowed}).").format(total=total_paid_leaves, allowed=availables)
+            )
+
+        # ゴールデンウイーク休暇と夏休みチェック
+        special_paid_leaves = 0
+        if month.month in (4, 5):
+            for form in self.forms:
+                if form.cleaned_data and form.cleaned_data.get("date_status", None) == DateStatus.SP5:
+                    special_paid_leaves += 1
+
+            if special_paid_leaves > 0:
+                previous_leaves = 0
+                if month.month == 5:
+                    april = month.replace(month=4)
+                    april_attendance = MonthlyAttendance.objects.filter(member=member, month=april, valid_flag=True).first()
+                    if april_attendance:
+                        other_leaves = DailyAttendance.objects.filter(monthly_attendance=april_attendance, date_status=DateStatus.SP5)
+                        if other_leaves:
+                            previous_leaves = other_leaves.count()
+
+                if special_paid_leaves + previous_leaves > GOLDEN_WEEK_PAID_LEAVE:
+                    raise ValidationError(
+                        _("Total Golden Week leave days ({special_paid_leaves}) exceed the maximum allowed ({max_allowed}) ones.").format(
+                            special_paid_leaves=special_paid_leaves,
+                            max_allowed=GOLDEN_WEEK_PAID_LEAVE - previous_leaves,
+                        )
+                    )
+        elif month.month in (7, 8, 9):
+            for form in self.forms:
+                if form.cleaned_data and form.cleaned_data.get("date_status", None) == DateStatus.SP5:
+                    special_paid_leaves += 1
+
+            if special_paid_leaves > 0:
+                previous_leaves = 0
+                if month.month > 7:
+                    july = month.replace(month=7)
+                    other_months = MonthlyAttendance.objects.filter(member=member, month__gte=july, month__lt=month, valid_flag=True)
+                    other_leaves = DailyAttendance.objects.filter(monthly_attendance__in=other_months, date_status=DateStatus.SP5)
+                    if other_leaves:
+                        previous_leaves = other_leaves.count()
+
+                if special_paid_leaves + previous_leaves > SUMMER_VACATION_PAID_LEAVE:
+                    raise ValidationError(
+                        _("Total Summer Vacation leave days ({special_paid_leaves}) exceed the maximum allowed ({max_allowed}) ones.").format(
+                            special_paid_leaves=special_paid_leaves,
+                            max_allowed=SUMMER_VACATION_PAID_LEAVE - previous_leaves,
+                        )
+                    )
 
 
 class DailyAttendanceInlineForm(forms.ModelForm):
@@ -76,6 +154,7 @@ class DailyAttendanceInlineForm(forms.ModelForm):
         if date_type != DateType.WORK_DAY and date_status is not None and date_status != DateStatus.PRESENT:
             self.add_error("date_status", _("Date Status cannot be set to anything other than Present on a Holiday."))
 
+        # 退勤時間を翌日の勤務開始時間と比較して、翌日をまたぐ場合はエラーとする
         clock_in_time = cleaned_data.get("clock_in_time_only")
         clock_out_time = cleaned_data.get("clock_out_time_only")
         work_pattern = cleaned_data.get("work_pattern")

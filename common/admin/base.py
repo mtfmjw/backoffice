@@ -1,11 +1,14 @@
 from typing import ClassVar
+from urllib.parse import urlencode
 
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin import display
 from django.contrib.auth import get_user_model
 from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html
 from django.utils.timezone import localtime
 from django.utils.translation import gettext_lazy as _
 from import_export import widgets
@@ -169,6 +172,25 @@ class MemberScopedAdminMixin:
             return "-"
         return obj.member.organization.name
 
+    def redirect_to_changelist(self, request):
+        changelist_url = reverse(
+            f"admin:{self.opts.app_label}_{self.opts.model_name}_changelist",
+            current_app=self.admin_site.name,
+        )
+        preserved_filters = self.get_preserved_filters(request)
+        redirect_to = f"{changelist_url}?{preserved_filters}" if preserved_filters else changelist_url
+        return redirect_to
+
+    def redirect_to_change(self, request, object_id):
+        change_url = reverse(
+            f"admin:{self.opts.app_label}_{self.opts.model_name}_change",
+            args=(object_id,),
+            current_app=self.admin_site.name,
+        )
+        preserved_filters = request.GET.urlencode()
+        redirect_to = f"{change_url}?{urlencode({'_changelist_filters': preserved_filters})}" if preserved_filters else change_url
+        return redirect_to
+
 
 class MemberScopedAdmin(CommonImportExportMixin, MemberScopedAdminMixin, admin.ModelAdmin):
     """Base ModelAdmin for common models with member-scoped access control and import/export functionality."""
@@ -246,9 +268,124 @@ class BaseModelAdminMixin:
         audit_info += f"　{_('Updated by')}：{updated_by}　{_('Updated at')}：{updated_at}"
         return audit_info
 
+    def action_checkbox(self, obj):
+        return format_html('<input type="checkbox" name="_selected_action" value="{}:{}" class="action-select">', obj.pk, obj.version)
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+
+        # 1. Remove the default built-in delete action
+        if "delete_selected" in actions:
+            del actions["delete_selected"]
+
+        # 2. Dynamically register your custom action (e.g., check delete permissions)
+        delete_perm = f"{self.opts.app_label}.delete_{self.opts.model_name}"
+        if request.user.has_perm(delete_perm):
+            actions["soft_delete_selected"] = (
+                self.soft_delete_selected.__func__,
+                "soft_delete_selected",
+                _("Soft delete selected items"),
+            )
+            actions["undelete_selected"] = (
+                self.undelete_selected.__func__,
+                "undelete_selected",
+                _("Undelete selected items"),
+            )
+
+        return actions
+
+    # Intercept response_action to clean request.POST before Django validates PKs
+    def response_action(self, request, queryset):
+        raw_selected = request.POST.getlist("_selected_action")
+
+        # Store composite pairs on request object for your action methods to use
+        request.version_pairs = []
+        clean_pks = []
+
+        for pair in raw_selected:
+            if ":" in pair:
+                request.version_pairs.append(pair)
+                pk, __ = pair.split(":", 1)
+                clean_pks.append(pk)
+            else:
+                clean_pks.append(pair)
+
+        # Mutate POST data temporarily so Django's internal queryset filtering receives valid PK integers
+        post_data = request.POST.copy()
+        post_data.setlist("_selected_action", clean_pks)
+        request.POST = post_data
+
+        # Let Django proceed with standard action dispatching
+        return super().response_action(request, queryset)
+
+    # Action method defined directly on ModelAdmin
+    def soft_delete_selected(self, request, queryset) -> list:
+        return self.update_selected(request, update_field=("valid_flag", _("Valid Flag")), update_from=(True, _("Valid")), update_to=False)
+
+    def undelete_selected(self, request, queryset) -> list:
+        return self.update_selected(request, update_field=("valid_flag", _("Valid Flag")), update_from=(False, _("Deleted")), update_to=True)
+
+    def update_selected(self, request, *args, **kwargs) -> list:
+        selected_pairs = getattr(request, "version_pairs", [])
+
+        if not selected_pairs:
+            self.message_user(request, _("No items selected."), messages.ERROR)
+            return []
+
+        instandes = []
+        field_name, field_label = kwargs.get("update_field")
+        from_value, from_label = kwargs.get("update_from")
+        to_value = kwargs.get("update_to")
+        for pair in selected_pairs:
+            try:
+                pk, ui_version = map(int, pair.split(":"))
+            except (ValueError, AttributeError):
+                continue
+
+            instance = self.model.objects.filter(pk=pk).first()
+            if getattr(instance, field_name) != from_value:
+                self.message_user(
+                    request,
+                    _("All selected rows must have the %(value)s value for the %(label)s field, please check your selection.")
+                    % {"value": from_label, "label": field_label},
+                    messages.ERROR,
+                )
+                return []
+
+            setattr(instance, field_name, to_value)
+            instance.version = ui_version
+            instandes.append(instance)
+
+        updated_count = 0
+        conflict_count = 0
+        updated_instances = []
+        for instance in instandes:
+            field_dict = {}
+            field_dict["updated_by"] = request.user.username
+            field_dict["updated_at"] = timezone.now()
+            field_dict[field_name] = getattr(instance, field_name)
+            field_dict["version"] = instance.version + 1
+
+            updated = self.model.objects.filter(pk=instance.pk, version=instance.version).update(**field_dict)
+
+            if updated > 0:
+                updated_count += 1
+                updated_instances.append(instance)
+            else:
+                conflict_count += 1
+
+        if updated_count > 0:
+            self.message_user(request, _("Successfully updated %(count)d rows.") % {"count": updated_count}, messages.SUCCESS)
+
+        if conflict_count > 0:
+            self.message_user(request, _("%(count)d rows failed to update due to version conflicts.") % {"count": conflict_count}, messages.WARNING)
+
+        return updated_instances
+
     def get_list_display(self, request):
         """Add audit fields to list_display for all descendants."""
         list_display = list(super().get_list_display(request))
+
         for f in ["valid_flag", "updated_by", "display_updated_at"]:
             if f not in list_display:
                 list_display.append(f)
@@ -331,11 +468,7 @@ class BaseModelAdminMixin:
 
     def delete_model(self, request, obj):
         """Override to perform a soft delete by toggling the valid_flag instead of deleting the record."""
-        if obj.valid_flag:
-            obj.valid_flag = False
-        else:
-            obj.valid_flag = True
-
+        obj.valid_flag = not obj.valid_flag
         obj.updated_by = request.user.username
         obj.save(update_fields=["valid_flag", "updated_by"])
 
@@ -401,6 +534,16 @@ class ApprovedModelAdminMixin:
             return audit_info
         return super().audit_info(obj)
 
+    def has_approve_permission(self, request):
+        """Check if the user has permission to approve the object."""
+        change_perm = f"{self.opts.app_label}.change_{self.opts.model_name}"
+        return request.user.has_perm(change_perm)
+
+    def has_confirm_permission(self, request):
+        """Check if the user has permission to confirm the object."""
+        change_perm = f"{self.opts.app_label}.change_{self.opts.model_name}"
+        return request.user.has_perm(change_perm)
+
     def get_list_display(self, request):
         """Add audit fields to list_display for all descendants."""
         list_display = list(super().get_list_display(request))
@@ -454,7 +597,6 @@ class ApprovedModelAdminMixin:
                     elif obj.approve_status == ApproveStatus.APPROVED:
                         extra_context["show_apply_button"] = obj.is_confirmable_by(login_user)
                         extra_context["show_reject_button"] = obj.is_confirmable_by(login_user)
-                        extra_context["show_reject_button"] = True
                         extra_context["apply_button_name"] = "_confirm"
                         extra_context["apply_button_label"] = _("Confirm")
                         extra_context["save_and_add_label"] = _("Confirm and Go to Next")
@@ -471,15 +613,15 @@ class ApprovedModelAdminMixin:
             obj.approve_status = ApproveStatus.APPROVED
             obj.approved_by = request.user.username
             obj.approved_at = localtime()
-            super().save_model(request, obj, form, change, update_fields=["approve_status", "approved_by", "approved_at"])
+            obj.save(update_fields=["approve_status", "approved_by", "approved_at"])
         elif "_confirm" in request.POST:
             obj.approve_status = ApproveStatus.CONFIRMED
             obj.confirmed_by = request.user.username
             obj.confirmed_at = localtime()
-            super().save_model(request, obj, form, change, update_fields=["approve_status", "confirmed_by", "confirmed_at"])
+            obj.save(update_fields=["approve_status", "confirmed_by", "confirmed_at"])
         elif "_reject" in request.POST:
             obj.approve_status = ApproveStatus.REJECTED
-            super().save_model(request, obj, form, change, update_fields=["approve_status"])
+            obj.save(update_fields=["approve_status"])
         elif "_reapply" in request.POST:
             obj.approve_status = ApproveStatus.APPLIED
             obj.applied_by = request.user.username
@@ -488,6 +630,56 @@ class ApprovedModelAdminMixin:
         else:
             super().save_model(request, obj, form, change)
 
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+
+        # Dynamically register your custom action (e.g., check delete permissions)
+        if self.has_approve_permission(request):
+            actions["approve_selected"] = (
+                self.approve_selected.__func__,
+                "approve_selected",
+                _("Approve selected items"),
+            )
+        if self.has_confirm_permission(request):
+            actions["confirm_selected"] = (
+                self.confirm_selected.__func__,
+                "confirm_selected",
+                _("Confirm selected items"),
+            )
+
+        return actions
+
+    def approve_selected(self, request, queryset) -> list:
+        return self.update_selected(
+            request,
+            update_field=("approve_status", _("Approve Status")),
+            update_from=(ApproveStatus.APPLIED, _("Applied")),
+            update_to=ApproveStatus.APPROVED,
+        )
+
+    def confirm_selected(self, request, queryset) -> list:
+        return self.update_selected(
+            request,
+            update_field=("approve_status", _("Approve Status")),
+            update_from=(ApproveStatus.APPROVED, _("Approved")),
+            update_to=ApproveStatus.CONFIRMED,
+        )
+
 
 class ApprovedBaseModelAdmin(ApprovedModelAdminMixin, RowScopedBaseModelAdmin):
     """Base ModelAdmin for row-scoped models with approval functionality."""
+
+    def has_approve_permission(self, request):
+        """Check if the user has permission to approve the object."""
+        member = request.user.member
+        return super().has_approve_permission(request) and (member.is_company_executive or member.is_organization_manager)
+
+    def has_confirm_permission(self, request):
+        """Check if the user has permission to confirm the object."""
+        member = request.user.member
+        return super().has_confirm_permission(request) and member.is_company_executive
+
+    def has_reject_permission(self, request):
+        """Check if the user has permission to reject the object."""
+        member = request.user.member
+        return super().has_reject_permission(request) and (member.is_company_executive or member.is_organization_manager)

@@ -1,6 +1,6 @@
 from datetime import datetime
 from functools import partial
-from urllib.parse import quote, urlencode
+from urllib.parse import quote
 
 import openpyxl
 from django import forms
@@ -13,7 +13,7 @@ from django.db.models import Q
 from django.forms import TextInput
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import path, reverse
+from django.urls import path
 from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
@@ -76,7 +76,7 @@ class MonthlyAttendanceResource(ImportBaseModelResourceMixin, resources.ModelRes
             "working_time",
             "overtime",
             "night_working_time",
-            "paid_leave_days",
+            "taken_paid_leaves",
             "absence_days",
             "early_leave_days",
             "late_days",
@@ -126,7 +126,8 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
         "display_worked_days",
         "display_standard_working_days",
         "display_working_time",
-        "display_paid_leave_days",
+        "display_taken_paid_leaves",
+        "display_paid_leave_available",
         "display_overtime_125",
         "display_overtime_150",
         "display_off_day_125",
@@ -189,12 +190,13 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
         return minutes2str(obj.holiday_160) if obj is not None else "-"
 
     @display(description=_("Paid Leave Days"))
-    def display_paid_leave_days(self, obj) -> str:
-        return f"{obj.paid_leave_days:.1f}日" if obj is not None and obj.paid_leave_days else "-"
+    def display_taken_paid_leaves(self, obj) -> str:
+        return f"{obj.taken_paid_leaves:.1f}日" if obj is not None and obj.taken_paid_leaves else "-"
 
     @display(description=_("Paid Leave Available"))
     def display_paid_leave_available(self, obj) -> str:
-        return f"{obj.paid_leave_available:.1f}日" if obj is not None and getattr(obj, "paid_leave_available", None) else "-"
+        available = obj.member.paid_leaves.first().available_days if obj is not None and obj.member.paid_leaves.exists() else 0
+        return f"{available:.1f}日" if available else "-"
 
     @display(description=_("Absence Days"))
     def display_absence_days(self, obj) -> str:
@@ -260,20 +262,7 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
                 attendance_id = cursor.fetchone()[0]
                 cursor.execute("""CALL calculate_working_time(%s, %s, %s);""", [member.id, first_day, request.user.username])
 
-        # 1. Get the current request's GET query string (e.g., "status=1&month=2026-08")
-        # Or get it from request.META.get('HTTP_REFERER') if coming from a different view
-        preserved_filters = request.GET.urlencode()
-
-        # 2. Reverse the change form URL
-        base_url = reverse("admin:kintai_monthlyattendance_change", args=(attendance_id,))
-
-        # 3. Append _changelist_filters if filter parameters exist
-        if preserved_filters:
-            redirect_url = f"{base_url}?{urlencode({'_changelist_filters': preserved_filters})}"
-        else:
-            redirect_url = base_url
-
-        return redirect(redirect_url)
+        return redirect(self.redirect_to_change(request, attendance_id))
 
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         extra_context = extra_context or {}
@@ -288,7 +277,7 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
         extra_context["holiday_135_label"] = _("Holiday 1.35")
         extra_context["holiday_160_label"] = _("Holiday 1.60")
         extra_context["night_time_025_label"] = _("Night Work 0.25")
-        extra_context["paid_leave_days_label"] = _("Paid Leave Days")
+        extra_context["taken_paid_leaves_label"] = _("Paid Leave Days")
         extra_context["paid_leave_available_label"] = _("Paid Leave Available")
         extra_context["absence_days_label"] = _("Absence Days")
         extra_context["early_leave_days_label"] = _("Early Leave Days")
@@ -306,7 +295,7 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
             extra_context["holiday_135"] = self.display_holiday_135(obj)
             extra_context["holiday_160"] = self.display_holiday_160(obj)
             extra_context["night_time_025"] = self.display_night_time_025(obj)
-            extra_context["paid_leave_days"] = self.display_paid_leave_days(obj)
+            extra_context["taken_paid_leaves"] = self.display_taken_paid_leaves(obj)
             extra_context["paid_leave_available"] = self.display_paid_leave_available(obj)
             extra_context["absence_days"] = self.display_absence_days(obj)
             extra_context["early_leave_days"] = self.display_early_leave_days(obj)
@@ -326,19 +315,49 @@ class MonthlyAttendanceAdmin(ApprovedBaseModelAdmin):
 
         return super().changeform_view(request, object_id, form_url, extra_context=extra_context)
 
+    def get_inline_instances(self, request, obj=None):
+        # Hide inlines on submit so Django skips validation & saving completely
+        if request.method == "POST" and ("_approve" in request.POST or "_confirm" in request.POST or "_reject" in request.POST):
+            return []
+        return super().get_inline_instances(request, obj)
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+
+        if request.method == "POST" and "_confirm" in request.POST and obj.taken_paid_leaves > 0:
+            obj.member.paid_leaves.first().update_remaining_days(obj.taken_paid_leaves, request.user.username)
+
     def save_related(self, request, form, formsets, change):
-        # 1. Let Django save the parent's m2m relationships and all inline formsets
+        if request.method == "POST" and ("_approve" in request.POST or "_reject" in request.POST or "_confirm" in request.POST):
+            # skip saving related objects
+            return
+
         super().save_related(request, form, formsets, change)
 
-        # 2. Get the saved parent instance
+        # Get the saved parent instance
         monthly_attendance = form.instance
 
-        # 3. Schedule the procedure to execute AFTER the current database transaction commits
+        # Schedule the procedure to execute AFTER the current database transaction commits
         member_id = monthly_attendance.member.id
         month = monthly_attendance.month
 
         # Register it to run AFTER the transaction commits
         transaction.on_commit(partial(call_calculate_working_time, member_id, month, request.user.username))
+
+    def has_confirm_permission(self, request):
+        """Check if the user has permission to confirm the object."""
+        return request.user.member.is_accounting_staff or super().has_confirm_permission(request)
+
+    def has_reject_permission(self, request):
+        """Check if the user has permission to reject the object."""
+        return request.user.member.is_accounting_staff or super().has_reject_permission(request)
+
+    def confirm_selected(self, request, queryset):
+        instances = super().confirm_selected(request, queryset)
+        for obj in instances:
+            if obj.taken_paid_leaves > 0:
+                obj.member.paid_leaves.first().update_remaining_days(obj.taken_paid_leaves, request.user.username)
+        return instances
 
     def get_urls(self):
         urls = super().get_urls()

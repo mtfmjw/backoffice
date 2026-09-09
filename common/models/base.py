@@ -40,7 +40,7 @@ class RowScopedModelMixin(MemberScopedModelMixin):
             return False
 
         if login_user.member.organization_id is None:
-            return login_user.member.is_company_executive
+            return login_user.member.is_company_executive or login_user.member.is_sys_staff
         return True
 
     def is_editable_by(self, login_user):
@@ -114,7 +114,7 @@ class BaseModel(models.Model):
 
         if rows_updated == 0:
             self.version = old_version  # Revert local instance version
-            raise ConcurrencyError("This record was modified by another user.")
+            raise ConcurrencyError(_("This record was modified by another user."))
 
 
 class MemberScopedBaseModel(MemberScopedModelMixin, BaseModel):
@@ -159,9 +159,7 @@ class ApprovedModel(RowScopedModelMixin, models.Model):
 
     def is_confirmable_by(self, login_user):
         """Check if the record is confirmable by the given user."""
-        return self.approve_status == ApproveStatus.APPROVED and (
-            login_user.member.is_attendance_management_staff or login_user.member.is_company_executive
-        )
+        return self.approve_status == ApproveStatus.APPROVED and login_user.member.is_company_executive
 
 
 class ApprovedBaseModel(ApprovedModel, BaseModel):

@@ -9,13 +9,13 @@ from kintai.models.base import KintaiBaseModelMixin
 class MonthlyAttendance(KintaiBaseModelMixin, ApprovedBaseModel):
     """月次勤怠テーブル（1人1月あたりの確定データ）"""
 
-    member = models.ForeignKey(Member, on_delete=models.DO_NOTHING, related_name="attendance_records", verbose_name=_("OrganizationMember"))
+    member = models.ForeignKey(Member, on_delete=models.DO_NOTHING, related_name="attendance_records", verbose_name=_("Organization Member"))
     work_pattern = models.ForeignKey(WorkPattern, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name=_("Work Pattern"))
     month = models.DateField(_("Month"))
     # 勤怠集計結果を保存するフィールド
     actual_work_minutes = models.PositiveIntegerField(_("Actual Working Time"), default=0, null=True, blank=True)
     worked_days = models.FloatField(_("Days Worked"), default=0, null=True, blank=True)
-    paid_leave_days = models.FloatField(_("Paid Leave Days"), default=0, null=True, blank=True)  # Including half-days
+    taken_paid_leaves = models.FloatField(_("Paid Leave Days"), default=0, null=True, blank=True)  # Including half-days
     standard_working_days = models.PositiveIntegerField(_("Standard Working Days"), default=0, null=True, blank=True)
     absence_days = models.PositiveIntegerField(_("Absence Days"), default=0, null=True, blank=True)
     early_leave_days = models.PositiveIntegerField(_("Early Leave Days"), default=0, null=True, blank=True)
