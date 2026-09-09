@@ -1,0 +1,1 @@
+python manage.py dumpdata auth.Group --natural-foreign --natural-primary --indent 2 > common\data\groups.json

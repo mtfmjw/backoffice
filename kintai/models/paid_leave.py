@@ -24,17 +24,21 @@ class PaidLeave(RowScopedBaseModel):
 
     @classmethod
     def is_authorized(cls, login_user):
-        return super().is_authorized(login_user) or login_user.member.is_accounting_staff
+        if getattr(login_user, "member", None) is not None and login_user.member.is_accounting_staff:
+            return True
+        return super().is_authorized(login_user)
 
     def is_editable_by(self, login_user):
-        return login_user.member.is_accounting_staff
+        return getattr(login_user, "member", None) is not None and login_user.member.is_accounting_staff
 
     def is_deletable_by(self, login_user):
         return False
 
     @classmethod
     def is_all_organizations_accessible(cls, login_user):
-        return login_user.member.is_accounting_staff or super().is_all_organizations_accessible(login_user)
+        if getattr(login_user, "member", None) is not None and login_user.member.is_accounting_staff:
+            return True
+        return super().is_all_organizations_accessible(login_user)
 
     @cached_property
     def available_days(self):
