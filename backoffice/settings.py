@@ -27,9 +27,29 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("SECRET_KEY", default="django-insecure-dev-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "django_web",
+    "web",
+    "*",
+]
+
+# Trust the X-Forwarded-Proto header sent by Nginx
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# Explicitly allow CSRF origins for local HTTPS development
+CSRF_TRUSTED_ORIGINS = [
+    "https://localhost:8443",
+    "https://127.0.0.1:8443",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+]
+
+# (Optional) Ensure cookies are sent securely
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 
 # Application definition
@@ -48,6 +68,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -158,5 +179,6 @@ DATETIME_INPUT_FORMATS = [
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 LOGGING = LOG_SETTINGS
