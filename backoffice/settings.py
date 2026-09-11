@@ -45,6 +45,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://127.0.0.1:8443",
     "http://localhost:8080",
     "http://127.0.0.1:8080",
+    "http://*",
+    "https://*",
 ]
 
 # (Optional) Ensure cookies are sent securely
