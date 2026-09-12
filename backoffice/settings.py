@@ -29,25 +29,13 @@ SECRET_KEY = config("SECRET_KEY", default="django-insecure-dev-key")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "django_web",
-    "web",
-    "*",
-]
+ALLOWED_HOSTS = ["ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com"]
 
 # Trust the X-Forwarded-Proto header sent by Nginx
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # Explicitly allow CSRF origins for local HTTPS development
-CSRF_TRUSTED_ORIGINS = [
-    "https://localhost:8443",
-    "https://127.0.0.1:8443",
-    "http://localhost:8080",
-    "http://127.0.0.1:8080",
-    "http://*",
-    "https://*",
-]
+# CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="http://localhost:8000,http://127.0.0.1:8000", cast=Csv())
+CSRF_TRUSTED_ORIGINS = ["http://ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com"]
 
 # (Optional) Ensure cookies are sent securely
 SESSION_COOKIE_SECURE = True
