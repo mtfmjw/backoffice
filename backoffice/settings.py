@@ -181,9 +181,14 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Enables automatic compression and unique hashed filenames for long-term browser caching
 STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "OPTIONS": {
+            "manifest_strict": False,  # Prevents crashing if a template path is mismatched
+        },
     },
 }
-
 LOGGING = LOG_SETTINGS
