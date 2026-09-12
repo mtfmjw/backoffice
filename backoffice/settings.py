@@ -45,11 +45,16 @@ except Exception:  # noqa: BLE001, S110
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # Explicitly allow CSRF origins for local HTTPS development
 # CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="http://localhost:8000,http://127.0.0.1:8000", cast=Csv())
-CSRF_TRUSTED_ORIGINS = ["http://ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com"]
+CSRF_TRUSTED_ORIGINS = [
+    "http://ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com",
+    "http://ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com:80",
+    "https://ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com",
+    "https://ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com:443",
+]
 
-# (Optional) Ensure cookies are sent securely
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# Ensure cookies are sent securely for HTTPS connections
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
 
 
 # Application definition
