@@ -30,7 +30,8 @@ SECRET_KEY = config("SECRET_KEY", default="django-insecure-dev-key")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com", "localhost", "127.0.0.1"]
+# ALLOWED_HOSTS = ["ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["*"]
 
 # Fargate コンテナ自身のプライベート IP を動的に取得して ALLOWED_HOSTS に自動追加
 try:
