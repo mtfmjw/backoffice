@@ -23,8 +23,8 @@ COPY . .
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Collect static files into STATIC_ROOT during container build
-RUN python manage.py collectstatic --noinput
+# Collect static files at entrypoint time
+#RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 EXPOSE 5432
