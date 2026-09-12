@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-import socket
 from pathlib import Path
 
 from decouple import config
@@ -30,16 +29,10 @@ SECRET_KEY = config("SECRET_KEY", default="django-insecure-dev-key")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com", "localhost", "127.0.0.1"]
-# ALLOWED_HOSTS = ["*"]
+# ALLOWED_HOSTS = ["ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com", "localhost", "127.0.0.1"]
+# AWS Fargate dynamically assigns public IPs, so we allow all hosts for now.
+ALLOWED_HOSTS = ["*"]
 
-# Fargate コンテナ自身のプライベート IP を動的に取得して ALLOWED_HOSTS に自動追加
-try:
-    hostname = socket.gethostname()
-    local_ip = socket.gethostbyname(hostname)
-    ALLOWED_HOSTS.append(local_ip)
-except Exception:  # noqa: BLE001, S110
-    pass
 
 # Trust the X-Forwarded-Proto header sent by Nginx
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
