@@ -186,9 +186,8 @@ STORAGES = {
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-        "OPTIONS": {
-            "manifest_strict": False,  # Prevents crashing if a template path is mismatched
-        },
     },
 }
+WHITENOISE_MANIFEST_STRICT = False
+
 LOGGING = LOG_SETTINGS
