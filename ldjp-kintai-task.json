@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:ap-northeast-1:732778637082:task-definition/ldjp-kintai:10",
+    "taskDefinitionArn": "arn:aws:ecs:ap-northeast-1:732778637082:task-definition/ldjp-kintai:19",
     "containerDefinitions": [
         {
             "name": "Main",
-            "image": "732778637082.dkr.ecr.ap-northeast-1.amazonaws.com/ldjp-kintai:cf89cbfcecca8700f408a8ff28f9f01ade650189",
+            "image": "732778637082.dkr.ecr.ap-northeast-1.amazonaws.com/ldjp-kintai:e90142d7fe2d194630529e2350ac661609c83f1a",
             "cpu": 0,
             "portMappings": [
                 {
@@ -17,6 +17,14 @@
             "essential": true,
             "environment": [
                 {
+                    "name": "DB_PORT",
+                    "value": "5432"
+                },
+                {
+                    "name": "DB_USER",
+                    "value": "postgres"
+                },
+                {
                     "name": "SECRET_KEY",
                     "value": "d1bizrvwc)2#l9^b#9h#8w#ol$p58!%rkvx^l*s^*po=ejq+h2"
                 },
@@ -25,16 +33,12 @@
                     "value": "postgres"
                 },
                 {
-                    "name": "DB_HOST",
+                    "name": "RDS_ENDPOINT",
                     "value": "ldjp-kintai-postgres.c9muce4a01tc.ap-northeast-1.rds.amazonaws.com"
                 },
                 {
-                    "name": "DB_PORT",
-                    "value": "5432"
-                },
-                {
-                    "name": "DB_USER",
-                    "value": "postgres"
+                    "name": "DB_HOST",
+                    "value": "ldjp-kintai-postgres.c9muce4a01tc.ap-northeast-1.rds.amazonaws.com"
                 },
                 {
                     "name": "DB_PASSWORD",
@@ -59,7 +63,7 @@
     "family": "ldjp-kintai",
     "executionRoleArn": "arn:aws:iam::732778637082:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 10,
+    "revision": 19,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -91,8 +95,8 @@
     "placementConstraints": [],
     "compatibilities": [
         "EC2",
-        "FARGATE",
-        "MANAGED_INSTANCES"
+        "MANAGED_INSTANCES",
+        "FARGATE"
     ],
     "runtimePlatform": {
         "cpuArchitecture": "X86_64",
@@ -103,7 +107,7 @@
     ],
     "cpu": "1024",
     "memory": "3072",
-    "registeredAt": "2026-09-12T01:42:18.183Z",
+    "registeredAt": "2026-09-12T19:26:24.871Z",
     "registeredBy": "arn:aws:iam::732778637082:user/mt.tamaki@leadingsoft.co.jp",
     "enableFaultInjection": false,
     "tags": []
