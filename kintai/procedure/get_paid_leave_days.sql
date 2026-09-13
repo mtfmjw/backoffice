@@ -5,7 +5,7 @@ DECLARE
     v_years INTEGER;
 BEGIN
     -- 未入社の場合
-    IF target_date < hire_date THEN
+    IF hire_date IS NULL OR target_date < hire_date THEN
         RETURN 0;
     END IF;
 
