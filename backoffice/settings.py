@@ -27,9 +27,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("SECRET_KEY", default="django-insecure-dev-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = ["ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com", "localhost", "127.0.0.1"]
+# AWS Fargate dynamically assigns public IPs, so we allow all hosts for now.
+ALLOWED_HOSTS = ["*"]
+
+
+# Trust the X-Forwarded-Proto header sent by Nginx
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# Explicitly allow CSRF origins for local HTTPS development
+# CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="http://localhost:8000,http://127.0.0.1:8000", cast=Csv())
+CSRF_TRUSTED_ORIGINS = [
+    "http://ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com",
+    "http://ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com:80",
+    "https://ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com",
+    "https://ldjp-kintai-load-balancer-591845134.ap-northeast-1.elb.amazonaws.com:443",
+]
+
+# Ensure cookies are sent securely for HTTPS connections
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
 
 
 # Application definition
@@ -48,6 +66,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -158,5 +177,17 @@ DATETIME_INPUT_FORMATS = [
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Enables automatic compression and unique hashed filenames for long-term browser caching
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+WHITENOISE_MANIFEST_STRICT = False
 
 LOGGING = LOG_SETTINGS

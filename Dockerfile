@@ -11,15 +11,26 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
+    socat \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY requirements.txt /app/
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project source files
-COPY . /app/
+COPY . .
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Collect static files at entrypoint time
+#RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
+EXPOSE 5432
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Set the entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "backoffice.wsgi:application"]
