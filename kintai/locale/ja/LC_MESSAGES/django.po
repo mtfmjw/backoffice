@@ -221,7 +221,7 @@ msgstr "年休付与（%(year)s年10月）"
 
 #: .\kintai\admin\paid_leave.py:68
 msgid "No members found without granted paid leave."
-msgstr "年休未付与の新入社員はありません。"
+msgstr "年休未付与の新入社員はありません。新入社員の入社日が入力されているか確認してください。"
 
 #: .\kintai\admin\paid_leave.py:107
 msgid "To grant annual leave, please specify the year."

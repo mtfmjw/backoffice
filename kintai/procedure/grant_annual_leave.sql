@@ -12,6 +12,7 @@ BEGIN
             get_paid_leave_days(join_date, v_valid_from) AS acquired_days
         FROM member
         WHERE valid_flag = TRUE
+        AND join_date IS NOT NULL
     )
     INSERT INTO paid_leave (
         member_id,
